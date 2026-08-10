@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>خطة بناء منصة معلّم العلوم — المستوى الخامس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#8A1538;
+    --maroon-soft:#B03A5B;
+    --ink:#1E2430;
+    --ink-2:#4A5568;
+    --cream:#FBF8F3;
+    --card:#FFFFFF;
+    --line:#E6DFD4;
+    --gold:#C08A2E;
+    --teal:#0F6B62;
+    --teal-soft:#E6F2F0;
+    --green:#2E7D4F;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Tajawal',"Segoe UI",Tahoma,sans-serif;
+    font-size:19px;
+    line-height:1.95;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px 90px}
+
+  header.hero{
+    background:linear-gradient(160deg,#8A1538 0%,#5E0E26 100%);
+    color:#fff;padding:56px 20px 48px;margin-bottom:40px;
+  }
+  header.hero .inner{max-width:900px;margin:0 auto}
+  .kicker{
+    display:inline-block;background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.3);
+    padding:5px 16px;border-radius:999px;font-size:15px;font-weight:500;
+    letter-spacing:.3px;margin-bottom:18px;
+  }
+  header.hero h1{font-size:40px;line-height:1.4;margin:0 0 14px;font-weight:800}
+  header.hero p{font-size:20px;margin:0;opacity:.92;max-width:640px;font-weight:400}
+
+  h2{
+    font-size:29px;font-weight:800;margin:56px 0 6px;
+    padding-bottom:12px;border-bottom:3px solid var(--line);
+    display:flex;align-items:center;gap:14px;
+  }
+  h2 .num{
+    background:var(--maroon);color:#fff;width:44px;height:44px;
+    border-radius:12px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:21px;flex:0 0 44px;
+  }
+  h2 + .sub{color:var(--ink-2);font-size:18px;margin:0 0 24px}
+  h3{font-size:23px;font-weight:700;margin:36px 0 10px;color:var(--maroon)}
+  h4{font-size:20px;font-weight:700;margin:24px 0 6px}
+  p{margin:0 0 16px}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:26px 28px;margin:22px 0;box-shadow:0 1px 3px rgba(0,0,0,.03);
+  }
+  .card.tint{background:var(--teal-soft);border-color:#CBE3DF}
+  .card.warn{background:#FDF6E9;border-color:#EBD9B2}
+  .card.gold{background:#FCF7EC;border-color:#E8D9B8}
+
+  .lead{font-size:21px;font-weight:500;color:var(--ink)}
+
+  ul,ol{margin:0 0 16px;padding-inline-start:26px}
+  li{margin-bottom:9px}
+  li::marker{color:var(--maroon)}
+  strong{font-weight:700;color:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:17.5px;background:#fff;
+    border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th{background:var(--maroon);color:#fff;padding:12px 14px;text-align:right;font-weight:700;font-size:17px}
+  td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:#FCFAF7}
+
+  .layers{display:grid;gap:12px;margin:24px 0}
+  .layer{
+    display:flex;gap:16px;align-items:flex-start;
+    background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--teal);
+    border-radius:12px;padding:18px 20px;
+  }
+  .layer .badge{
+    background:var(--teal);color:#fff;border-radius:10px;
+    min-width:52px;height:52px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:19px;flex:0 0 52px;
+  }
+  .layer b{display:block;font-size:20px;margin-bottom:2px}
+  .layer span{color:var(--ink-2);font-size:17.5px;line-height:1.7}
+
+  .feat{display:grid;grid-template-columns:1fr;gap:12px;margin:18px 0}
+  .feat > div{
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+  }
+  .feat b{display:block;color:var(--maroon);font-size:19px;margin-bottom:3px}
+  .feat span{color:var(--ink-2);font-size:17.5px;line-height:1.7}
+
+  .phase{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;margin:14px 0;border-inline-start:6px solid var(--gold);
+  }
+  .phase .tag{
+    display:inline-block;background:var(--gold);color:#fff;font-size:15px;font-weight:700;
+    padding:3px 14px;border-radius:999px;margin-bottom:8px;
+  }
+  .phase h4{margin:0 0 8px;font-size:21px}
+
+  .check{list-style:none;padding:0}
+  .check li{
+    position:relative;padding-inline-start:36px;margin-bottom:12px;
+  }
+  .check li::before{
+    content:"";position:absolute;inset-inline-start:0;top:9px;
+    width:20px;height:20px;border:2px solid var(--maroon);border-radius:6px;
+  }
+
+  .note{
+    background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--maroon-soft);
+    border-radius:12px;padding:18px 20px;margin:14px 0;
+  }
+  .note b{color:var(--maroon)}
+
+  .pill{display:inline-block;background:var(--teal-soft);color:var(--teal);
+    border:1px solid #CBE3DF;border-radius:999px;padding:2px 12px;font-size:16px;font-weight:600;margin:2px}
+
+  footer{margin-top:70px;padding-top:26px;border-top:3px solid var(--line);color:var(--ink-2);font-size:17px}
+
+  @media (max-width:640px){
+    body{font-size:18px}
+    header.hero h1{font-size:31px}
+    header.hero p{font-size:18px}
+    h2{font-size:25px}
+    h2 .num{width:38px;height:38px;flex:0 0 38px;font-size:18px}
+    h3{font-size:21px}
+    .card{padding:20px}
+    table{font-size:16px}
+    th,td{padding:10px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <span class="kicker">خطة بناء · نسخة أولى للمراجعة</span>
+    <h1>منصّة معلّم العلوم<br>المستوى الخامس — المنهج القطري</h1>
+    <p>مركز عمل واحد يجمع كل بياناتك، ويحوّلها بضغطة زر إلى درجات وتقارير وشهادات وأوراق عمل وعروض تقديمية.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="card tint">
+  <p class="lead" style="margin-bottom:10px">الخلاصة في ستة أسطر</p>
+  <ul style="margin-bottom:0">
+    <li>المنصّة <strong>لك أنت</strong> — تشتغل على جهازك، بدون إنترنت، وبدون اشتراك شهري.</li>
+    <li>أساسها قاعدة واحدة: <strong>تُدخل المعلومة مرّة واحدة، وتستخدمها في كل مكان</strong>.</li>
+    <li>ما طلبته (درجات + نقاط + شهادات + توليد ملفات) هو <strong>النواة</strong> — وهو صحيح تماماً.</li>
+    <li>أضفت لك <strong>٢٢ فكرة</strong> غابت عنك، أهمّها بنك الأسئلة، التحضير اليومي، ملف الإنجاز، والإنذار المبكر.</li>
+    <li>عندي <strong>٤ ملاحظات</strong> على ما قلته — واحدة منها مهمة جداً بخصوص الوزارة.</li>
+    <li>البناء على <strong>٦ مراحل</strong>، كل مرحلة تشتغل وحدها وتقدر تستخدمها فوراً.</li>
+  </ul>
+</div>
+
+<!-- ============ 1 ============ -->
+<h2><span class="num">١</span> الأساس: على أي شيء تُبنى المنصّة؟</h2>
+<p class="sub">هذا هو جواب سؤالك «إيه أساسها». الأساس ليس برنامجاً — الأساس هو <em>فكرة تنظيمية</em>، والبرنامج مجرد تنفيذ لها.</p>
+
+<div class="card">
+  <h3 style="margin-top:0">القاعدة الذهبية</h3>
+  <p class="lead">كل ورقة تكتبها اليوم — كشف درجات، شهادة، تقرير لولي أمر، تقرير للإدارة، ورقة عمل — هي في الحقيقة <strong>نفس البيانات</strong> معروضة بشكل مختلف.</p>
+  <p style="margin-bottom:0">فبدل أن تكتب اسم الطالب عشر مرات في عشرة ملفات، تُدخله <strong>مرّة واحدة</strong>، ثم تطلب من المنصّة: «اطبع لي شهادة»، «اعمل لي كشف Excel»، «جهّز تقرير الفصل». هذا الفرق بين «مجموعة ملفات» وبين «منصّة».</p>
+</div>
+
+<h3>الطبقات الأربع</h3>
+<div class="layers">
+  <div class="layer">
+    <div class="badge">١</div>
+    <div>
+      <b>طبقة البيانات — المخزن</b>
+      <span>الطلاب، الفصول، المنهج ووحداته ودروسه، الدرجات، النقاط، الحضور، الملاحظات، مكتبة ملفاتك (عروض، أوراق عمل، صور، فيديوهات). هذه هي «الحقيقة الوحيدة» في النظام.</span>
+    </div>
+  </div>
+  <div class="layer">
+    <div class="badge">٢</div>
+    <div>
+      <b>طبقة القواعد — العقل</b>
+      <span>كيف تُحسب الدرجة النهائية؟ كم نقطة على الواجب؟ متى يترقّى الطالب لمستوى أعلى؟ من هو «الأكثر تحسّناً»؟ <strong>كل هذه أرقام تُعدّلها أنت من شاشة الإعدادات</strong> — لا تحتاج مبرمجاً لتغييرها كل عام.</span>
+    </div>
+  </div>
+  <div class="layer">
+    <div class="badge">٣</div>
+    <div>
+      <b>طبقة القوالب — الشكل</b>
+      <span>قالب الشهادة، قالب التقرير، قالب ورقة العمل، قالب خطة الدرس، قالب كشف الدرجات الرسمي. القالب ثابت والبيانات تتغيّر — لهذا يمكن إخراج ٣٠ شهادة في ثانيتين.</span>
+    </div>
+  </div>
+  <div class="layer">
+    <div class="badge">٤</div>
+    <div>
+      <b>طبقة المخرجات — التسليم</b>
+      <span>تحويل (بيانات + قالب) إلى ملف حقيقي: <span class="pill">Word</span><span class="pill">Excel</span><span class="pill">PowerPoint</span><span class="pill">PDF</span><span class="pill">صورة</span> جاهز للطباعة أو الإرسال أو الرفع على نظام الوزارة.</span>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <b>لماذا هذا الترتيب مهم لك تحديداً؟</b><br>
+  لأنه يعني أنك تبني المنصّة <strong>مرّة واحدة</strong>، وتستخدمها كل عام. في بداية كل عام تغيّر قائمة الطلاب فقط — والباقي (المنهج، القوالب، بنك الأسئلة، نظام النقاط) يبقى ويكبر معك سنة بعد سنة.
+</div>
+
+<!-- ============ 2 ============ -->
+<h2><span class="num">٢</span> ما طلبته أنت — النواة</h2>
+<p class="sub">كل ما ذكرته صحيح وأساسي، وهذا شكله التفصيلي داخل المنصّة.</p>
+
+<table>
+  <tr><th style="width:26%">الوحدة</th><th>ماذا تفعل بالضبط</th></tr>
+  <tr>
+    <td><strong>سجل الطلاب</strong></td>
+    <td>ملف لكل طالب: الاسم، الرقم، الفصل، صورة اختيارية، بيانات ولي الأمر، ملاحظات، وتاريخه الكامل (درجات + نقاط + حضور + سلوك) في شاشة واحدة.</td>
+  </tr>
+  <tr>
+    <td><strong>رصد الدرجات</strong></td>
+    <td>شاشة إدخال سريعة: الفصل كله أمامك، تكتب الدرجات بالتنقّل بالكيبورد. مقسّمة حسب مكوّنات التقييم المعتمدة (مشاركة صفية، واجبات، تقييمات قصيرة، نشاط/مشروع، اختبار نهاية الفصل) — <strong>والنِّسَب قابلة للتعديل</strong> لأنها تتغيّر من عام لآخر ومن صف لآخر.</td>
+  </tr>
+  <tr>
+    <td><strong>نظام النقاط</strong></td>
+    <td>محرّك يحسب لكل طالب رصيده تلقائياً من سلوكه اليومي، بسقف شهري وترتيب ومستويات — التفاصيل في القسم ٥.</td>
+  </tr>
+  <tr>
+    <td><strong>مولّد الشهادات</strong></td>
+    <td>تختار الطالب أو الفصل كله + نوع الشهادة → تخرج جاهزة بالاسم والتاريخ وشعار المدرسة وتوقيعك، بصيغة PDF للطباعة أو صورة للإرسال.</td>
+  </tr>
+  <tr>
+    <td><strong>توليد الملفات</strong></td>
+    <td>Word (تقارير، خطط، نماذج) · Excel (كشوف، تحليل نتائج) · PowerPoint (عروض الدروس) · PDF (شهادات، أوراق عمل، بطاقات متابعة).</td>
+  </tr>
+  <tr>
+    <td><strong>مكتبة الموارد</strong></td>
+    <td>كل ملفاتك (العروض، أوراق العمل، الفيديوهات، الصور) مربوطة بالوحدة والدرس. تفتح الدرس فتجد كل ما يخصّه أمامك — بدل البحث في المجلدات.</td>
+  </tr>
+</table>
+
+<!-- ============ 3 ============ -->
+<h2><span class="num">٣</span> ما فاتك — ٢٢ إضافة</h2>
+<p class="sub">هذه أشياء يحتاجها معلّم العلوم فعلياً، ولم تذكرها. اختر منها ما يناسبك — ليس شرطاً أن نبنيها كلها.</p>
+
+<h3>أ. الإدارة الصفية اليومية</h3>
+<div class="feat">
+  <div><b>١. الحضور والغياب</b><span>نقرة واحدة لكل حصة، ومربوط تلقائياً بالنقاط. يوفّر عليك سجلاً ورقياً كاملاً، ويكشف الغياب المتكرر مبكراً.</span></div>
+  <div><b>٢. سجل السلوك والملاحظات</b><span>إيجابي وسلبي، بتاريخ ووصف. ملاحظة واحدة مكتوبة تساوي عشر مرات «أنا فاكر إن...» عند مقابلة ولي الأمر.</span></div>
+  <div><b>٣. سجل التواصل مع أولياء الأمور</b><span>من كلّمت، ومتى، وفي أي موضوع، وماذا كانت النتيجة. هذا سجل <strong>يحميك</strong> عند أي مساءلة.</span></div>
+  <div><b>٤. أدوات صفية سريعة</b><span>اختيار طالب عشوائي، عجلة الحظ، مؤقّت النشاط، تقسيم عشوائي للمجموعات — أشياء صغيرة تُستخدم يومياً.</span></div>
+</div>
+
+<h3>ب. التخطيط والتحضير — وهذا ما تطلبه الإدارة</h3>
+<div class="feat">
+  <div><b>٥. التحضير اليومي / خطة الدرس</b><span>نموذج جاهز (الأهداف، المعايير، التمهيد، الاستراتيجيات، التقويم، الواجب) تملأه في دقائق ويخرج Word منسّق. وتُحفظ الخطة لتعيد استخدامها العام القادم.</span></div>
+  <div><b>٦. التوزيع الزمني للمنهج</b><span>خطة فصلية مربوطة بالتقويم الأكاديمي القطري والإجازات، تُريك: هل أنت متقدّم أم متأخر عن الخطة؟ وكم حصة بقيت للوحدة؟</span></div>
+  <div><b>٧. سجل التجارب العملية</b><span>لكل تجربة: الأدوات والمواد المطلوبة، خطوات السلامة، ورقة تقرير التجربة للطالب. مع قائمة مشتريات تُصدَّر لأمين المختبر.</span></div>
+  <div><b>٨. ملف الإنجاز (Portfolio)</b><span>هذا ما تطلبه الإدارة في تقييمك السنوي: خططك، أنشطتك، صور فعالياتك، إحصائيات نتائج طلابك، شهادات الطلاب، الدورات. المنصّة تجمعه تلقائياً وتُخرجه مستنداً واحداً منسّقاً.</span></div>
+</div>
+
+<h3>ج. المحتوى والتقييم</h3>
+<div class="feat">
+  <div><b>٩. بنك الأسئلة</b><span>أهمّ إضافة على الإطلاق. كل سؤال مصنّف حسب: الوحدة، الدرس، النوع (اختيار من متعدد / صح وخطأ / مقالي)، ومستوى الصعوبة. تكبر ثروتك منه كل عام.</span></div>
+  <div><b>١٠. مولّد الاختبارات</b><span>تحدّد: «١٥ سؤالاً من الوحدة الثانية، ٦٠٪ سهل و٤٠٪ متوسط» → يخرج الاختبار + نموذج الإجابة + نسختان مختلفتا الترتيب (أ / ب) لمنع النقل.</span></div>
+  <div><b>١١. مولّد أوراق العمل</b><span>ورقة عمل منسّقة بترويسة المدرسة واسم الطالب، من بنك الأسئلة نفسه، بصيغة Word تُعدّلها أو PDF تطبعها.</span></div>
+  <div><b>١٢. مولّد عروض الدروس</b><span>تكتب عناصر الدرس → يخرج PowerPoint منسّق بألوان ثابتة وخط عربي واضح، جاهز للعرض على السبورة الذكية.</span></div>
+  <div><b>١٣. خطط الدعم والإثراء</b><span>الطلاب الضعاف: خطة علاجية بأنشطة محدّدة ومتابعة. الموهوبون: مهام إثرائية ومشاريع بحثية. الاثنان مطلوبان منك رسمياً.</span></div>
+</div>
+
+<h3>د. التحليل والقرار</h3>
+<div class="feat">
+  <div><b>١٤. لوحة تحليلات ورسوم بيانية</b><span>متوسط كل فصل، توزيع المستويات، مقارنة الفصلين، تطوّر كل طالب عبر العام — رسوم جاهزة تُلصق في تقرير الإدارة مباشرة.</span></div>
+  <div><b>١٥. تحليل الأسئلة</b><span>أي سؤال أخطأ فيه أغلب الفصل؟ هذا يخبرك أن <strong>الدرس</strong> يحتاج إعادة شرح، لا أن الطلاب مقصّرون. هذه معلومة ذهبية.</span></div>
+  <div><b>١٦. الإنذار المبكر</b><span>تنبيه تلقائي: «طالب نزلت درجاته ٣ مرات متتالية» · «طالب غاب ٤ مرات هذا الشهر» · «طالب لم يكسب أي نقاط منذ أسبوعين». تتدخّل قبل أن تكبر المشكلة.</span></div>
+  <div><b>١٧. الأرشيف السنوي</b><span>كل عام يُحفظ كاملاً. تقارن دفعة بدفعة، وتعيد استخدام موارد العام الماضي بدل إعادة البناء.</span></div>
+  <div><b>١٨. البحث الشامل</b><span>تكتب «الجهاز الدوري» فيظهر: الدرس، عرضه، أوراق عمله، أسئلته، تجاربه، ودرجات الطلاب فيه — كل شيء في شاشة واحدة.</span></div>
+</div>
+
+<h3>هـ. المتعة والتحفيز</h3>
+<div class="feat">
+  <div><b>١٩. متجر المكافآت</b><span>الطالب <strong>يصرف</strong> نقاطه: قسيمة تأجيل واجب، الجلوس في مقعد المعلّم، اختيار نشاط الحصة، شهادة، هدية رمزية. بدون «صرف» تفقد النقاط قيمتها بعد شهر.</span></div>
+  <div><b>٢٠. الأوسمة والألقاب</b><span>«عالِم الشهر» · «صاحب أفضل تجربة» · «الباحث الفضولي» · «نجم التعاون». وسام مصوّر يظهر في ملف الطالب وعلى شهادته.</span></div>
+  <div><b>٢١. ألعاب المراجعة</b><span>كويز تفاعلي على الشاشة من بنك أسئلتك نفسه، تحدّي مجموعات، لوحة صدارة معروضة على السبورة. صفر تحضير إضافي — نفس الأسئلة الموجودة أصلاً.</span></div>
+  <div><b>٢٢. رمز QR على المطبوعات</b><span>رمز على الشهادة أو ورقة العمل يفتح للطالب فيديو التجربة أو نشاطاً إثرائياً في البيت. بسيط لكن أثره كبير على الطالب وولي الأمر.</span></div>
+</div>
+
+<!-- ============ 4 ============ -->
+<h2><span class="num">٤</span> ملاحظاتي على ما قلته</h2>
+<p class="sub">سألتني «وإيه غلط أنا قلته» — لا يوجد شيء خاطئ، لكن هناك أربع نقاط تحتاج تصحيح توقّع.</p>
+
+<div class="card warn">
+  <h4 style="margin-top:0">١) المنصّة لا تُسلّم للوزارة — بل تُجهّز لك التسليم</h4>
+  <p style="margin-bottom:0">هذه أهم ملاحظة. الوزارة والمدرسة لديهما نظامهما الرسمي المعتمد لرصد الدرجات، ولا يُقبل رفع بيانات من نظام خارجي مباشرة. دور منصّتنا أن تُخرج لك <strong>ملف Excel بنفس ترتيب أعمدة النظام الرسمي</strong>، فتنسخه وتلصقه في دقائق بدل ساعات — مع تقرير PDF منسّق للإدارة. أي أنها <em>تُغذّي</em> النظام الرسمي ولا تحلّ محلّه.</p>
+</div>
+
+<div class="card warn">
+  <h4 style="margin-top:0">٢) نسب الدرجات تتغيّر — فلا نكتبها في الكود</h4>
+  <p style="margin-bottom:0">سياسة التقييم في قطر تُعدَّل بين عام وآخر (توزيع درجات الفصل، وزن المشاركة والواجبات والاختبار النهائي، إلغاء أو إضافة اختبار منتصف الفصل). لذلك ستكون كل النسب في <strong>شاشة إعدادات تملؤها أنت</strong> بنسخة هذا العام، فتُحدّثها بنفسك في دقيقتين دون الحاجة إليّ.</p>
+</div>
+
+<div class="card warn">
+  <h4 style="margin-top:0">٣) نظام النقاط سلاح ذو حدّين مع أطفال ١٠ سنوات</h4>
+  <p style="margin-bottom:0">إن كانت النقاط للمتفوقين فقط، فالطالب الضعيف سيدرك خلال أسبوعين أنه لن يفوز أبداً، وسينسحب نفسياً — ويتحوّل نظامك من محفّز إلى محبِط. العلاج مدمج في التصميم: <strong>«الأكثر تحسّناً» جائزة مستقلة</strong>، وسقف شهري يمنع احتكار الصدارة، ونقاط للجهد والسلوك لا للدرجة وحدها، وتصفير شهري يمنح كل طالب بداية جديدة كل شهر.</p>
+</div>
+
+<div class="card warn">
+  <h4 style="margin-top:0">٤) بيانات الطلاب أمانة — وهذا يحكم الاختيار التقني</h4>
+  <p style="margin-bottom:0">أسماء أطفال قاصرين ودرجاتهم وملاحظات سلوكهم. لهذا السبب تحديداً <strong>لا نضع البيانات على موقع أو خدمة سحابية</strong>؛ تبقى على جهازك أنت، ونسخها الاحتياطية بيدك. هذا ليس تقليلاً من المنصّة — بل هو القرار الصحيح مهنياً وأخلاقياً.</p>
+</div>
+
+<!-- ============ 5 ============ -->
+<h2><span class="num">٥</span> نظام النقاط — التصميم التفصيلي</h2>
+<p class="sub">هذه أرقام مقترحة للبداية، وكلها قابلة للتعديل من شاشة الإعدادات.</p>
+
+<h3>كيف يكسب الطالب النقاط</h3>
+<table>
+  <tr><th style="width:38%">السلوك</th><th style="width:20%">النقاط</th><th>ملاحظة</th></tr>
+  <tr><td>الحضور الكامل للأسبوع</td><td>٥</td><td>يُحتسب تلقائياً من سجل الحضور</td></tr>
+  <tr><td>مشاركة صفية مميزة</td><td>٢</td><td>بضغطة زر أثناء الحصة</td></tr>
+  <tr><td>تسليم الواجب في موعده</td><td>٣</td><td>تلقائي من شاشة الواجبات</td></tr>
+  <tr><td>إنجاز تجربة عملية بإتقان</td><td>٨</td><td>خاص بمادة العلوم</td></tr>
+  <tr><td>سؤال علمي ذكي / فضول بحثي</td><td>٥</td><td>لتشجيع التفكير لا الحفظ</td></tr>
+  <tr><td>تعاون ومساعدة زميل</td><td>٤</td><td>يبني ثقافة الصف</td></tr>
+  <tr><td>درجة ٩٠٪ فأعلى في تقييم</td><td>١٠</td><td>تلقائي من سجل الدرجات</td></tr>
+  <tr style="background:#FCF7EC"><td><strong>تحسّن شخصي (رفع درجتك عن آخر تقييم)</strong></td><td><strong>١٥</strong></td><td><strong>أعلى مكافأة في النظام — وهي المفتاح</strong></td></tr>
+  <tr><td>مشروع أو بحث إضافي</td><td>٢٠</td><td>يدوي</td></tr>
+</table>
+
+<div class="card gold">
+  <p style="margin-bottom:0"><strong>لاحظ:</strong> أعلى مكافأة ليست للدرجة العالية، بل <strong>للتحسّن</strong>. طالب انتقل من ٤٠ إلى ٥٥ يكسب أكثر من طالب حصل على ٩٥ للمرّة العاشرة. هذه أهم قاعدة في النظام كله، ومنها يستفيد أضعف طلابك.</p>
+</div>
+
+<h3>المستويات والألقاب</h3>
+<table>
+  <tr><th>اللقب</th><th>النقاط التراكمية</th><th>الرمز</th></tr>
+  <tr><td>مستكشف مبتدئ</td><td>٠ – ٤٩</td><td>عدسة مكبّرة</td></tr>
+  <tr><td>باحث</td><td>٥٠ – ١٤٩</td><td>مجهر</td></tr>
+  <tr><td>عالِم صغير</td><td>١٥٠ – ٢٩٩</td><td>أنبوب اختبار</td></tr>
+  <tr><td>عالِم متميّز</td><td>٣٠٠ – ٤٩٩</td><td>ذرّة</td></tr>
+  <tr><td>سفير العلوم</td><td>٥٠٠+</td><td>نجمة ذهبية</td></tr>
+</table>
+
+<h3>المكافآت الشهرية</h3>
+<ul>
+  <li><strong>نجوم الشهر:</strong> أعلى ٣ طلاب في نقاط الشهر (يُصفَّر العدّاد الشهري في أول كل شهر).</li>
+  <li><strong>الأكثر تحسّناً:</strong> جائزة مستقلة تماماً — لا ينافس عليها المتفوقون.</li>
+  <li><strong>مجموعة الشهر:</strong> جائزة جماعية، تبني التعاون بدل المنافسة الفردية فقط.</li>
+  <li><strong>نجم الالتزام:</strong> لمن سلّم كل واجباته ولم يغب — جائزة يستطيع أي طالب نيلها مهما كان مستواه.</li>
+</ul>
+<p>الرصيد <strong>التراكمي</strong> لا يُصفَّر، ويُستخدم في متجر المكافآت وفي الترقّي بين الألقاب.</p>
+
+<!-- ============ 6 ============ -->
+<h2><span class="num">٦</span> الأساس التقني</h2>
+<p class="sub">بلغة واضحة، وبدون مصطلحات لا لزوم لها.</p>
+
+<div class="card">
+  <h4 style="margin-top:0">الشكل النهائي</h4>
+  <p>تطبيق كامل يُفتح على جهازك (لابتوب أو جهاز المدرسة)، بواجهة عربية من اليمين إلى اليسار، بخط كبير وأزرار واضحة وألوان مريحة. يعمل <strong>بدون إنترنت</strong>، ولا يحتاج تنصيب معقّد ولا اشتراكاً شهرياً.</p>
+  <h4>أين تُحفظ البيانات</h4>
+  <p>في قاعدة بيانات محلية داخل التطبيق على جهازك. لا شيء يُرفع إلى أي خادم خارجي.</p>
+  <h4>كيف تُولَّد الملفات</h4>
+  <p>التطبيق ينتج ملفات <strong>حقيقية قابلة للتعديل</strong> — لا صوراً: ملف Word تفتحه وتعدّله، وملف Excel فيه معادلات تعمل، وملف PowerPoint تعدّل شرائحه، وملف PDF جاهز للطباعة.</p>
+  <h4 style="margin-bottom:6px">الملفات الكبيرة (عروضك وفيديوهاتك)</h4>
+  <p style="margin-bottom:0">تبقى في مجلد منظّم على جهازك، والتطبيق يفهرسها ويربطها بالدروس. هذا أسرع وأأمن من حشرها داخل قاعدة البيانات.</p>
+</div>
+
+<h3>مبدأ التصميم الحاكم: أقل عدد نقرات</h3>
+<ul>
+  <li>رصد درجات فصل كامل من <strong>شاشة واحدة</strong>، بالتنقّل بالكيبورد دون لمس الفأرة.</li>
+  <li>خط كبير افتراضياً، وتباين لوني عالٍ، ومساحات واسعة بين الأزرار.</li>
+  <li>لا توجد شاشة تحتاج أكثر من <strong>٣ نقرات</strong> للوصول إليها من الصفحة الرئيسية.</li>
+  <li>زر «تراجع» في كل عملية حسّاسة، وتأكيد قبل أي حذف.</li>
+</ul>
+
+<h3>الحماية والنسخ الاحتياطي</h3>
+<ul>
+  <li>زر واحد: <strong>«احفظ نسخة كاملة»</strong> يُخرج ملفاً واحداً فيه كل شيء.</li>
+  <li>تذكير أسبوعي تلقائي بأخذ نسخة.</li>
+  <li>قفل بكلمة مرور عند فتح التطبيق (اختياري).</li>
+  <li>إمكانية استعادة أي نسخة سابقة بالكامل.</li>
+</ul>
+
+<div class="note">
+  <b>طريق التطوير مستقبلاً:</b> إن أردت لاحقاً أن يدخل الطلاب أو أولياء الأمور لمشاهدة نقاطهم، فبنية البيانات مصمّمة من البداية لتسمح بذلك دون إعادة بناء — نضيف طبقة عرض فقط. لكن لا نبدأ بها الآن؛ لأنها تضيف تعقيداً وتكلفة ومسؤولية خصوصية بلا حاجة حالية.
+</div>
+
+<!-- ============ 7 ============ -->
+<h2><span class="num">٧</span> مراحل البناء</h2>
+<p class="sub">كل مرحلة تُسلَّم شغّالة ويمكنك استخدامها فوراً، ثم نبني التي تليها فوقها.</p>
+
+<div class="phase">
+  <span class="tag">المرحلة صفر</span>
+  <h4>التجهيز — دورك أنت</h4>
+  <p style="margin-bottom:0">تُرسل لي البيانات (القائمة في القسم ٨). لا نكتب سطراً واحداً قبل أن نرى بياناتك الحقيقية — لأن شكل بياناتك هو ما يحدّد شكل النظام.</p>
+</div>
+
+<div class="phase">
+  <span class="tag">المرحلة الأولى</span>
+  <h4>النواة — الطلاب والدرجات والنقاط</h4>
+  <p style="margin-bottom:0">سجل الطلاب والفصول · شاشة رصد الدرجات المرنة · الحضور · محرّك النقاط ولوحة الصدارة · الصفحة الرئيسية. <strong>عند هذه النقطة تستطيع الاستغناء عن كشوفك الورقية.</strong></p>
+</div>
+
+<div class="phase">
+  <span class="tag">المرحلة الثانية</span>
+  <h4>المخرجات — الشهادات والتقارير</h4>
+  <p style="margin-bottom:0">مولّد الشهادات (٣ إلى ٥ قوالب) · بطاقة متابعة الطالب PDF لولي الأمر · كشف Excel بترتيب النظام الرسمي · تقرير الإدارة PDF · تصدير جماعي للفصل كله بضغطة واحدة.</p>
+</div>
+
+<div class="phase">
+  <span class="tag">المرحلة الثالثة</span>
+  <h4>المحتوى — المنهج وبنك الأسئلة</h4>
+  <p style="margin-bottom:0">إدخال شجرة المنهج (وحدات ← دروس ← أهداف) · مكتبة الموارد المربوطة بالدروس · بنك الأسئلة · مولّد الاختبارات ونماذج الإجابة · مولّد أوراق العمل.</p>
+</div>
+
+<div class="phase">
+  <span class="tag">المرحلة الرابعة</span>
+  <h4>التخطيط — التحضير وملف الإنجاز</h4>
+  <p style="margin-bottom:0">خطة الدرس اليومية وتصديرها Word · التوزيع الزمني للمنهج · سجل التجارب العملية · مولّد ملف الإنجاز · مولّد عروض PowerPoint.</p>
+</div>
+
+<div class="phase">
+  <span class="tag">المرحلة الخامسة</span>
+  <h4>المتعة — الألعاب والمكافآت</h4>
+  <p style="margin-bottom:0">متجر المكافآت · الأوسمة والألقاب · كويز المراجعة التفاعلي · لوحة الصدارة للعرض على السبورة · الأدوات الصفية السريعة · رموز QR.</p>
+</div>
+
+<div class="phase">
+  <span class="tag">المرحلة السادسة</span>
+  <h4>الذكاء — التحليل والإنذار المبكر</h4>
+  <p style="margin-bottom:0">لوحة التحليلات والرسوم · تحليل الأسئلة · تنبيهات الإنذار المبكر · خطط الدعم والإثراء · الأرشيف السنوي والمقارنة بين الأعوام.</p>
+</div>
+
+<!-- ============ 8 ============ -->
+<h2><span class="num">٨</span> ما أحتاجه منك</h2>
+<p class="sub">قلت إنك ستعطيني البيانات في المرحلة الأخيرة — هذه قائمة مرتّبة بالأولوية لتجهّزها على مهلك.</p>
+
+<h3>ضروري للبدء</h3>
+<ul class="check">
+  <li><strong>قوائم الطلاب:</strong> ملف Excel أو حتى صورة كشف — الاسم، الرقم، الفصل. (كم فصلاً تُدرّس؟ وكم طالباً في كل فصل؟)</li>
+  <li><strong>سياسة التقييم لهذا العام:</strong> توزيع درجات مادة العلوم للمستوى الخامس — الفصل الأول والثاني، ومكوّنات كل فصل ونسبها.</li>
+  <li><strong>نموذج كشف الدرجات الرسمي</strong> الذي ترفعه للمدرسة/الوزارة — صورة أو ملف، لنطابق ترتيب الأعمدة تماماً.</li>
+  <li><strong>شعار المدرسة</strong> واسمها الرسمي الكامل، وتوقيعك بصورة إن أردته على الشهادات.</li>
+</ul>
+
+<h3>للمرحلة الثالثة فما بعد</h3>
+<ul class="check">
+  <li><strong>كتاب العلوم</strong> للمستوى الخامس (الفصلان) — PDF إن أمكن.</li>
+  <li><strong>وثيقة معايير المنهج</strong> أو التوزيع الزمني المعتمد.</li>
+  <li><strong>عروض PowerPoint</strong> وأوراق العمل الموجودة عندك — ولو مجلداً مضغوطاً.</li>
+  <li><strong>اختباراتك السابقة</strong> — منها نبني النواة الأولى لبنك الأسئلة بسرعة.</li>
+  <li><strong>نماذج المدرسة</strong>: خطة الدرس، التقرير الشهري، ملف الإنجاز — لنطابق شكلها المعتمد.</li>
+</ul>
+
+<h3>أسئلة أحتاج جوابها</h3>
+<ol>
+  <li>الشرح والاختبارات بالعربية أم بالإنجليزية أم الاثنين؟ (بعض مدارس قطر تُدرّس العلوم بالإنجليزية)</li>
+  <li>هل تُدرّس مواد أخرى غير العلوم، أم العلوم فقط؟</li>
+  <li>ما الجهاز الذي ستستخدم عليه المنصّة أكثر: لابتوب ويندوز، أم جهاز لوحي، أم الموبايل؟</li>
+  <li>هل يوجد نظام إلكتروني لدى المدرسة ترصد فيه الدرجات حالياً؟ وما اسمه؟</li>
+  <li>ما أكثر شيء يستهلك وقتك اليوم ويُتعبك؟ (لنجعله المرحلة الأولى مهما كان ترتيبه في الخطة)</li>
+</ol>
+
+<footer>
+  <p><strong>الخطوة التالية:</strong> راجع هذه الخطة، واشطب ما لا تريده، وأضف ما نقص. ثم نبدأ بالمرحلة الأولى فوراً حتى لو لم تكتمل بياناتك — نبني بأسماء تجريبية، وتستبدلها بأسماء طلابك الحقيقية في دقيقة واحدة.</p>
+  <p style="margin-bottom:0;font-size:16px;opacity:.8">وثيقة تخطيط · نسخة أولى · أغسطس ٢٠٢٦ · قابلة للتعديل بالكامل</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# التبعيات
+node_modules/
+
+# مخرجات البناء
+dist/
+dist-ssr/
+
+# ملفات محلية
+*.local
+.env
+.env.*
+
+# ملفات النظام
+.DS_Store
+Thumbs.db
+
+# سجلات
+*.log
+npm-debug.log*
+
+# مجلد مخرجات المعلّمة (ملفات مولّدة، لا تدخل git)
+المخرجات/
+
+# أدوات المحررين
+.vscode/*
+!.vscode/extensions.json
+.idea/

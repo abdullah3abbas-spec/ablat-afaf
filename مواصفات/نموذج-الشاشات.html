@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>نموذج المنصّة — تجربة الشاشات</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --maroon:#8A1538; --maroon-d:#5E0E26; --teal:#0F6B62; --tealbg:#E6F2F0;
+  --ink:#1E2430; --ink2:#5A6473; --cream:#FBF8F3; --line:#E4DCD1;
+  --gold:#C08A2E; --green:#2E7D4F; --red:#B3261E; --fs:19px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--cream);color:var(--ink);
+  font-family:'Tajawal',"Segoe UI",Tahoma,sans-serif;font-size:var(--fs);line-height:1.8}
+button,input,select,textarea{font-family:inherit;font-size:1rem}
+
+/* ===== شريط علوي ===== */
+.topbar{position:sticky;top:0;z-index:50;background:linear-gradient(160deg,#8A1538,#5E0E26);
+  color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.topbar .ttl{flex:1;min-width:0}
+.topbar .ttl b{display:block;font-size:1.05em;font-weight:800;line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .ttl span{display:block;font-size:.78em;opacity:.85;line-height:1.3}
+.iconbtn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;
+  min-width:46px;height:46px;border-radius:12px;font-size:.85em;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0 10px}
+.iconbtn:active{background:rgba(255,255,255,.3)}
+
+/* ===== حاوية ===== */
+.wrap{max-width:760px;margin:0 auto;padding:16px 14px 110px}
+.screen{display:none} .screen.on{display:block}
+h2.sec{font-size:1.15em;font-weight:800;margin:22px 0 10px;color:var(--maroon)}
+.muted{color:var(--ink2);font-size:.88em}
+
+/* ===== بطاقات ===== */
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.classcard{display:flex;align-items:center;gap:14px;cursor:pointer;border-inline-start:7px solid var(--teal)}
+.classcard:active{background:#F7F4EF}
+.classcard .av{background:var(--tealbg);color:var(--teal);width:58px;height:58px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.15em;flex:0 0 58px}
+.classcard .info{flex:1;min-width:0}
+.classcard .info b{display:block;font-size:1.1em;font-weight:800}
+.classcard .info span{color:var(--ink2);font-size:.85em}
+.chev{color:var(--ink2);font-size:1.5em;font-weight:700}
+
+.stcard{display:flex;align-items:center;gap:12px;cursor:pointer;padding:13px 14px}
+.stcard:active{background:#F7F4EF}
+.stcard .av{background:#F6E9EE;color:var(--maroon);width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 46px;font-size:.95em}
+.stcard .info{flex:1;min-width:0}
+.stcard .info b{display:block;font-size:1em;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stcard .info span{color:var(--ink2);font-size:.8em}
+.pts{background:var(--tealbg);color:var(--teal);border-radius:999px;padding:3px 11px;
+  font-size:.8em;font-weight:800;white-space:nowrap}
+
+/* ===== أزرار ===== */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;
+  border-radius:14px;border:none;font-weight:800;font-size:1em;cursor:pointer;padding:0 16px;margin-bottom:10px}
+.btn.primary{background:var(--teal);color:#fff}
+.btn.primary:active{background:#0B534C}
+.btn.sec{background:#fff;color:var(--maroon);border:2px solid var(--maroon)}
+.btn.sec:active{background:#FBEFF3}
+.btn.ghost{background:#F1ECE4;color:var(--ink)}
+.btn.danger{background:#fff;color:var(--red);border:2px solid #E9BDB9}
+.row2{display:flex;gap:10px} .row2 .btn{margin-bottom:10px}
+
+/* ===== حقول ===== */
+label.f{display:block;font-weight:700;margin:14px 0 5px;font-size:.92em}
+input.f,select.f,textarea.f{width:100%;min-height:52px;border:2px solid var(--line);border-radius:12px;
+  padding:10px 14px;background:#fff;color:var(--ink)}
+textarea.f{min-height:110px;line-height:1.7;resize:vertical}
+input.f:focus,select.f:focus,textarea.f:focus{outline:none;border-color:var(--teal)}
+.search{position:relative;margin-bottom:12px}
+.search input{width:100%;min-height:52px;border:2px solid var(--line);border-radius:12px;padding:10px 14px;background:#fff}
+
+/* ===== تبويبات ===== */
+.tabs{display:flex;gap:6px;background:#F1ECE4;padding:5px;border-radius:14px;margin-bottom:14px;overflow-x:auto}
+.tabs button{flex:1;white-space:nowrap;min-height:46px;border:none;background:transparent;border-radius:10px;
+  font-weight:700;color:var(--ink2);cursor:pointer;font-size:.86em;padding:0 12px}
+.tabs button.on{background:#fff;color:var(--maroon);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.pane{display:none} .pane.on{display:block}
+
+/* ===== جدول الدرجات ===== */
+.gr{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.gr:last-child{border-bottom:none}
+.gr .nm{flex:1;font-weight:600;font-size:.94em}
+.gr .max{color:var(--ink2);font-size:.82em;white-space:nowrap}
+.gr input{width:82px;min-height:48px;text-align:center;border:2px solid var(--line);border-radius:10px;
+  font-weight:800;font-size:1.05em;background:#fff}
+.gr input:focus{outline:none;border-color:var(--teal);background:#F4FBFA}
+.total{display:flex;justify-content:space-between;align-items:center;background:var(--tealbg);
+  border:1px solid #CBE3DF;border-radius:14px;padding:14px 16px;margin-top:14px;font-weight:800}
+.total .v{font-size:1.35em;color:var(--teal)}
+
+/* ===== إحصاء ===== */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.stat b{display:block;font-size:1.6em;font-weight:800;color:var(--maroon);line-height:1.2}
+.stat span{color:var(--ink2);font-size:.82em}
+.badge{display:inline-block;background:#FCF3E2;border:1px solid #EBD9B2;color:#8A6316;
+  border-radius:999px;padding:4px 13px;font-size:.82em;font-weight:700;margin:0 0 6px 6px}
+.lvl{background:linear-gradient(135deg,#0F6B62,#14837a);color:#fff;border-radius:16px;padding:16px;
+  text-align:center;margin-bottom:14px}
+.lvl b{display:block;font-size:1.25em;font-weight:800}
+.lvl span{opacity:.9;font-size:.85em}
+
+/* ===== ملاحظات ===== */
+.note{background:#fff;border:1px solid var(--line);border-inline-start:5px solid var(--gold);
+  border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.note b{display:block;font-size:.88em;color:var(--ink2);font-weight:600}
+
+/* ===== نافذة ===== */
+.sheet{position:fixed;inset:0;background:rgba(20,16,14,.55);z-index:100;display:none;
+  align-items:flex-end;justify-content:center}
+.sheet.on{display:flex}
+.sheet .box{background:var(--cream);width:100%;max-width:760px;max-height:92vh;overflow-y:auto;
+  border-radius:22px 22px 0 0;padding:18px 16px 26px}
+.sheet h3{margin:0 0 4px;font-size:1.15em;font-weight:800}
+.grab{width:44px;height:5px;background:#D6CCBE;border-radius:99px;margin:0 auto 14px}
+
+/* ===== تنبيه ===== */
+.toast{position:fixed;bottom:22px;right:50%;transform:translateX(50%) translateY(120px);
+  background:#1E2430;color:#fff;padding:13px 20px;border-radius:14px;z-index:200;
+  font-weight:700;font-size:.9em;transition:transform .28s;max-width:90%;text-align:center}
+.toast.on{transform:translateX(50%) translateY(0)}
+
+.empty{text-align:center;padding:34px 18px;color:var(--ink2)}
+.empty .ic{font-size:2.6em;margin-bottom:6px}
+.banner{background:#FCF3E2;border:1px solid #EBD9B2;border-radius:14px;padding:13px 15px;
+  font-size:.87em;margin-bottom:14px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="iconbtn" id="back" style="display:none" onclick="goBack()">→</button>
+  <div class="ttl"><b id="ttl">منصّة معلّمة العلوم</b><span id="sub">المستوى الخامس — المنهج القطري</span></div>
+  <button class="iconbtn" dir="ltr" onclick="fs(-1)">A−</button>
+  <button class="iconbtn" dir="ltr" onclick="fs(1)">A+</button>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ الفصول ============ -->
+  <div class="screen on" id="s-classes">
+    <div class="banner">
+      هذا <b>نموذج للتجربة فقط</b> — جرّبي كل شيء براحتك. البيانات لا تُحفظ عند إغلاق الصفحة، والنسخة الحقيقية ستحفظ كل شيء على جهازك.
+    </div>
+    <h2 class="sec">فصولي</h2>
+    <div id="classList"></div>
+    <button class="btn sec" onclick="openAddClass()">＋ أضيفي فصلاً جديداً</button>
+  </div>
+
+  <!-- ============ طالبات الفصل ============ -->
+  <div class="screen" id="s-students">
+    <div class="stats">
+      <div class="stat"><b id="cnt">0</b><span>عدد الطالبات</span></div>
+      <div class="stat"><b id="avg">—</b><span>متوسط الفصل</span></div>
+    </div>
+    <div class="search"><input id="q" placeholder="ابحثي عن طالبة بالاسم…" oninput="renderStudents()"></div>
+    <div id="stList"></div>
+    <div class="row2">
+      <button class="btn primary" onclick="openAddStudent()">＋ طالبة</button>
+      <button class="btn sec" onclick="openPaste()">📋 لصق أسماء</button>
+    </div>
+  </div>
+
+  <!-- ============ ملف الطالبة ============ -->
+  <div class="screen" id="s-student">
+    <div class="lvl">
+      <b id="pLvl">باحثة</b>
+      <span id="pPts">٠ نقطة هذا الشهر · ٠ نقطة تراكمية</span>
+    </div>
+    <div id="pBadges" style="margin-bottom:12px"></div>
+
+    <div class="tabs">
+      <button class="on" onclick="tab(this,'t-info')">البيانات</button>
+      <button onclick="tab(this,'t-grades')">الدرجات</button>
+      <button onclick="tab(this,'t-att')">الحضور والنقاط</button>
+      <button onclick="tab(this,'t-notes')">الملاحظات</button>
+    </div>
+
+    <div class="pane on" id="t-info">
+      <div class="card">
+        <label class="f">اسم الطالبة</label><input class="f" id="i-name">
+        <label class="f">الرقم في الكشف</label><input class="f" id="i-sn" inputmode="numeric">
+        <label class="f">اسم ولية / ولي الأمر</label><input class="f" id="i-g">
+        <label class="f">رقم التواصل</label><input class="f" id="i-ph" inputmode="tel">
+        <label class="f">ملاحظات صحية أو خاصة</label><textarea class="f" id="i-med" placeholder="حساسية، ضعف نظر، تحتاج جلوساً في الصف الأول…"></textarea>
+      </div>
+      <button class="btn primary" onclick="saveInfo()">حفظ البيانات</button>
+      <button class="btn danger" onclick="delStudent()">حذف الطالبة</button>
+    </div>
+
+    <div class="pane" id="t-grades">
+      <div class="card">
+        <div class="muted" style="margin-bottom:6px">الفصل الدراسي الأول — من ١٠٠ درجة</div>
+        <div id="grList"></div>
+        <div class="total"><span>المجموع</span><span class="v" id="grTotal">0</span></div>
+        <div class="muted" id="grNote" style="margin-top:10px"></div>
+      </div>
+      <button class="btn primary" onclick="saveGrades()">حفظ الدرجات</button>
+    </div>
+
+    <div class="pane" id="t-att">
+      <div class="stats">
+        <div class="stat"><b id="aP">0</b><span>أيام حضور</span></div>
+        <div class="stat"><b id="aA">0</b><span>أيام غياب</span></div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px;font-size:1em">تسجيل اليوم</h3>
+        <div class="row2">
+          <button class="btn primary" onclick="mark('p')">حاضرة</button>
+          <button class="btn ghost" onclick="mark('l')">متأخرة</button>
+        </div>
+        <button class="btn danger" onclick="mark('a')">غائبة</button>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px;font-size:1em">إعطاء نقاط سريعة</h3>
+        <div class="row2">
+          <button class="btn sec" onclick="addPts(2,'مشاركة مميزة')">مشاركة +٢</button>
+          <button class="btn sec" onclick="addPts(3,'تسليم واجب')">واجب +٣</button>
+        </div>
+        <div class="row2">
+          <button class="btn sec" onclick="addPts(8,'إنجاز تجربة')">تجربة +٨</button>
+          <button class="btn sec" onclick="addPts(4,'مساعدة زميلة')">تعاون +٤</button>
+        </div>
+        <button class="btn primary" onclick="addPts(15,'تحسّن شخصي')">تحسّن شخصي +١٥ ★</button>
+      </div>
+    </div>
+
+    <div class="pane" id="t-notes">
+      <div class="card">
+        <label class="f">أضيفي ملاحظة</label>
+        <textarea class="f" id="nTxt" placeholder="مثال: تفاعلت بشكل ممتاز في تجربة الكثافة وساعدت زميلاتها"></textarea>
+        <div class="row2" style="margin-top:10px">
+          <button class="btn primary" onclick="addNote('إيجابية')">حفظ كإيجابية</button>
+          <button class="btn ghost" onclick="addNote('للمتابعة')">حفظ للمتابعة</button>
+        </div>
+      </div>
+      <div id="nList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ النوافذ ============ -->
+<div class="sheet" id="sh-class" onclick="if(event.target===this)close_('sh-class')">
+  <div class="box"><div class="grab"></div>
+    <h3>فصل جديد</h3>
+    <p class="muted">اكتبي اسم الفصل كما هو في المدرسة</p>
+    <label class="f">اسم الفصل</label>
+    <input class="f" id="c-name" placeholder="مثال: خامس ٤">
+    <button class="btn primary" style="margin-top:16px" onclick="addClass()">إضافة الفصل</button>
+    <button class="btn ghost" onclick="close_('sh-class')">إلغاء</button>
+  </div>
+</div>
+
+<div class="sheet" id="sh-student" onclick="if(event.target===this)close_('sh-student')">
+  <div class="box"><div class="grab"></div>
+    <h3>إضافة طالبة</h3>
+    <label class="f">اسم الطالبة</label><input class="f" id="n-name" placeholder="الاسم الثلاثي">
+    <label class="f">الرقم في الكشف <span class="muted">(اختياري)</span></label><input class="f" id="n-sn" inputmode="numeric">
+    <button class="btn primary" style="margin-top:16px" onclick="addStudent()">إضافة</button>
+    <button class="btn ghost" onclick="close_('sh-student')">إلغاء</button>
+  </div>
+</div>
+
+<div class="sheet" id="sh-paste" onclick="if(event.target===this)close_('sh-paste')">
+  <div class="box"><div class="grab"></div>
+    <h3>لصق قائمة الأسماء</h3>
+    <p class="muted">اكتبي أو الصقي الأسماء — كل اسم في سطر. سيتم إنشاء ملف لكل طالبة تلقائياً.</p>
+    <textarea class="f" id="p-txt" style="min-height:200px" placeholder="فاطمة أحمد المري&#10;نورة خالد الكواري&#10;مريم عبدالله السليطي"></textarea>
+    <button class="btn primary" style="margin-top:16px" onclick="pasteNames()">إضافة الأسماء كلها</button>
+    <button class="btn ghost" onclick="close_('sh-paste')">إلغاء</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== البيانات ===================== */
+const COMPONENTS = [
+  {k:'mid',  n:'اختبار منتصف الفصل', max:25},
+  {k:'quiz', n:'التقييمات القصيرة',   max:15},
+  {k:'part', n:'المشاركة الصفية',     max:15},
+  {k:'hw',   n:'الواجبات',            max:10},
+  {k:'fin',  n:'اختبار نهاية الفصل',  max:35}
+];
+const LEVELS=[[0,'مستكشفة مبتدئة'],[50,'باحثة'],[150,'عالِمة صغيرة'],[300,'عالِمة متميّزة'],[500,'سفيرة العلوم']];
+
+let uid=1;
+function mkStudent(name,sn,seed){
+  const g={}; COMPONENTS.forEach((c,i)=>{ g[c.k]= seed!=null ? Math.max(0,Math.round(c.max*(0.62+((seed*7+i*13)%30)/100))) : null; });
+  return {id:uid++,name,sn:sn||'',guardian:'',phone:'',med:'',grades:g,
+    pM: seed!=null?((seed*17)%60)+8:0, pT: seed!=null?((seed*41)%320)+30:0,
+    att:{p:seed!=null?((seed*3)%12)+18:0,a:seed!=null?(seed%3):0,l:0},
+    badges: seed!=null&&seed%3===0?['نجمة الشهر']:[], notes:[]};
+}
+const N1=['فاطمة أحمد المري','نورة خالد الكواري','مريم عبدالله السليطي','عائشة محمد النعيمي','لطيفة سعد الدوسري','هند ناصر المهندي','شيخة علي الهاجري','موزة راشد المناعي','الجازي فهد العطية','ريم يوسف الخاطر'];
+const N2=['سارة جاسم الأنصاري','دانة حمد البوعينين','أمل طارق الشمري','حصة منصور الكبيسي','نوف بدر المسند','رودة عيسى المالكي','جواهر وليد الحمادي','سلمى إبراهيم العمادي'];
+
+let DB=[
+  {id:1,name:'خامس ١',students:N1.map((n,i)=>mkStudent(n,i+1,i+1))},
+  {id:2,name:'خامس ٢',students:N2.map((n,i)=>mkStudent(n,i+1,i+4))},
+  {id:3,name:'خامس ٣',students:[]}
+];
+let cid=4, curC=null, curS=null, stack=[];
+
+/* ===================== أدوات ===================== */
+const $=id=>document.getElementById(id);
+const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._);t._=setTimeout(()=>t.classList.remove('on'),2200);}
+function open_(id){$(id).classList.add('on')}
+function close_(id){$(id).classList.remove('on')}
+let fsz=19; function fs(d){fsz=Math.min(26,Math.max(16,fsz+d*2));document.documentElement.style.setProperty('--fs',fsz+'px');toast('حجم الخط: '+ar(fsz));}
+function lvlOf(p){let r=LEVELS[0][1];LEVELS.forEach(l=>{if(p>=l[0])r=l[1]});return r}
+function total(s){return COMPONENTS.reduce((a,c)=>a+(Number(s.grades[c.k])||0),0)}
+
+/* ===================== التنقّل ===================== */
+function show(id,title,sub,back){
+  document.querySelectorAll('.screen').forEach(e=>e.classList.remove('on'));
+  $(id).classList.add('on');
+  $('ttl').textContent=title; $('sub').textContent=sub;
+  $('back').style.display=back?'flex':'none';
+  window.scrollTo(0,0);
+}
+function goBack(){ const p=stack.pop(); if(p==='students'){openClass(curC,true)} else {goHome(true)} }
+function goHome(nop){ if(!nop)stack=[]; stack=[]; renderClasses(); show('s-classes','منصّة معلّمة العلوم','المستوى الخامس — المنهج القطري',false); }
+
+/* ===================== شاشة الفصول ===================== */
+function renderClasses(){
+  const el=$('classList');
+  el.innerHTML=DB.map(c=>{
+    const n=c.students.length;
+    const av=n?Math.round(c.students.reduce((a,s)=>a+total(s),0)/n):0;
+    return `<div class="card classcard" onclick="openClass(${c.id})">
+      <div class="av">${c.name.replace('خامس','٥/')}</div>
+      <div class="info"><b>${c.name}</b>
+        <span>${n?ar(n)+' طالبة · متوسط الفصل '+ar(av):'لم تُضف الطالبات بعد'}</span></div>
+      <div class="chev">‹</div></div>`;
+  }).join('');
+}
+function openAddClass(){$('c-name').value='';open_('sh-class')}
+function addClass(){
+  const v=$('c-name').value.trim(); if(!v){toast('اكتبي اسم الفصل');return}
+  DB.push({id:cid++,name:v,students:[]}); close_('sh-class'); renderClasses(); toast('تمت إضافة '+v);
+}
+
+/* ===================== شاشة الطالبات ===================== */
+function openClass(id,nop){
+  curC=DB.find(c=>c.id===id)||curC; if(!nop)stack=['classes'];
+  $('q').value=''; renderStudents();
+  show('s-students',curC.name,'اضغطي على الاسم لفتح الملف',true);
+}
+function renderStudents(){
+  const q=$('q').value.trim();
+  const list=curC.students.filter(s=>!q||s.name.includes(q));
+  const n=curC.students.length;
+  $('cnt').textContent=ar(n);
+  $('avg').textContent=n?ar(Math.round(curC.students.reduce((a,s)=>a+total(s),0)/n)):'—';
+  $('stList').innerHTML = list.length? list.map(s=>`
+    <div class="card stcard" onclick="openStudent(${s.id})">
+      <div class="av">${s.name.trim()[0]}</div>
+      <div class="info"><b>${s.name}</b>
+        <span>${s.sn?'رقم '+ar(s.sn)+' · ':''}المجموع ${ar(total(s))} من ١٠٠</span></div>
+      <div class="pts">${ar(s.pM)} نقطة</div>
+    </div>`).join('')
+    : `<div class="empty"><div class="ic">📋</div>
+       <b>${q?'لا توجد نتيجة للبحث':'لا توجد طالبات في هذا الفصل بعد'}</b>
+       <div class="muted" style="margin-top:6px">${q?'':'استخدمي زر «لصق قائمة أسماء» لإضافتهنّ دفعة واحدة'}</div></div>`;
+}
+function openAddStudent(){$('n-name').value='';$('n-sn').value='';open_('sh-student')}
+function addStudent(){
+  const v=$('n-name').value.trim(); if(!v){toast('اكتبي اسم الطالبة');return}
+  curC.students.push(mkStudent(v,$('n-sn').value.trim()));
+  close_('sh-student'); renderStudents(); toast('تمت إضافة '+v);
+}
+function openPaste(){$('p-txt').value='';open_('sh-paste')}
+function pasteNames(){
+  const lines=$('p-txt').value.split('\n').map(x=>x.trim()).filter(Boolean);
+  if(!lines.length){toast('الصقي الأسماء أولاً');return}
+  const start=curC.students.length;
+  lines.forEach((n,i)=>curC.students.push(mkStudent(n,start+i+1)));
+  close_('sh-paste'); renderStudents(); toast('تمت إضافة '+ar(lines.length)+' طالبة');
+}
+
+/* ===================== ملف الطالبة ===================== */
+function openStudent(id){
+  curS=curC.students.find(s=>s.id===id); stack=['students'];
+  $('i-name').value=curS.name; $('i-sn').value=curS.sn;
+  $('i-g').value=curS.guardian; $('i-ph').value=curS.phone; $('i-med').value=curS.med;
+  refreshHead(); renderGrades(); renderAtt(); renderNotes();
+  document.querySelectorAll('.tabs button').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('on',i===0));
+  show('s-student',curS.name,curC.name,true);
+}
+function refreshHead(){
+  $('pLvl').textContent=lvlOf(curS.pT);
+  $('pPts').textContent=ar(curS.pM)+' نقطة هذا الشهر · '+ar(curS.pT)+' نقطة تراكمية';
+  $('pBadges').innerHTML=curS.badges.map(b=>`<span class="badge">🏅 ${b}</span>`).join('');
+}
+function tab(btn,pane){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on')); $(pane).classList.add('on');
+}
+function saveInfo(){
+  const v=$('i-name').value.trim(); if(!v){toast('الاسم لا يمكن أن يكون فارغاً');return}
+  curS.name=v; curS.sn=$('i-sn').value.trim(); curS.guardian=$('i-g').value.trim();
+  curS.phone=$('i-ph').value.trim(); curS.med=$('i-med').value.trim();
+  $('ttl').textContent=v; toast('تم الحفظ ✓');
+}
+function delStudent(){
+  if(!confirm('هل تريدين حذف الطالبة «'+curS.name+'» وكل بياناتها؟')) return;
+  curC.students=curC.students.filter(s=>s.id!==curS.id);
+  openClass(curC.id); toast('تم الحذف');
+}
+function renderGrades(){
+  $('grList').innerHTML=COMPONENTS.map(c=>`
+    <div class="gr"><div class="nm">${c.n}</div><div class="max">من ${ar(c.max)}</div>
+    <input type="number" min="0" max="${c.max}" value="${curS.grades[c.k]??''}"
+      oninput="gchg('${c.k}',${c.max},this)"></div>`).join('');
+  calcTotal();
+}
+function gchg(k,max,el){
+  let v=el.value===''?null:Number(el.value);
+  if(v!==null&&v>max){el.value=max;v=max;toast('الحد الأقصى لهذا المكوّن '+ar(max)+' درجة')}
+  if(v!==null&&v<0){el.value=0;v=0}
+  curS.grades[k]=v; calcTotal();
+}
+function calcTotal(){
+  const t=total(curS); $('grTotal').textContent=ar(t);
+  $('grNote').textContent = t>=50 ? 'ناجحة — النهاية الصغرى ٥٠ درجة'
+    : 'أقل من النهاية الصغرى (٥٠) — تحتاج خطة دعم';
+  $('grNote').style.color = t>=50 ? 'var(--green)' : 'var(--red)';
+}
+function saveGrades(){ renderStudents(); toast('تم حفظ الدرجات ✓'); }
+function renderAtt(){ $('aP').textContent=ar(curS.att.p); $('aA').textContent=ar(curS.att.a); }
+function mark(t){
+  if(t==='p'){curS.att.p++;toast('سُجّلت حاضرة')}
+  if(t==='a'){curS.att.a++;toast('سُجّلت غائبة')}
+  if(t==='l'){curS.att.l++;curS.att.p++;toast('سُجّلت متأخرة')}
+  renderAtt();
+}
+function addPts(n,why){
+  curS.pM+=n; curS.pT+=n; refreshHead(); renderStudents();
+  toast(why+' +'+ar(n)+' نقطة');
+}
+function addNote(kind){
+  const v=$('nTxt').value.trim(); if(!v){toast('اكتبي الملاحظة أولاً');return}
+  const d=new Date(); const dd=ar(d.getDate())+'/'+ar(d.getMonth()+1)+'/'+ar(d.getFullYear());
+  curS.notes.unshift({kind,txt:v,date:dd}); $('nTxt').value=''; renderNotes(); toast('تمت إضافة الملاحظة');
+}
+function renderNotes(){
+  $('nList').innerHTML = curS.notes.length ? curS.notes.map(n=>`
+    <div class="note"><b>${n.kind} · ${n.date}</b>${n.txt}</div>`).join('')
+    : `<div class="empty"><div class="ic">📝</div><b>لا توجد ملاحظات بعد</b></div>`;
+}
+
+renderClasses();
+</script>
+</body>
+</html>

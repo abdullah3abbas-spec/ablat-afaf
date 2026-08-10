@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>منصّة أبلة عفاف — التصميم الجديد</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--maroon:#8A1538;--teal:#0F6B62;--tealbg:#E6F2F0;--ink:#1E2430;--ink2:#4A5568;
+--cream:#FBF8F3;--line:#E6DFD4;--gold:#C08A2E;--goldbg:#FCF3E2;--green:#2E7D4F;--red:#B3261E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'Tajawal',"Segoe UI",Tahoma,sans-serif;
+font-size:19px;line-height:1.95}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 90px}
+header.hero{background:linear-gradient(155deg,#0F6B62 0%,#08403A 100%);color:#fff;padding:54px 20px 46px;margin-bottom:34px}
+header.hero .inner{max-width:900px;margin:0 auto}
+.kicker{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+padding:5px 16px;border-radius:999px;font-size:15px;font-weight:500;margin-bottom:16px}
+header.hero h1{font-size:38px;line-height:1.42;margin:0 0 12px;font-weight:800}
+header.hero p{font-size:20px;margin:0;opacity:.93;max-width:640px}
+h2{font-size:28px;font-weight:800;margin:52px 0 6px;padding-bottom:12px;border-bottom:3px solid var(--line);
+display:flex;align-items:center;gap:14px}
+h2 .num{background:var(--teal);color:#fff;width:44px;height:44px;border-radius:12px;display:inline-flex;
+align-items:center;justify-content:center;font-size:21px;flex:0 0 44px}
+h2+.sub{color:var(--ink2);font-size:18px;margin:0 0 20px}
+h3{font-size:22px;font-weight:700;margin:32px 0 10px;color:var(--maroon)}
+h4{font-size:20px;font-weight:700;margin:20px 0 6px}
+p{margin:0 0 16px}ul,ol{margin:0 0 16px;padding-inline-start:26px}li{margin-bottom:9px}
+li::marker{color:var(--teal)}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin:20px 0;
+box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.card.tint{background:var(--tealbg);border-color:#CBE3DF}
+.card.warn{background:var(--goldbg);border-color:#EBD9B2}
+.lead{font-size:21px;font-weight:500}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:17px;background:#fff;
+border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th{background:var(--teal);color:#fff;padding:11px 13px;text-align:right;font-weight:700;font-size:16.5px}
+td{padding:11px 13px;border-top:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#FCFAF7}
+.step{background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--teal);
+border-radius:14px;padding:18px 20px;margin:12px 0;display:flex;gap:16px;align-items:flex-start}
+.step .n{background:var(--teal);color:#fff;width:42px;height:42px;border-radius:50%;display:flex;
+align-items:center;justify-content:center;font-weight:800;font-size:19px;flex:0 0 42px}
+.step b{display:block;font-size:20px;margin-bottom:3px}
+.step span{color:var(--ink2);font-size:17.5px;line-height:1.75}
+.idea{background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px 19px;margin:11px 0;
+border-inline-start:6px solid var(--gold)}
+.idea b{display:block;color:var(--maroon);font-size:19.5px;margin-bottom:3px}
+.idea span{color:var(--ink2);font-size:17.5px;line-height:1.75}
+.note{background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--maroon);
+border-radius:12px;padding:16px 20px;margin:14px 0}
+.note b{color:var(--maroon)}
+.pill{display:inline-block;background:var(--tealbg);color:var(--teal);border:1px solid #CBE3DF;
+border-radius:999px;padding:2px 12px;font-size:16px;font-weight:600;margin:2px}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.vs>div{border-radius:14px;padding:18px}
+.vs .old{background:#FDECEA;border:1px solid #F0C4BF}
+.vs .new{background:#E8F5EC;border:1px solid #BFE2CB}
+.vs h4{margin:0 0 8px;font-size:18px}
+.vs ul{margin:0;padding-inline-start:22px;font-size:16.5px}
+.vs li{margin-bottom:6px}
+footer{margin-top:64px;padding-top:24px;border-top:3px solid var(--line);color:var(--ink2);font-size:17px}
+@media (max-width:640px){body{font-size:18px}header.hero h1{font-size:29px}header.hero p{font-size:18px}
+h2{font-size:24px}h2 .num{width:38px;height:38px;flex:0 0 38px;font-size:18px}h3{font-size:20px}
+.card{padding:19px}table{font-size:15.5px}th,td{padding:9px}.step{flex-direction:column;gap:10px}
+.vs{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <span class="kicker">إعادة تصميم · بعد ملاحظاتك</span>
+    <h1>منصّة أبلة عفاف</h1>
+    <p>غيّرتُ المبدأ الأساسي: أبلة عفاف لا تُدخل شيئاً. هي تفتح، وتختار، وتصوّر — والباقي جاهز قبل أن تطلبه.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="card tint">
+  <p class="lead" style="margin-bottom:10px">ما تغيّر في التصميم</p>
+  <div class="vs">
+    <div class="old">
+      <h4>❌ التصميم القديم</h4>
+      <ul>
+        <li>ترصد الدرجات بالكيبورد</li>
+        <li>تبني الاختبار خطوة بخطوة</li>
+        <li>تُنشئ ورقة العمل والعرض</li>
+        <li>تصمّم نظام التحفيز</li>
+        <li>تخطّط للتقييم بنفسها</li>
+      </ul>
+    </div>
+    <div class="new">
+      <h4>✅ التصميم الجديد</h4>
+      <ul>
+        <li><b>تصوّر</b> ورقة الرصد فتُقرأ</li>
+        <li>الاختبار <b>جاهز</b> قبل موعده</li>
+        <li>كل درس ومعه أدواته <b>مسبقاً</b></li>
+        <li>خطة التحفيز <b>تعمل تلقائياً</b></li>
+        <li>خطة التقييم <b>موضوعة بالتواريخ</b></li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-bottom:0"><strong>القاعدة الحاكمة الجديدة:</strong> أي شاشة تطلب من أبلة عفاف أن تكتب أكثر من سطر واحد — فهي شاشة مصمَّمة خطأ، ويجب إعادة تصميمها.</p>
+</div>
+
+<!-- 1 -->
+<h2><span class="num">١</span> كيف تُقرأ الدرجات بالتصوير</h2>
+<p class="sub">أهم جزء تقني في المشروع كله — وسأشرحه بصراحة كاملة بما فيه حدوده.</p>
+
+<h3>الفكرة: ورقة رصد ذكية</h3>
+<p>المشكلة المعروفة أن قراءة خط اليد العربي بالكاميرا غير دقيقة. الحل ليس أن نجعل القارئ أذكى — بل أن نجعل <strong>الورقة نفسها أسهل في القراءة</strong>.</p>
+
+<div class="step"><div class="n">١</div><div>
+  <b>التطبيق يطبع ورقة الرصد</b>
+  <span>ورقة فيها أسماء طالبات الفصل بالترتيب، وأمام كل اسم <strong>خانة مربّعة كبيرة</strong>، وفي أركان الورقة علامات سوداء صغيرة.</span>
+</div></div>
+<div class="step"><div class="n">٢</div><div>
+  <b>أبلة عفاف تكتب بالقلم كعادتها</b>
+  <span>لا تغيير في عادتها إطلاقاً. تكتب الدرجة في المربّع أثناء الحصة أو بعدها، على مكتبها أو في البيت.</span>
+</div></div>
+<div class="step"><div class="n">٣</div><div>
+  <b>تصوّرها بالموبايل — صورة واحدة</b>
+  <span>التطبيق يستخدم علامات الأركان ليعرف <strong>مكان كل مربّع بالضبط</strong>، فلا يبحث في الصورة ولا يقرأ الأسماء — يقرأ الأرقام فقط في مواضع معلومة سلفاً. هنا تقفز الدقة قفزة كبيرة.</span>
+</div></div>
+<div class="step"><div class="n">٤</div><div>
+  <b>شاشة المراجعة — إلزامية دائماً</b>
+  <span>يعرض التطبيق كل اسم أمامه الدرجة التي قرأها، ويلوّن باللون الذهبي ما لم يتأكد منه. تصحّح بلمسة، ثم تضغط <strong>«اعتمدي»</strong>. لا تُحفظ درجة واحدة دون موافقتها.</span>
+</div></div>
+
+<h3>ثلاثة مصادر للإدخال — كلها مدعومة</h3>
+<table>
+  <tr><th style="width:32%">المصدر</th><th>الدقة والملاحظة</th></tr>
+  <tr><td><strong>ورقة الرصد المطبوعة من التطبيق</strong></td>
+      <td><span style="color:var(--green);font-weight:700">الأعلى دقة</span> — الخانات في مواضع معروفة. هذا هو المسار الموصى به، ويُشجَّع عليه في الواجهة.</td></tr>
+  <tr><td><strong>كشف يدوي قديم أو PDF من المدرسة</strong></td>
+      <td>دقة جيدة إذا كان الترتيب مطابقاً لترتيب الطالبات في التطبيق. المطابقة <strong>بالترتيب أو بالرقم</strong> — لا بقراءة الأسماء.</td></tr>
+  <tr><td><strong>ورقة الاختبار نفسها</strong></td>
+      <td>تُصوَّر خانة «المجموع» في جدول الرصد أعلى الورقة، ورقة الطالبة تلو الأخرى — أو دفعة واحدة إن صُوّرت متسلسلة.</td></tr>
+</table>
+
+<div class="card warn">
+  <h4 style="margin-top:0">صراحة في مسألتين</h4>
+  <p><strong>الدقة:</strong> لن تكون ١٠٠٪ في كل الحالات — ولهذا شاشة المراجعة ليست ميزة اختيارية بل <strong>شرط في التصميم</strong>. مراجعة ٢٥ رقماً تستغرق نصف دقيقة، مقابل ١٥ دقيقة إدخال يدوي.</p>
+  <p style="margin-bottom:0"><strong>الخصوصية:</strong> إن استخدمنا خدمة ذكاء اصطناعي لقراءة الصورة، فالتطبيق <strong>يقصّ عمود الأسماء قبل الإرسال</strong> ويرسل الأرقام فقط. الأسماء موجودة أصلاً داخل التطبيق بالترتيب — فلا تخرج أسماء الطالبات من الجهاز أبداً.</p>
+</div>
+
+<!-- 2 -->
+<h2><span class="num">٢</span> ما يكون جاهزاً قبل أن تطلبه</h2>
+<p class="sub">هذا جوهر التصميم الجديد: المنصّة تسبقها، لا تنتظرها.</p>
+
+<h3>لكل درس في المنهج — سبعة عناصر جاهزة</h3>
+<table>
+  <tr><th style="width:34%">العنصر</th><th>الحالة</th></tr>
+  <tr><td>🖥️ عرض تقديمي</td><td>PowerPoint منسّق بالصور والأسئلة، جاهز للعرض على السبورة</td></tr>
+  <tr><td>📄 ورقة عمل</td><td>صفحة واحدة + نسخة بالإجابات للمعلّمة</td></tr>
+  <tr><td>🎲 لعبة الحصة</td><td>مختارة لتناسب الدرس، وبطاقاتها مطبوعة جاهزة</td></tr>
+  <tr><td>🧪 تجربة عملية</td><td>الخطوات + الأدوات + إرشادات السلامة + ورقة تقرير التجربة</td></tr>
+  <tr><td>✅ كرت الخروج</td><td>سؤال واحد قبل الجرس — تقييم سريع لمن فهمت</td></tr>
+  <tr><td>📝 خطة الدرس</td><td>بنموذج المدرسة، ملف Word جاهز لتسليمه للإدارة</td></tr>
+  <tr><td>🖨️ ورقة رصد المشاركة</td><td>بأسماء الطالبات وخانات، للكتابة عليها ثم تصويرها</td></tr>
+</table>
+
+<div class="note">
+  <b>من يبني هذه المكتبة؟</b><br>
+  كلود كود يبنيها <strong>مرّة واحدة</strong> من كتاب المنهج ووثيقة المعايير — قبل أن تبدأ أبلة عفاف الاستخدام. هذا هو معنى «سابق بخطوة»: العمل يُنجز في مرحلة البناء، لا في مرحلة الاستخدام.
+</div>
+
+<!-- 3 -->
+<h2><span class="num">٣</span> الألعاب والأنشطة — لسن ١٠ سنوات</h2>
+<p class="sub">قصيرة، بلا تجهيز معقّد، ومناسبة لعدد ٢٥ طالبة في فصل واحد.</p>
+<table>
+  <tr><th style="width:32%">النشاط</th><th style="width:16%">المدّة</th><th>الفكرة</th></tr>
+  <tr><td>سباق التصنيف</td><td>٧ دقائق</td><td>بطاقات تُصنَّف في عمودين — أسرع مجموعة صحيحة تفوز</td></tr>
+  <tr><td>من أنا؟</td><td>٥ دقائق</td><td>بطاقة على ظهر الطالبة، وتسأل زميلاتها بنعم أو لا</td></tr>
+  <tr><td>صح أو خطأ بالحركة</td><td>٤ دقائق</td><td>الصحيحة يقفن والخاطئة يجلسن — حركة ومراجعة معاً</td></tr>
+  <tr><td>بينجو المصطلحات</td><td>١٠ دقائق</td><td>بطاقة لكل طالبة، تُقرأ التعريفات وتُغطّى المصطلحات</td></tr>
+  <tr><td>كرت الخروج</td><td>دقيقتان</td><td>سؤال واحد قبل الجرس — أقوى أداة تقييم سريع</td></tr>
+  <tr><td>المحطات العلمية</td><td>٢٠ دقيقة</td><td>أربع محطات في أركان الفصل، خمس دقائق لكل مجموعة</td></tr>
+  <tr><td>مسرح العلوم</td><td>١٢ دقيقة</td><td>تمثيل دورة الماء أو رحلة الطعام — لا يُنسى</td></tr>
+  <tr><td>الخريطة الذهنية الجماعية</td><td>١٠ دقائق</td><td>كل طالبة تضيف فرعاً، ثم تُصوَّر وتُحفظ</td></tr>
+  <tr><td>صندوق الأسئلة الغامضة</td><td>٥ دقائق</td><td>سحب سؤال، وإن عجزت استنجدت بزميلة وكسبتا معاً</td></tr>
+  <tr><td>سباق السبورة</td><td>٨ دقائق</td><td>فريقان وسؤال سريع</td></tr>
+  <tr><td>لغز اليوم</td><td>٣ دقائق</td><td>يُطرح أول الحصة ويُحلّ آخرها — يشدّ الانتباه</td></tr>
+  <tr><td>كنز المفردات</td><td>٦ دقائق</td><td>مفردات مخبّأة في نص، تُربط بتعريفاتها</td></tr>
+</table>
+<p>كل نشاط بزر واحد: <span class="pill">🖨️ اطبعي أدوات اللعبة</span> — فتخرج البطاقات والأوراق جاهزة للقص.</p>
+
+<!-- 4 -->
+<h2><span class="num">٤</span> خطة التحفيز — تعمل وحدها</h2>
+<table>
+  <tr><th style="width:22%">المستوى</th><th>كيف يعمل</th></tr>
+  <tr><td><strong>يومي</strong></td><td>نجوم أثناء الحصة بضغطة على اسم الطالبة. مشاركة ⭐ · واجب ⭐⭐ · تجربة ⭐⭐⭐ · مساعدة زميلة ⭐⭐ · <strong>تحسّن شخصي ⭐⭐⭐⭐⭐</strong></td></tr>
+  <tr><td><strong>أسبوعي</strong></td><td>لوحة شرف تُطبع كل خميس تلقائياً: نجمة الأسبوع · الأكثر تحسّناً · مجموعة الأسبوع</td></tr>
+  <tr><td><strong>شهري</strong></td><td>شهادات مطبوعة + متجر المكافآت: اختيار نشاط الحصة · مساعِدة المعلّمة ليوم · تأجيل واجب · شهادة للبيت · ملصقات</td></tr>
+  <tr><td><strong>فصلي</strong></td><td>حفل صغير، وشهادة لكل طالبة بما تميّزت فيه — <strong>لكل طالبة، لا للأوائل فقط</strong></td></tr>
+</table>
+
+<div class="card warn">
+  <p style="margin-bottom:0"><strong>القاعدة التي تحمي الضعيفات:</strong> أعلى مكافأة في النظام ليست للدرجة العالية بل <strong>للتحسّن</strong>. طالبة انتقلت من ٤٠ إلى ٥٥ تكسب أكثر من طالبة أخذت ٩٥ للمرّة العاشرة. بدون هذه القاعدة، تدرك الطالبة الضعيفة خلال أسبوعين أنها لن تفوز أبداً — فتنسحب.</p>
+</div>
+
+<!-- 5 -->
+<h2><span class="num">٥</span> خطة التقييم — موضوعة بالتواريخ</h2>
+<p class="sub">لا تخطّط أبلة عفاف شيئاً — التقويم موضوع، والتطبيق يذكّرها ويجهّز.</p>
+<table>
+  <tr><th style="width:26%">الموعد</th><th>ما يحدث</th></tr>
+  <tr><td>الأسبوع ٣</td><td>تقييم قصير (١) — جاهز ومطبوع مسبقاً</td></tr>
+  <tr><td>الأسبوع ٦</td><td>مشروع علمي جماعي — مع سلّم تقدير مصوّر للطالبات</td></tr>
+  <tr><td>الأسبوع ٨</td><td>اختبار منتصف الفصل — يُجهَّز قبله بأسبوعين تلقائياً</td></tr>
+  <tr><td>الأسبوع ١١</td><td>تقييم قصير (٢) + تقييم عملي للتجارب</td></tr>
+  <tr><td>الأسبوع ١٤</td><td>اختبار نهاية الفصل + تقارير أولياء الأمور تلقائياً</td></tr>
+</table>
+<p>وكل اختبار يخرج معه — كما في الخطة السابقة — <strong>ورقة الاختبار ونموذج الإجابة وجدول المواصفات ونسختا (أ) و(ب)</strong>. أبلة عفاف تراجع فقط وتضغط «اطبعي».</p>
+
+<!-- 6 -->
+<h2><span class="num">٦</span> سابق بخطوة — ١٢ إضافة لم تطلبها</h2>
+<p class="sub">طلبتَ أن أكون متقدّماً بخطوة أو اثنتين. هذه هي.</p>
+
+<div class="idea"><b>١. وضع الابن — لوحة تحكّم لك أنت</b>
+<span>شاشة خاصة بك تفتحها من جهازك: ماذا تحتاج والدتك هذا الأسبوع، ما لم تفتحه، ما يحتاج تجهيزاً. تجهّز لها الأشياء عن بُعد فتجدها جاهزة. <strong>أنت جزء من المنصّة، لا خارجها.</strong></span></div>
+
+<div class="idea"><b>٢. النسخة الاحتياطية تصلك أنت</b>
+<span>كل أسبوع يُرسَل ملف نسخة احتياطية إلى بريدك تلقائياً. إن ضاع الجهاز أو تعطّل، عملها كله محفوظ عندك — ولا تُحمَّل هي هذه المسؤولية.</span></div>
+
+<div class="idea"><b>٣. الإدخال بالصوت</b>
+<span>«سجّلي غياب نورة» · «أعطي فاطمة نجمتين» · «افتحي درس دورة الماء». الكلام أسهل من الكتابة في سنّ الستين، وأسرع أثناء الحصة.</span></div>
+
+<div class="idea"><b>٤. زر الطوارئ — حصة بديلة جاهزة</b>
+<span>تغيّر الجدول فجأة؟ طُلب منها تغطية حصة ليست لها؟ زر واحد يُخرج حصة كاملة صالحة لأي درس: نشاط + ورقة + لعبة. لا ارتباك أمام الطالبات.</span></div>
+
+<div class="idea"><b>٥. حزمة الأسبوع — طباعة واحدة</b>
+<span>صباح الأحد: زر واحد يطبع كل ما تحتاجه للأسبوع كله — أوراق العمل، بطاقات الألعاب، أوراق الرصد، لوحة الشرف. رحلة واحدة للطابعة بدل عشر.</span></div>
+
+<div class="idea"><b>٦. لا حذف نهائي — سلّة استرجاع</b>
+<span>أي شيء يُحذف يبقى ٣٠ يوماً في سلّة يمكن استرجاعه منها. الخوف من الضغط على زر خطأ هو أكبر ما يُنفّر كبار السن من البرامج — وهذا يزيله تماماً.</span></div>
+
+<div class="idea"><b>٧. لا شاشة فارغة أبداً</b>
+<span>كل شاشة تحتوي على اقتراح جاهز بدل الفراغ: «لم تُسجّلي حضور اليوم — سجّليه الآن» · «اختبار بعد ٥ أيام، راجعيه». التطبيق يقود، لا ينتظر.</span></div>
+
+<div class="idea"><b>٨. رسائل أولياء الأمور جاهزة</b>
+<span>تختار الطالبة والسبب، فتخرج رسالة مكتوبة بلغة مهذّبة جاهزة للنسخ إلى الواتساب، مع بطاقة متابعة مصوّرة إن أرادت. تكتب صفراً من الكلمات.</span></div>
+
+<div class="idea"><b>٩. تنبيه بداية العام</b>
+<span>كل أغسطس يسألها التطبيق: «هل تغيّرت سياسة التقييم هذا العام؟» ويعرض عليها الأرقام الحالية لتؤكّدها أو تعدّلها. فلا تُبنى درجات عام كامل على سياسة قديمة.</span></div>
+
+<div class="idea"><b>١٠. أسبوع تدريب مدمج</b>
+<span>أول سبعة أيام، يعرض التطبيق كل يوم خطوة واحدة فقط: «اليوم جرّبي تصوير ورقة رصد». تتعلّمه في أسبوع بلا كتيّب ولا شرح.</span></div>
+
+<div class="idea"><b>١١. وضع عالي التباين وخط كبير جداً</b>
+<span>إضافة إلى زرّي تكبير الخط: وضع كامل عالي التباين للقراءة تحت إضاءة الفصل، وتذكّر التطبيق لتفضيلها فلا تعيد الضبط كل مرة.</span></div>
+
+<div class="idea"><b>١٢. ملف الإنجاز يُبنى وحده</b>
+<span>ملف تقييمها السنوي الذي تطلبه الإدارة يتجمّع تلقائياً طوال العام من خططها وأنشطتها ونتائج طالباتها. في آخر العام تضغط زراً واحداً فيخرج مستنداً منسّقاً — بدل ليالٍ من التجميع.</span></div>
+
+<footer>
+  <p><strong>الخطوة التالية:</strong> جرّبي النموذج المرفق — خصوصاً زر «صوّري ورقة الرصد» — وقولي لي: هل هذا هو الشكل الذي تريده لوالدتك؟ وما الذي يجب أن يكون أبسط منه؟</p>
+  <p style="margin-bottom:0;font-size:16px;opacity:.8">منصّة أبلة عفاف · التصميم الثاني · أغسطس ٢٠٢٦</p>
+</footer>
+
+</div>
+</body>
+</html>

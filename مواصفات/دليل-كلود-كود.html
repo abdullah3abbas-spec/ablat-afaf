@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دليل بناء المنصّة بكلود كود — خطوة بخطوة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#8A1538; --maroon-d:#5E0E26; --ink:#1E2430; --ink2:#4A5568;
+    --cream:#FBF8F3; --line:#E6DFD4; --gold:#C08A2E; --teal:#0F6B62;
+    --tealbg:#E6F2F0; --green:#2E7D4F; --red:#B3261E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);
+    font-family:'Tajawal',"Segoe UI",Tahoma,sans-serif;font-size:19px;line-height:1.95}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px 90px}
+  header.hero{background:linear-gradient(160deg,#0F6B62 0%,#08403A 100%);color:#fff;padding:56px 20px 48px;margin-bottom:36px}
+  header.hero .inner{max-width:920px;margin:0 auto}
+  .kicker{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+    padding:5px 16px;border-radius:999px;font-size:15px;font-weight:500;margin-bottom:18px}
+  header.hero h1{font-size:38px;line-height:1.42;margin:0 0 14px;font-weight:800}
+  header.hero p{font-size:20px;margin:0;opacity:.93;max-width:660px}
+  h2{font-size:28px;font-weight:800;margin:54px 0 6px;padding-bottom:12px;border-bottom:3px solid var(--line);
+    display:flex;align-items:center;gap:14px}
+  h2 .num{background:var(--teal);color:#fff;width:44px;height:44px;border-radius:12px;
+    display:inline-flex;align-items:center;justify-content:center;font-size:21px;flex:0 0 44px}
+  h2 + .sub{color:var(--ink2);font-size:18px;margin:0 0 22px}
+  h3{font-size:22px;font-weight:700;margin:34px 0 10px;color:var(--maroon)}
+  h4{font-size:20px;font-weight:700;margin:22px 0 6px}
+  p{margin:0 0 16px}
+  ul,ol{margin:0 0 16px;padding-inline-start:26px} li{margin-bottom:9px}
+  li::marker{color:var(--teal)}
+  strong{font-weight:700}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin:20px 0;
+    box-shadow:0 1px 3px rgba(0,0,0,.03)}
+  .card.tint{background:var(--tealbg);border-color:#CBE3DF}
+  .card.warn{background:#FDF6E9;border-color:#EBD9B2}
+  .card.danger{background:#FDECEA;border-color:#F0C4BF}
+  .lead{font-size:21px;font-weight:500}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:17px;background:#fff;
+    border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th{background:var(--teal);color:#fff;padding:11px 13px;text-align:right;font-weight:700;font-size:16.5px}
+  td{padding:11px 13px;border-top:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:#FCFAF7}
+  .step{background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--teal);
+    border-radius:14px;padding:20px 22px;margin:14px 0;display:flex;gap:18px;align-items:flex-start}
+  .step .n{background:var(--teal);color:#fff;width:44px;height:44px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex:0 0 44px}
+  .step b{display:block;font-size:20px;margin-bottom:4px}
+  .step span{color:var(--ink2);font-size:17.5px;line-height:1.75}
+  code{background:#F2EDE5;border:1px solid var(--line);border-radius:6px;padding:2px 8px;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:16px;direction:ltr;display:inline-block}
+  pre{background:#221E1B;color:#F5EFE6;border-radius:12px;padding:18px 20px;overflow-x:auto;
+    direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15.5px;line-height:1.7}
+  .cmd{background:#fff;border:2px dashed var(--maroon);border-radius:14px;padding:18px 20px;margin:16px 0}
+  .cmd .lbl{color:var(--maroon);font-weight:700;font-size:16px;margin-bottom:8px;display:block}
+  .cmd .body{background:#FAF7F2;border-radius:10px;padding:14px 16px;font-size:17px;line-height:1.85;white-space:pre-wrap}
+  .phase{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin:12px 0;
+    border-inline-start:6px solid var(--gold)}
+  .phase .tag{display:inline-block;background:var(--gold);color:#fff;font-size:14.5px;font-weight:700;
+    padding:2px 13px;border-radius:999px;margin-bottom:7px}
+  .phase h4{margin:0 0 6px;font-size:20px}
+  .phase p{margin:0;color:var(--ink2);font-size:17.5px}
+  .note{background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--maroon);
+    border-radius:12px;padding:16px 20px;margin:14px 0}
+  .note b{color:var(--maroon)}
+  .check{list-style:none;padding:0}
+  .check li{position:relative;padding-inline-start:34px;margin-bottom:11px}
+  .check li::before{content:"";position:absolute;inset-inline-start:0;top:9px;width:19px;height:19px;
+    border:2px solid var(--teal);border-radius:6px}
+  .yn{display:inline-block;width:24px;text-align:center;font-weight:800}
+  .yes{color:var(--green)} .no{color:var(--red)}
+  footer{margin-top:66px;padding-top:24px;border-top:3px solid var(--line);color:var(--ink2);font-size:17px}
+  @media (max-width:640px){
+    body{font-size:18px}
+    header.hero h1{font-size:29px} header.hero p{font-size:18px}
+    h2{font-size:24px} h2 .num{width:38px;height:38px;flex:0 0 38px;font-size:18px}
+    h3{font-size:20px} .card{padding:19px} table{font-size:15.5px} th,td{padding:9px}
+    .step{flex-direction:column;gap:10px}
+    pre{font-size:13.5px}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <span class="kicker">دليل تنفيذي · للاستخدام مع كلود كود</span>
+    <h1>ابنِ منصّتك بنفسك<br>خطوة بخطوة مع كلود كود</h1>
+    <p>لست مبرمجاً ولن تحتاج أن تكون. مهمّتك: النسخ واللصق، والتجربة، وقول «تمام» أو «لا، غيّر كذا».</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="card tint">
+  <p class="lead" style="margin-bottom:10px">ما في هذه الحزمة</p>
+  <ul style="margin-bottom:0">
+    <li><strong>هذا الدليل</strong> — تقرأه مرّة واحدة في البداية.</li>
+    <li><strong>ملف <code>CLAUDE.md</code></strong> — «دستور المشروع». تضعه في مجلد المشروع فيقرأه كلود تلقائياً في كل مرّة، فلا تُضطر لإعادة شرح شيء.</li>
+    <li><strong>ملف <code>PROMPTS.md</code></strong> — عشرة أوامر جاهزة، تنسخ واحداً وتلصقه، فتُبنى مرحلة كاملة.</li>
+  </ul>
+</div>
+
+<!-- 1 -->
+<h2><span class="num">١</span> ما هو كلود كود بالضبط؟</h2>
+<p class="sub">بلا مصطلحات.</p>
+<div class="card">
+  <p>تخيّل أنك عيّنت مبرمجاً محترفاً يجلس معك، يفهم العربية، ولا يمل، ويعمل ٢٤ ساعة. أنت تصف له ما تريد بالعربية العامية، وهو يكتب البرنامج ويشغّله ويصلح أخطاءه بنفسه.</p>
+  <p style="margin-bottom:0"><strong>دورك:</strong> أن تصف، وتجرّب، وتقول رأيك. <strong>دوره:</strong> كل ما عدا ذلك.</p>
+</div>
+
+<div class="card warn">
+  <h4 style="margin-top:0">اختر النسخة التي بلا شاشة سوداء</h4>
+  <p style="margin-bottom:0">لكلود كود عدّة أشكال، أحدها يعمل في «الشاشة السوداء» (Terminal) وهي مربكة لمن لم يعتدها. <strong>نصيحتي: نزّل «تطبيق كلود كود لسطح المكتب» (Desktop App)</strong> — واجهة عادية بنوافذ وأزرار، بكل المزايا نفسها، وبدون أي أوامر نظام. هذا الدليل مكتوب على أساسها.</p>
+</div>
+
+<!-- 2 -->
+<h2><span class="num">٢</span> التجهيز — نصف ساعة مرّة واحدة</h2>
+<p class="sub">افعلها بالترتيب ولا تقفز خطوة.</p>
+
+<div class="step"><div class="n">١</div><div>
+  <b>اشتراك كلود</b>
+  <span>تحتاج اشتراك <strong>Pro</strong> على الأقل (أو Max لو ستعمل كثيراً). سجّل من موقع Claude بنفس بريدك.</span>
+</div></div>
+
+<div class="step"><div class="n">٢</div><div>
+  <b>حمّل تطبيق كلود كود لسطح المكتب</b>
+  <span>ابحث في جوجل عن <strong>Claude Code desktop app</strong> أو ادخل <code>code.claude.com</code> واختر التحميل لويندوز أو ماك. ثبّته كأي برنامج عادي، وسجّل دخولك بحسابك.</span>
+</div></div>
+
+<div class="step"><div class="n">٣</div><div>
+  <b>ثبّت Node.js</b>
+  <span>ادخل <code>nodejs.org</code> ونزّل النسخة المكتوب بجانبها <strong>LTS</strong>، وثبّتها بالضغط على «التالي» حتى النهاية. (هذه هي «الآلة» التي يشتغل عليها التطبيق الذي ستبنيه.) لو نسيت، سيذكّرك كلود.</span>
+</div></div>
+
+<div class="step"><div class="n">٤</div><div>
+  <b>اصنع مجلد المشروع</b>
+  <span>على سطح المكتب، أنشئ مجلداً جديداً واسمه بالإنجليزية: <code>manassat-almoallem</code>. <strong>مهم: اسم المجلد بالإنجليزية وبدون مسافات.</strong></span>
+</div></div>
+
+<div class="step"><div class="n">٥</div><div>
+  <b>ضع الملفين في المجلد</b>
+  <span>انقل <code>CLAUDE.md</code> و <code>PROMPTS.md</code> إلى داخل هذا المجلد. هذه أهم خطوة في الدليل كله — <strong>بدون <code>CLAUDE.md</code> سينسى كلود قواعدك في كل جلسة جديدة</strong>.</span>
+</div></div>
+
+<div class="step"><div class="n">٦</div><div>
+  <b>افتح المجلد في كلود كود</b>
+  <span>من التطبيق: افتح المشروع واختر مجلد <code>manassat-almoallem</code>. اكتب أول رسالة: <strong>«اقرأ ملف CLAUDE.md وقول لي فهمت إيه»</strong>. لو لخّص لك القواعد بالعربية — فكل شيء جاهز.</span>
+</div></div>
+
+<!-- 3 -->
+<h2><span class="num">٣</span> المهارات التي ستُستخدم</h2>
+<p class="sub">سألت أن يستخدم «كل السكيلز اللي تساعد» — هذه هي، ومكتوبة داخل <code>CLAUDE.md</code> ليستدعيها تلقائياً.</p>
+
+<h3>مهارات جاهزة يستدعيها كلود</h3>
+<table>
+  <tr><th style="width:31%">المهارة</th><th>ماذا تضيف لمشروعك</th></tr>
+  <tr><td><code>ui-ux-design-system</code></td><td>تمنع الشكل «الآلي» الرديء، وتعطي المنصّة هوية بصرية واحدة متّسقة قبل بناء أي شاشة.</td></tr>
+  <tr><td><code>frontend-design</code></td><td>جودة تنفيذ الواجهات نفسها.</td></tr>
+  <tr><td><code>design:accessibility-review</code></td><td><strong>الأهم لك.</strong> تفحص حجم الخط وتباين الألوان وحجم الأزرار بمعايير عالمية — عين ٦٠ سنة تحتاج هذا فعلاً.</td></tr>
+  <tr><td><code>design:ux-copy</code></td><td>صياغة نصوص الأزرار ورسائل الخطأ بعربية واضحة بدل «Error».</td></tr>
+  <tr><td><code>docx</code></td><td>توليد ملفات Word سليمة — تحل مشاكل الاتجاه والخط العربي.</td></tr>
+  <tr><td><code>xlsx</code></td><td>كشوف Excel بمعادلات صحيحة وورقة من اليمين لليسار.</td></tr>
+  <tr><td><code>pptx</code></td><td>عروض PowerPoint للدروس بترتيب عربي صحيح.</td></tr>
+  <tr><td><code>pdf</code></td><td>آليات ملفات PDF — للشهادات وأوراق الاختبار.</td></tr>
+  <tr><td><code>canvas-design</code></td><td><strong>تصميم قوالب الشهادات</strong> — إطارات وزخارف وتوزيع بصري محترم، لا قالب باهت.</td></tr>
+  <tr><td><code>dataviz</code></td><td>الرسوم البيانية في لوحة التحليلات — ألوان مقروءة ومتّسقة.</td></tr>
+  <tr><td><code>engineering:system-design</code></td><td>تصميم هيكل البيانات في البداية — يمنع إعادة البناء لاحقاً.</td></tr>
+  <tr><td><code>engineering:testing-strategy</code></td><td>اختبار المعادلات الحسابية. خطأ في معادلة الدرجات يصل إلى شهادة طالب.</td></tr>
+  <tr><td><code>engineering:code-review</code></td><td>مراجعة الكود قبل نهاية كل مرحلة.</td></tr>
+  <tr><td><code>engineering:debug</code></td><td>عند أي خطأ يتكرر.</td></tr>
+  <tr><td><code>engineering:documentation</code></td><td>كتابة دليل استخدام عربي مبسّط لك أنت.</td></tr>
+  <tr><td><code>skill-creator</code> + <code>agent-skills-guide</code></td><td>لبناء مهاراتك الخاصة — انظر الفقرة التالية.</td></tr>
+</table>
+
+<div class="card tint">
+  <h4 style="margin-top:0">المهارات الخاصة بمشروعك — وهذه أذكى فكرة في الخطة كلها</h4>
+  <p>في الأمر رقم ٨ سيبني لك كلود <strong>سبع مهارات خاصة بك</strong>. بعدها لن تحتاج شرحاً طويلاً — تكتب جملة عربية عامية واحدة فيخرج الملف كاملاً:</p>
+  <table style="margin-bottom:0">
+    <tr><th style="width:47%">تكتب هذا</th><th>يخرج هذا</th></tr>
+    <tr><td>«اعمل اختبار نهاية الفصل على الوحدة ٢ و ٣»</td><td>ورقة الاختبار + نموذج الإجابة + جدول المواصفات + نسخة أ و ب</td></tr>
+    <tr><td>«اعمل كويز ٥ دقايق على درس دورة الماء»</td><td>تقييم صفي قصير جاهز للطباعة</td></tr>
+    <tr><td>«اطبعلي شهادات لأوائل الشهر»</td><td>ملف PDF فيه شهادة لكل فائز</td></tr>
+    <tr><td>«حضّرلي درس بكرة عن المغناطيس»</td><td>خطة درس Word بنموذج مدرستك</td></tr>
+    <tr><td>«اعمل تقرير لولي أمر سارة»</td><td>بطاقة متابعة PDF بالرسوم البيانية</td></tr>
+    <tr><td>«جهّز كشف الدرجات للنظام»</td><td>Excel بترتيب أعمدة النظام الرسمي</td></tr>
+  </table>
+</div>
+
+<!-- 4 -->
+<h2><span class="num">٤</span> وحدة الاختبارات بنظام الوزارة</h2>
+<p class="sub">هذا ما طلبته الآن — وهو الأمر رقم ٤ في ملف الأوامر. إليك ما سيُبنى بالضبط.</p>
+
+<div class="card">
+  <h4 style="margin-top:0">توزيع الدرجات المعتمد (لكل فصل من ١٠٠ درجة)</h4>
+  <table style="margin-bottom:10px">
+    <tr><th>المكوّن</th><th style="width:22%">الدرجة</th></tr>
+    <tr><td>اختبار منتصف الفصل</td><td>٢٥</td></tr>
+    <tr><td><strong>أعمال الفصل</strong></td><td><strong>٤٠</strong></td></tr>
+    <tr><td style="padding-inline-start:36px">← التقييمات القصيرة</td><td>١٥</td></tr>
+    <tr><td style="padding-inline-start:36px">← المشاركة الصفية</td><td>١٥</td></tr>
+    <tr><td style="padding-inline-start:36px">← الواجبات</td><td>١٠</td></tr>
+    <tr><td>اختبار نهاية الفصل</td><td>٣٥</td></tr>
+  </table>
+  <p style="margin-bottom:0">الفصل الأول = <strong>٤٠٪</strong> من الدرجة النهائية · الفصل الثاني = <strong>٦٠٪</strong> · النهاية الصغرى للنجاح <strong>٥٠</strong>.</p>
+</div>
+
+<div class="card danger">
+  <h4 style="margin-top:0">تحذير مكتوب في دستور المشروع</h4>
+  <p style="margin-bottom:0">هذه الأرقام <strong>تتغيّر</strong>. في الفصل الثاني من العام الماضي ألغت الوزارة اختبار منتصف الفصل للصفوف ١–١١ واستبدلته بتقييم إلكتروني واحد من <strong>٣٠ درجة</strong>. لذلك كتبتُ في <code>CLAUDE.md</code> منعاً صريحاً من تثبيت أي رقم داخل البرنامج — كلها من شاشة إعدادات تعدّلها أنت في دقيقتين، وتُحفظ نسخة سياسة مستقلة لكل عام حتى لا تفسد بيانات الأعوام السابقة.</p>
+</div>
+
+<h3>الأربعة ملفات التي تخرج مع كل اختبار</h3>
+<table>
+  <tr><th style="width:30%">الملف</th><th>محتواه</th></tr>
+  <tr><td><strong>١. ورقة الاختبار</strong><br><span style="color:var(--ink2);font-size:16px">Word + PDF</span></td>
+      <td>الترويسة الرسمية (الوزارة، المدرسة وشعارها، المادة، الصف، الفصل، العام، نوع الاختبار، الزمن، الدرجة، التاريخ) · خانات اسم الطالب والرقم والشعبة · <strong>جدول رصد الدرجات في الصفحة الأولى</strong> · التعليمات · درجة كل سؤال بجانبه · «صفحة ١ من ٣» · توقيعات المعلّم ومنسّق المادة والمدير · «انتهت الأسئلة — بالتوفيق».</td></tr>
+  <tr><td><strong>٢. نموذج الإجابة</strong></td><td>الإجابة النموذجية لكل سؤال + <strong>سلّم التصحيح</strong> (توزيع درجة السؤال على عناصره) — لتوحيد التصحيح ولحماية موقفك عند أي تظلّم.</td></tr>
+  <tr><td><strong>٣. جدول المواصفات</strong><br><span style="color:var(--ink2);font-size:16px">Excel</span></td>
+      <td>الوحدات في الصفوف × المستويات المعرفية في الأعمدة، وفي الخلايا عدد الأسئلة ودرجاتها، مع المجاميع والنسب. هذا ما تطلبه الإدارة لإثبات أن الاختبار متوازن.</td></tr>
+  <tr><td><strong>٤. النسختان أ و ب</strong></td><td>الأسئلة نفسها بترتيب مختلف وخيارات مبعثرة — لمنع النقل، مع نموذج إجابة لكل نسخة.</td></tr>
+</table>
+
+<h3>معالج بناء الاختبار — أربع خطوات فقط</h3>
+<ol>
+  <li><strong>النوع والنطاق:</strong> كويز / منتصف / نهاية / عملي — والوحدات المشمولة والدرجة والزمن.</li>
+  <li><strong>التوازن المعرفي:</strong> تذكّر ٤٠٪ · فهم ٣٥٪ · تطبيق ٢٠٪ · مهارات عليا ٥٪ (نسب افتراضية تعدّلها)، مع توزيع على الوحدات بحسب عدد الحصص.</li>
+  <li><strong>الاختيار:</strong> يسحب من بنك الأسئلة حسب النسب، ويستبعد تلقائياً ما استُخدم في آخر سنتين، وتستطيع استبدال أي سؤال بنقرة.</li>
+  <li><strong>المعاينة والتوليد.</strong> ويُنبّهك قبلها إن كان الزمن المقدّر أطول من زمن الاختبار.</li>
+</ol>
+
+<h3>وبعد الاختبار</h3>
+<ul>
+  <li>رصد النتائج <strong>سؤالاً بسؤال</strong> (أو الدرجة الكلية فقط لو استعجلت).</li>
+  <li><strong>معامل صعوبة كل سؤال</strong> — أي سؤال أخطأ فيه أكثر من نصف الفصل؟</li>
+  <li>تقرير <strong>«الدروس التي تحتاج إعادة شرح»</strong> — أثمن مخرج في الوحدة كلها.</li>
+  <li>ترحيل الدرجة تلقائياً إلى مكوّنها الصحيح في سجل الدرجات — بلا نقل يدوي وبلا خطأ.</li>
+</ul>
+
+<h3>أنواع الأسئلة المدعومة</h3>
+<p>اختيار من متعدد · صح وخطأ · توصيل · أكمل الفراغ · عرّف المصطلح · رتّب الخطوات · اقرأ الجدول أو الرسم البياني · <strong>ارسم وسمِّ الأجزاء</strong> (خاص بالعلوم) · علّل علمياً · مقالي قصير · سؤال استقصاء علمي.</p>
+
+<!-- 5 -->
+<h2><span class="num">٥</span> الأوامر العشرة</h2>
+<p class="sub">كلها مكتوبة كاملة في ملف <code>PROMPTS.md</code>. هنا نظرة سريعة على الترتيب.</p>
+
+<div class="phase"><span class="tag">أمر ٠</span><h4>التأسيس</h4><p>المشروع + قاعدة البيانات + الخطوط العربية + بيانات تجريبية. لن ترى شيئاً جميلاً بعد — وهذا طبيعي.</p></div>
+<div class="phase"><span class="tag">أمر ١</span><h4>الرئيسية والطلاب</h4><p>الشاشة الرئيسية، الفصول، الطلاب، ملف الطالب، استيراد من Excel. <strong>أول لحظة تشعر فيها أنها منصّة حقيقية.</strong></p></div>
+<div class="phase"><span class="tag">أمر ٢</span><h4>سياسة التقييم والرصد</h4><p>شاشة النسب القابلة للتعديل + شاشة رصد سريعة بالكيبورد + المعادلات واختباراتها.</p></div>
+<div class="phase"><span class="tag">أمر ٣</span><h4>الحضور والنقاط والمكافآت</h4><p>الحضور بنقرة، محرّك النقاط، المستويات، لوحة الصدارة، جوائز الشهر، متجر المكافآت.</p></div>
+<div class="phase"><span class="tag">أمر ٤</span><h4>بنك الأسئلة والاختبارات ★</h4><p>أكبر أمر وأهمه — وحدة الاختبارات كاملة بنظام الوزارة. خذ وقتك في تجربته.</p></div>
+<div class="phase"><span class="tag">أمر ٥</span><h4>الشهادات والتقارير</h4><p>خمسة قوالب شهادات، أوراق العمل، بطاقة ولي الأمر، كشوف Excel الرسمية، تقرير الإدارة.</p></div>
+<div class="phase"><span class="tag">أمر ٦</span><h4>المنهج والتحضير والمكتبة</h4><p>شجرة المنهج، مكتبة ملفاتك، التوزيع الزمني، خطط الدروس، التجارب، عروض PowerPoint، ملف الإنجاز.</p></div>
+<div class="phase"><span class="tag">أمر ٧</span><h4>المتعة والتحليلات</h4><p>كويز تفاعلي، تحدّي المجموعات، الأوسمة، رموز QR، لوحة الرسوم، الإنذار المبكر، خطط الدعم.</p></div>
+<div class="phase"><span class="tag">أمر ٨</span><h4>مهاراتك الخاصة</h4><p>السبع مهارات التي تحوّل جملة عامية إلى ملف جاهز.</p></div>
+<div class="phase"><span class="tag">أمر ٩</span><h4>الحماية والتسليم</h4><p>النسخ الاحتياطي، القفل، العمل بلا إنترنت، المراجعة النهائية، دليل الاستخدام العربي.</p></div>
+
+<div class="note">
+  <b>كم يستغرق هذا؟</b><br>
+  الأمر الواحد بين نصف ساعة وثلاث ساعات من عمل كلود، وأنت تجرّب بينها. <strong>لا تحاول إنهاء الكل في يوم.</strong> أمر واحد في اليوم كافٍ جداً، وبعد الأمر رقم ٣ ستكون المنصّة صالحة للاستخدام الفعلي في الصف.
+</div>
+
+<!-- 6 -->
+<h2><span class="num">٦</span> القواعد الذهبية العشر</h2>
+<p class="sub">اقرأها مرّتين. هي الفرق بين تجربة مريحة وتجربة مرهقة.</p>
+
+<div class="card">
+<ol style="margin-bottom:0">
+  <li><strong>أمر واحد في المرة.</strong> لا تلصق أمرين معاً ولو استعجلت.</li>
+  <li><strong>جرّب بعد كل أمر</strong> قبل الانتقال للتالي. لا تقل «تمام» قبل أن تفتح الشاشة بنفسك.</li>
+  <li><strong>لا تخف من كسر شيء.</strong> اكتب <code>/rewind</code> فيرجع كل شيء لما كان قبل قليل — لا تحتاج معرفة تقنية.</li>
+  <li><strong>تكلّم بالعامية بلا حرج.</strong> «الشاشة دي وحشة» و«الخط صغير» و«مش عاجبني» — كلها أوامر مفهومة.</li>
+  <li><strong>كن محدّداً في التعديل:</strong> «كبّر الخط في شاشة الدرجات بس» أوضح بكثير من «حسّن الشكل».</li>
+  <li><strong>أرسل صوراً.</strong> لو ملف Word طلع تنسيقه غلط، صوّره والصق الصورة — هذا أسرع من ألف كلمة.</li>
+  <li><strong>لا ترد على سؤال تقني.</strong> إن سألك كلود سؤالاً تقنياً، أجب: «قرّر إنت حسب CLAUDE.md» — فهذا مكتوب في دستوره أصلاً.</li>
+  <li><strong>لا تشغّل جلسة طويلة جداً.</strong> بعد ٣ إلى ٤ ساعات اكتب <code>/clear</code> لبداية نظيفة — سيقرأ <code>CLAUDE.md</code> من جديد ولن ينسى شيئاً.</li>
+  <li><strong>خذ نسخة احتياطية أسبوعياً</strong> من مجلد المشروع كاملاً إلى فلاشة أو مجلد آخر. دقيقة واحدة تحميك من كارثة.</li>
+  <li><strong>لا تُدخل أسماء طلابك الحقيقية</strong> قبل الأمر رقم ٩ (الحماية والنسخ الاحتياطي). اعمل بالأسماء التجريبية حتى ذلك الحين.</li>
+</ol>
+</div>
+
+<!-- 7 -->
+<h2><span class="num">٧</span> ماذا تفعل لو…</h2>
+<table>
+  <tr><th style="width:38%">المشكلة</th><th>ما تكتبه</th></tr>
+  <tr><td>البرنامج توقّف عن العمل فجأة</td><td><code>في حاجة اتخربت، ارجع لآخر نسخة كانت شغالة</code> أو اكتب <code>/rewind</code></td></tr>
+  <tr><td>الخط صغير أو الأزرار ضيّقة</td><td><code>كبّر الخط في كل الشاشات وخلّي الأزرار أكبر وأوضح</code></td></tr>
+  <tr><td>الشاشة معقّدة ومزدحمة</td><td><code>الشاشة دي معقّدة، بسّطها وقلّل عدد الأزرار</code></td></tr>
+  <tr><td>الحروف العربية مقطّعة في PDF</td><td><code>العربي مقطّع في الـPDF، استخدم طريقة طباعة المتصفح زي ما مكتوب في CLAUDE.md</code></td></tr>
+  <tr><td>الجدول في Word معكوس</td><td><code>الجدول معكوس، اقرأ مهارة docx وظبّط الاتجاه من اليمين لليسار</code></td></tr>
+  <tr><td>لا تفهم ما يقوله كلود</td><td><code>اشرحلي ده بالعربي وكأني مش مبرمج خالص</code></td></tr>
+  <tr><td>نسيت أين وصلت</td><td><code>فكّرني إحنا وصلنا فين وإيه اللي فاضل</code></td></tr>
+  <tr><td>يشتغل ببطء أو ينسى</td><td>اكتب <code>/clear</code> ثم <code>اقرأ CLAUDE.md وكمّل من المرحلة رقم كذا</code></td></tr>
+  <tr><td>تريد تعديلاً صغيراً بلا مفاجآت</td><td><code>عايز أغيّر [كذا] بس، متلمسش أي حاجة تانية في المشروع</code></td></tr>
+  <tr><td>تشك أنه لم يجرّب عمله</td><td><code>جرّب كل حاجة بنفسك وتأكد إنها شغالة قبل ما تقوللي خلصت</code></td></tr>
+</table>
+
+<!-- 8 -->
+<h2><span class="num">٨</span> قبل أن تبدأ — جهّز هذا</h2>
+<ul class="check">
+  <li>ملف Excel أو صورة كشف بأسماء طلابك وأرقامهم وفصولهم</li>
+  <li>ورقة توزيع الدرجات المعتمدة لهذا العام لمادة العلوم — المستوى الخامس</li>
+  <li>صورة أو ملف من <strong>نموذج ورقة اختبار رسمي</strong> من مدرستك (مهم جداً لمطابقة الترويسة والتوقيعات)</li>
+  <li>نموذج <strong>جدول مواصفات</strong> إن كان معتمداً في مدرستك</li>
+  <li>نموذج <strong>كشف الدرجات</strong> الذي ترفعه للنظام الرسمي</li>
+  <li>شعار المدرسة واسمها الرسمي الكامل، وتوقيعك بصورة</li>
+  <li>نموذج <strong>خطة الدرس</strong> المعتمد في مدرستك</li>
+  <li>اختباراتك وأوراق عملك السابقة — منها يُبنى بنك الأسئلة بسرعة</li>
+  <li>كتاب العلوم للمستوى الخامس PDF، ووثيقة المعايير أو التوزيع الزمني</li>
+</ul>
+
+<div class="card tint">
+  <p class="lead" style="margin-bottom:8px">وإن لم يكن شيء من هذا جاهزاً الآن؟</p>
+  <p style="margin-bottom:0">ابدأ على أي حال. الأوامر من ٠ إلى ٣ لا تحتاج أي ملف منك — كلود سيبني بأسماء تجريبية، وتستبدلها ببياناتك الحقيقية لاحقاً في دقيقة واحدة. <strong>الأهم أن تبدأ.</strong></p>
+</div>
+
+<footer>
+  <p><strong>خطوتك التالية:</strong> نزّل تطبيق كلود كود، اصنع المجلد، ضع فيه <code>CLAUDE.md</code> و <code>PROMPTS.md</code>، ثم الصق <strong>الأمر رقم ٠</strong>. وإن تعثّرت في أي خطوة — ارجع إليّ هنا وأنا أساعدك.</p>
+  <p style="margin-bottom:0;font-size:16px;opacity:.8">دليل تنفيذي · أغسطس ٢٠٢٦ · مصمَّم ليُقرأ مرّة ويُستعمل مرجعاً</p>
+</footer>
+
+</div>
+</body>
+</html>

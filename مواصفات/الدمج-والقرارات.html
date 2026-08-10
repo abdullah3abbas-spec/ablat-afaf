@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دمج العرض مع الخطة — القرارات النهائية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--maroon:#8A1538;--teal:#0F6B62;--tealbg:#E6F2F0;--ink:#1E2430;--ink2:#4A5568;
+--cream:#FBF8F3;--line:#E6DFD4;--gold:#C08A2E;--goldbg:#FCF3E2;--green:#2E7D4F;--red:#B3261E;--redbg:#FDECEA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'Tajawal',"Segoe UI",Tahoma,sans-serif;
+font-size:19px;line-height:1.95}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 90px}
+header.hero{background:linear-gradient(155deg,#8A1538 0%,#4A0B1E 100%);color:#fff;padding:54px 20px 46px;margin-bottom:32px}
+header.hero .inner{max-width:900px;margin:0 auto}
+.kicker{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+padding:5px 16px;border-radius:999px;font-size:15px;font-weight:500;margin-bottom:16px}
+header.hero h1{font-size:37px;line-height:1.42;margin:0 0 12px;font-weight:800}
+header.hero p{font-size:20px;margin:0;opacity:.93;max-width:660px}
+h2{font-size:27px;font-weight:800;margin:50px 0 6px;padding-bottom:12px;border-bottom:3px solid var(--line)}
+h2+.sub{color:var(--ink2);font-size:18px;margin:0 0 20px}
+h3{font-size:21.5px;font-weight:700;margin:28px 0 8px;color:var(--maroon)}
+p{margin:0 0 16px}ul,ol{margin:0 0 16px;padding-inline-start:26px}li{margin-bottom:9px}
+li::marker{color:var(--teal)}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin:20px 0;
+box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.card.tint{background:var(--tealbg);border-color:#CBE3DF}
+.card.warn{background:var(--goldbg);border-color:#EBD9B2}
+.card.danger{background:var(--redbg);border-color:#F0C4BF}
+.item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:17px 19px;margin:11px 0;
+border-inline-start:6px solid var(--teal)}
+.item.star{border-inline-start-color:var(--gold);background:#FFFDF8}
+.item.mod{border-inline-start-color:var(--red)}
+.item.keep{border-inline-start-color:var(--maroon)}
+.item b{display:block;font-size:19.5px;margin-bottom:3px}
+.item.star b::before{content:"★ ";color:var(--gold)}
+.item span{color:var(--ink2);font-size:17.5px;line-height:1.75}
+.item .was{display:block;margin-top:7px;font-size:16.5px;color:#8C1D18;background:var(--redbg);
+border:1px solid #F0C4BF;border-radius:9px;padding:7px 12px}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:17px;background:#fff;
+border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th{background:var(--teal);color:#fff;padding:11px 13px;text-align:right;font-weight:700;font-size:16.5px}
+td{padding:11px 13px;border-top:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#FCFAF7}
+.yes{color:var(--green);font-weight:800}.no{color:var(--red);font-weight:800}
+footer{margin-top:60px;padding-top:24px;border-top:3px solid var(--line);color:var(--ink2);font-size:17px}
+@media (max-width:640px){body{font-size:18px}header.hero h1{font-size:28px}header.hero p{font-size:18px}
+h2{font-size:23px}h3{font-size:20px}.card{padding:19px}table{font-size:15.5px}th,td{padding:9px}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <span class="kicker">بعد قراءة العرض · ١٦ شريحة</span>
+    <h1>الدمج والقرارات النهائية</h1>
+    <p>العرض ممتاز، وفيه ثلاث أفكار أفضل مما اقترحتُه. وهذه الوثيقة تحسم: ماذا نأخذ منه، وماذا نعدّل فيه، وماذا نُبقي من خطتنا.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="card tint">
+  <p style="margin-bottom:8px;font-size:21px;font-weight:600">حكمي على العرض في سطرين</p>
+  <p style="margin-bottom:0">هو <strong>أقوى مني في المحتوى والحصة</strong> — خصوصاً فكرة العمل على ملفات أبلة عفاف الموجودة بدل بناء كل شيء من الصفر. وأنا <strong>أقوى منه في المتطلبات الرسمية</strong> — الاختبارات بنظام الوزارة وسياسة التقييم القطرية والزيارة الصفية. <strong>الاثنان معاً يكوّنان المنصّة الكاملة</strong>، ولا يغني أحدهما عن الآخر.</p>
+</div>
+
+<!-- ============ -->
+<h2>أولاً: تسعة نأخذها من العرض</h2>
+<p class="sub">الثلاثة الأولى بنجمة — لأنها أفضل مما كنتُ خطّطتُ له، وأعترف بذلك.</p>
+
+<div class="item star">
+  <b>استوديو العرض التقديمي — التعديل بالكلام</b>
+  <span>تكتب: «أضيفي بعد الشريحة ٦ لعبة جماعية ٧ دقائق عن دورة الماء» → تقترح المنصّة، تراجع، تحفظ. <strong>النسخة الأصلية لا تُمسّ أبداً</strong>، وتُحفظ نسخة جديدة مع سجل التعديلات.</span>
+  <span class="was">كنتُ سأبني العروض من الصفر — وهذا خطأ. أبلة عفاف عندها سنوات من العروض الجاهزة، والأصح أن نبني <b>عليها</b> لا بدلاً منها.</span>
+</div>
+
+<div class="item star">
+  <b>الكتاب والملازم مصدراً معتمداً</b>
+  <span>يُرفع كتاب المنهج وملازم الأسئلة مرّة واحدة أول العام، ويُلزَم الذكاء الاصطناعي بها: «كوّني نشاطاً من هذا الدرس <strong>باستخدام الكتاب والمذكرة فقط</strong>».</span>
+  <span class="was">هذا يحلّ — بشكل أنظف مما كتبتُ — مشكلة المصطلحات: لن تظهر للطالبة كلمة لم ترها في كتابها، لأن المصدر هو الكتاب نفسه لا معرفة عامة.</span>
+</div>
+
+<div class="item star">
+  <b>المجموعة العلاجية بدل الخطة الفردية</b>
+  <span>تُجمَّع الطالبات اللاتي لديهنّ <strong>نفس نقطة الضعف</strong> في مجموعة واحدة، وتُعدّ خطة واحدة لهنّ.</span>
+  <span class="was">كنتُ سأولّد خطة علاجية لكل طالبة على حدة — أي ٢٥ خطة. هذا صحيح نظرياً وكارثي عملياً. فكرة العرض أذكى وأسرع وأقرب لما تفعله المعلّمة فعلاً.</span>
+</div>
+
+<div class="item"><b>ربط كل سؤال بناتج تعلّم</b>
+<span>فتظهر تلقائياً: «أضعف ناتج تعلّم: الوراثة» و«أصعب سؤال: رقم ٧» و«٦ طالبات يحتجن دعماً». هذا يحوّل الدرجة من رقم إلى <strong>تشخيص</strong>.</span></div>
+
+<div class="item"><b>قائمة التجهيز الأسبوعي وتجهيز المختبر</b>
+<span>«اطبعي ٢٤ ورقة» · «جهّزي ٦ مجاهر» · تنبيه بالأدوات الناقصة قبل الحصة بيومين. لم أكن قد فكّرت في نواقص المختبر.</span></div>
+
+<div class="item"><b>الملاحظات الصوتية بعد الحصة</b>
+<span>تتكلّم بعد الحصة: «سارة ممتازة اليوم +٣ نقاط، وست طالبات يحتجن مراجعة درس الخلايا» → تتحوّل تلقائياً إلى نقاط ومهام متابعة. <strong>أفضل من الإدخال الصوتي الذي اقترحتُه</strong> — لأنها تتكلّم بطبيعتها بعد الحصة، لا تُصدر أوامر.</span></div>
+
+<div class="item"><b>ملف الطالبة الغائبة</b>
+<span>شرح مختصر + ورقة عمل + واجب، في حزمة واحدة تُرسل لها. كنتُ فكّرتُ في غياب <em>المعلّمة</em> ونسيتُ غياب <em>الطالبة</em>.</span></div>
+
+<div class="item"><b>عجلة الاختيار الذكية</b>
+<span>استبعاد الغائبات · منع تكرار الاسم · سجل الاختيارات. التفاصيل الثلاثة هي ما يجعلها <strong>عادلة</strong> بدل أن تكون مجرد لعبة.</span></div>
+
+<div class="item"><b>سجل النسخ لكل ملف</b>
+<span>لا يُستبدل ملف أصلي أبداً — تُحفظ نسخة جديدة مع سجل. هذا يزيل خوفها من تجربة أي شيء.</span></div>
+
+<!-- ============ -->
+<h2>ثانياً: أربعة أعدّلها في العرض</h2>
+
+<div class="item mod">
+  <b>١. قراءة اسم الطالبة من الورقة — أرفضها</b>
+  <span>العرض يقترح أن تقرأ المنصّة <strong>الاسم والدرجة</strong> من الورقة ثم تطابقهما. قراءة الأسماء العربية بخط اليد أخطر بكثير من قراءة الأرقام، ومصدر أخطاء صامتة (تُنسب درجة لطالبة أخرى).</span>
+  <span class="was">البديل: <b>لا نقرأ الأسماء إطلاقاً.</b> نطابق بترتيب الصفوف أو بالرقم المطبوع على ورقة الرصد الذكية — والاسم يأتي من قاعدة البيانات. أدقّ وأأمن للخصوصية.</span>
+</div>
+
+<div class="item mod">
+  <b>٢. الصف السابع والثامن → المستوى الخامس</b>
+  <span>العرض كله مبني على دروس الخلايا والوراثة والمجاهر و«٢٤ طالبة في الثامن (أ)». تم إعادة توجيه كل شيء إلى <strong>المستوى الخامس فقط</strong> حسب قرارك — مكتبة أصغر وبناء أسرع.</span>
+</div>
+
+<div class="item mod">
+  <b>٣. لا تزال منصّة قوائم وتبويبات</b>
+  <span>صفحة الصف في العرض فيها ستة تبويبات (نظرة عامة · الحصص · الطالبات · الدرجات · النقاط · التقارير). ممتازة لمعلّمة في الثلاثين — <strong>حاجز لمعلّمة في الستين</strong>.</span>
+  <span class="was">نُبقي التبويبات، لكن نضع <b>الصندوق الواحد</b> فوقها: تكتب أو تتكلّم سطراً فيحدث الشيء. القوائم لمن يريدها، والصندوق هو الباب.</span>
+</div>
+
+<div class="item mod">
+  <b>٤. ألعاب برابط و QR من أجهزة الطالبات — تأجيل</b>
+  <span>بنات في العاشرة داخل حصة علوم غالباً بلا أجهزة، والاعتماد عليها يجعل الحصة رهينة الشبكة. نستبدلها بالألعاب الورقية وألعاب السبورة (وكلها مصمَّمة أصلاً)، ونؤجّل QR للمرحلة الأخيرة كإضافة اختيارية.</span>
+</div>
+
+<!-- ============ -->
+<h2>ثالثاً: ثمانية من خطتنا غير موجودة في العرض</h2>
+<p class="sub">هذه هي المتطلبات الرسمية — وغيابها يعني منصّة جميلة لا تُرضي الإدارة ولا الوزارة.</p>
+
+<div class="item keep"><b>١. الاختبارات بنظام الوزارة</b><span>ورقة الاختبار بالترويسة الرسمية وجدول الرصد والتوقيعات · نموذج الإجابة وسلّم التصحيح · <strong>جدول المواصفات</strong> · نسختا (أ) و(ب).</span></div>
+<div class="item keep"><b>٢. سياسة التقييم القطرية القابلة للتعديل</b><span>٢٥ منتصف + ٤٠ أعمال فصل + ٣٥ نهاية، والفصل الأول ٤٠٪ والثاني ٦٠٪ — ولا رقم منها مكتوب داخل الكود.</span></div>
+<div class="item keep"><b>٣. ملف الزيارة الصفية</b><span>أكبر مصدر قلق مهني في عامها — بضغطة واحدة.</span></div>
+<div class="item keep"><b>٤. صندوق الطلبات «المطلوب منّي»</b><span>الطلبات المفاجئة من المدرسة والموجّهة، بمواعيدها.</span></div>
+<div class="item keep"><b>٥. الرسالة الأسبوعية</b><span>التزام أسبوعي حقيقي في المدارس القطرية — تُولَّد كل خميس وحدها.</span></div>
+<div class="item keep"><b>٦. الفروق الفردية بثلاثة مستويات</b><span>دعم · أساسي · إثراء لكل ورقة عمل، بضغطة واحدة.</span></div>
+<div class="item keep"><b>٧. ورقة الرصد الذكية</b><span>بعلامات الأركان والمربّعات الكبيرة — أساس دقة القراءة.</span></div>
+<div class="item keep"><b>٨. وضع الابن والنسخة الاحتياطية إلى بريدك</b><span>أنت جزء من المنصّة، وعملها محفوظ عندك.</span></div>
+
+<!-- ============ -->
+<h2>رابعاً: حدود الذكاء الاصطناعي — القرار الحاسم</h2>
+<p class="sub">اخترتَ الجمع بين المحلي والذكاء الاصطناعي. هذا هو الخط الفاصل بالضبط — ويجب ألّا يُتجاوز.</p>
+
+<table>
+  <tr><th style="width:52%">النوع</th><th style="width:24%">يبقى على الجهاز</th><th>يُرسل للذكاء الاصطناعي</th></tr>
+  <tr><td>أسماء الطالبات</td><td class="yes">✔ دائماً</td><td class="no">✘ أبداً</td></tr>
+  <tr><td>الدرجات مرتبطة بالأسماء</td><td class="yes">✔ دائماً</td><td class="no">✘ أبداً</td></tr>
+  <tr><td>الحضور والملاحظات السلوكية</td><td class="yes">✔ دائماً</td><td class="no">✘ أبداً</td></tr>
+  <tr><td>أرقام أولياء الأمور</td><td class="yes">✔ دائماً</td><td class="no">✘ أبداً</td></tr>
+  <tr><td>صور الطالبات</td><td class="yes">✔ دائماً</td><td class="no">✘ أبداً</td></tr>
+  <tr><td>كتاب المنهج والملازم</td><td>—</td><td class="yes">✔ نعم</td></tr>
+  <tr><td>العروض وأوراق العمل</td><td>—</td><td class="yes">✔ نعم</td></tr>
+  <tr><td>نصوص الأسئلة والاختبارات</td><td>—</td><td class="yes">✔ نعم</td></tr>
+  <tr><td>صورة خانات الدرجات</td><td>—</td><td class="yes">✔ بعد قصّ عمود الأسماء</td></tr>
+  <tr><td>الأرقام بلا أسماء (للتحليل)</td><td>—</td><td class="yes">✔ نعم</td></tr>
+</table>
+
+<div class="card danger">
+  <h3 style="margin-top:0;color:#8C1D18">القاعدة الواحدة التي تحكم كل شيء</h3>
+  <p style="margin-bottom:10px;font-size:21px;font-weight:700">أي شيء فيه اسم بنت — لا يخرج من الجهاز.</p>
+  <p style="margin-bottom:0">وثلاثة ضمانات مكتوبة في دستور المشروع: التطبيق <strong>يعرض ما سيُرسل قبل إرساله</strong> · يحتفظ <strong>بسجل كامل لكل إرسال</strong> تستطيع مراجعته أنت · وزر <strong>«اقطعي الاتصال»</strong> يوقف كل إرسال ويُبقي المنصّة تعمل بوظائفها الأساسية.</p>
+</div>
+
+<!-- ============ -->
+<h2>خامساً: الترتيب النهائي للبناء</h2>
+<table>
+  <tr><th style="width:16%">المرحلة</th><th>المحتوى</th></tr>
+  <tr><td><strong>الأولى</strong></td><td>الفصول والطالبات · مركز المصادر (رفع الكتاب والعروض والملازم) · صفحة الحصة الجاهزة · <strong>الصندوق الواحد</strong></td></tr>
+  <tr><td><strong>الثانية</strong></td><td>ورقة الرصد الذكية وقراءتها بالتصوير · سياسة التقييم · النقاط والعجلة والألعاب</td></tr>
+  <tr><td><strong>الثالثة</strong></td><td>استوديو العرض التقديمي · بنك الأسئلة بنواتج التعلّم · الاختبارات بنظام الوزارة</td></tr>
+  <tr><td><strong>الرابعة</strong></td><td>التحليل والمجموعات العلاجية · الفروق الفردية · ملف الزيارة الصفية</td></tr>
+  <tr><td><strong>الخامسة</strong></td><td>صندوق الطلبات · الرسالة الأسبوعية · قائمة التجهيز · الملاحظات الصوتية · الشهادات والتقارير</td></tr>
+  <tr><td><strong>السادسة</strong></td><td>وضع الابن · النسخ الاحتياطي · الأرشيف السنوي · التسليم النهائي</td></tr>
+</table>
+
+<footer>
+  <p><strong>ما تغيّر في ملفات المشروع:</strong> حدّثتُ <code>CLAUDE.md</code> بحدود الذكاء الاصطناعي وبالميزات التسع المأخوذة من العرض، وأضفتُ إلى <code>PROMPTS.md</code> أمرين جديدين: مركز المصادر واستوديو العرض التقديمي.</p>
+  <p style="margin-bottom:0;font-size:16px;opacity:.8">قرارات الدمج · أغسطس ٢٠٢٦ · المستوى الخامس · بالعربية · محلي + ذكاء اصطناعي بحدود</p>
+</footer>
+
+</div>
+</body>
+</html>

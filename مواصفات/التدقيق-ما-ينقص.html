@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ما ينقص فعلاً — تدقيق مهني</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--maroon:#8A1538;--teal:#0F6B62;--tealbg:#E6F2F0;--ink:#1E2430;--ink2:#4A5568;
+--cream:#FBF8F3;--line:#E6DFD4;--gold:#C08A2E;--goldbg:#FCF3E2;--green:#2E7D4F;--red:#B3261E;--redbg:#FDECEA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'Tajawal',"Segoe UI",Tahoma,sans-serif;
+font-size:19px;line-height:1.95}
+.wrap{max-width:900px;margin:0 auto;padding:0 20px 90px}
+header.hero{background:linear-gradient(155deg,#2A2118 0%,#161210 100%);color:#fff;padding:56px 20px 48px;margin-bottom:32px}
+header.hero .inner{max-width:900px;margin:0 auto}
+.kicker{display:inline-block;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);
+padding:5px 16px;border-radius:999px;font-size:15px;font-weight:500;margin-bottom:16px}
+header.hero h1{font-size:37px;line-height:1.42;margin:0 0 14px;font-weight:800}
+header.hero p{font-size:20px;margin:0;opacity:.9;max-width:660px}
+h2{font-size:27px;font-weight:800;margin:50px 0 6px;padding-bottom:12px;border-bottom:3px solid var(--line)}
+h2+.sub{color:var(--ink2);font-size:18px;margin:0 0 20px}
+h3{font-size:22px;font-weight:700;margin:30px 0 8px;color:var(--maroon)}
+p{margin:0 0 16px}ul,ol{margin:0 0 16px;padding-inline-start:26px}li{margin-bottom:9px}
+li::marker{color:var(--teal)}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 26px;margin:20px 0;
+box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.card.tint{background:var(--tealbg);border-color:#CBE3DF}
+.card.warn{background:var(--goldbg);border-color:#EBD9B2}
+.card.danger{background:var(--redbg);border-color:#F0C4BF}
+.thesis{background:linear-gradient(150deg,#8A1538,#5E0E26);color:#fff;border-radius:20px;padding:28px;margin:22px 0}
+.thesis b{display:block;font-size:24px;font-weight:800;line-height:1.5;margin-bottom:8px}
+.thesis span{opacity:.93;font-size:18.5px;line-height:1.85}
+.gap{background:#fff;border:1px solid var(--line);border-radius:18px;padding:0;margin:18px 0;overflow:hidden}
+.gap .hd{display:flex;align-items:flex-start;gap:15px;padding:20px 22px 14px}
+.gap .rank{width:46px;height:46px;border-radius:13px;flex:0 0 46px;display:flex;align-items:center;
+justify-content:center;font-weight:800;font-size:20px;color:#fff}
+.r1 .rank{background:var(--maroon)}.r2 .rank{background:var(--teal)}.r3 .rank{background:var(--gold)}
+.gap .hd h3{margin:0;font-size:22.5px;color:var(--ink);line-height:1.45}
+.gap .bd{padding:0 22px 20px}
+.lbl{display:inline-block;font-size:14.5px;font-weight:800;letter-spacing:.4px;padding:2px 12px;
+border-radius:999px;margin-bottom:6px}
+.lbl.pain{background:var(--redbg);color:#8C1D18;border:1px solid #F0C4BF}
+.lbl.fix{background:#E8F5EC;color:#1B5E37;border:1px solid #BFE2CB}
+.lbl.why{background:var(--goldbg);color:#7A5612;border:1px solid #EBD9B2}
+.gap p{margin:0 0 12px;font-size:18px}
+.tier{display:flex;align-items:center;gap:12px;margin:44px 0 6px}
+.tier .bar{height:4px;flex:1;border-radius:99px}
+.tier b{font-size:20px;font-weight:800;white-space:nowrap}
+.t1 .bar{background:var(--maroon)}.t1 b{color:var(--maroon)}
+.t2 .bar{background:var(--teal)}.t2 b{color:var(--teal)}
+.t3 .bar{background:var(--gold)}.t3 b{color:var(--gold)}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:17px;background:#fff;
+border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th{background:var(--teal);color:#fff;padding:11px 13px;text-align:right;font-weight:700;font-size:16.5px}
+td{padding:11px 13px;border-top:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#FCFAF7}
+.q{background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--maroon);
+border-radius:12px;padding:15px 19px;margin:11px 0}
+.q b{display:block;color:var(--maroon);font-size:19px}
+.q span{color:var(--ink2);font-size:17.5px}
+footer{margin-top:60px;padding-top:24px;border-top:3px solid var(--line);color:var(--ink2);font-size:17px}
+@media (max-width:640px){body{font-size:18px}header.hero h1{font-size:28px}header.hero p{font-size:18px}
+h2{font-size:23px}h3{font-size:20px}.card{padding:19px}.thesis{padding:20px}.thesis b{font-size:20px}
+.gap .hd{padding:16px 16px 10px}.gap .bd{padding:0 16px 16px}.gap .hd h3{font-size:19.5px}
+table{font-size:15.5px}th,td{padding:9px}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <span class="kicker">تدقيق مهني · رأي صريح</span>
+    <h1>ما ينقص فعلاً</h1>
+    <p>راجعتُ كل ما بنيناه، وبحثتُ في المطلوب حقيقةً من معلّمة في مدرسة قطرية. هذه أهم عشر فجوات — مرتّبة بالأثر، لا بالسهولة.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div class="thesis">
+  <b>الخلاصة في جملة واحدة:</b>
+  <span>ما بنيناه حتى الآن <strong>مصنع ممتاز</strong> — يُنتج كل ما تحتاجه. لكن عدوّ أبلة عفاف الحقيقي ليس الإنتاج، بل <strong>الطلبات التي تصلها فجأة بمواعيد</strong>. المنصّة تنتظرها لتفتحها، والمفروض أن تكون هي التي تبدأ الحديث. الفرق بين منصّة جيدة ومنصّة تغيّر حياتها هو: <strong>من يبدأ الحوار؟</strong></span>
+</div>
+
+<!-- ===== المستوى الأول ===== -->
+<div class="tier t1"><b>المستوى الأول — يغيّر مجرى الأمور</b><div class="bar"></div></div>
+<p class="sub" style="margin-bottom:18px">ثلاث فجوات، أثر كل واحدة أكبر من كل ما بنيناه مجتمعاً.</p>
+
+<div class="gap r1">
+  <div class="hd"><div class="rank">١</div><h3>صندوق الطلبات — كل ما يُطلب منها في مكان واحد</h3></div>
+  <div class="bd">
+    <span class="lbl pain">الألم الحقيقي</span>
+    <p>ليلة الأربعاء تصل رسالة واتساب من المنسّقة: «مطلوب تقرير الطالبات المتعثّرات بحلول الخميس». وبعدها بيومين: «استمارة الأنشطة». وبعدها: «خطة الدعم للفصل الثاني». هذه الطلبات — لا تحضير الدروس — هي التي تسرق مساءها وتُقلقها. وهي مبعثرة بين واتساب وإيميل وورقة على المكتب.</p>
+    <span class="lbl fix">الحل</span>
+    <p>شاشة واحدة اسمها <strong>«المطلوب منّي»</strong>. تصوّر رسالة الواتساب أو الورقة أو تعيد توجيه الإيميل — فتتعرّف المنصّة على نوع الطلب، وتُنتج المستند <strong>من بيانات تملكها أصلاً</strong>، وتعرضه عليها للمراجعة والتوقيع.</p>
+    <span class="lbl why">لماذا يغيّر المجرى</span>
+    <p>لأنه ينقل المنصّة من «أداة تفتحها عند الحاجة» إلى <strong>سكرتيرة تتولّى الردّ عنها</strong>. وقائمة الطلبات المتكرّرة في المدرسة القطرية محدودة ومعروفة — عشرة أو اثنا عشر نموذجاً تُغطّي ٩٠٪ مما يُطلب منها طوال العام: تقرير المتعثّرات · الخطة العلاجية · تقرير الأنشطة · إحصائية النتائج · خطة الدعم والإثراء · تقرير ولي أمر · ملف الزيارة · الرسالة الأسبوعية · تقرير التجارب · حصر الاحتياجات.</p>
+  </div>
+</div>
+
+<div class="gap r1">
+  <div class="hd"><div class="rank">٢</div><h3>صندوق واحد بدل القوائم — تتكلّم أو تكتب سطراً</h3></div>
+  <div class="bd">
+    <span class="lbl pain">الألم الحقيقي</span>
+    <p>في سنّ الستين، <strong>العدوّ ليس التقنية بل التنقّل</strong>. «فين الزرار؟» و«كنت واقفة فين؟» و«دوستُ حاجة اختفت». مهما بسّطنا القوائم، تبقى القائمة حاجزاً يجب حفظه.</p>
+    <span class="lbl fix">الحل</span>
+    <p>صندوق واحد في أعلى الشاشة الرئيسية، تكتب فيه أو <strong>تتكلّم</strong> بالعامية:</p>
+    <ul>
+      <li>«كام طالبة ضعيفة في الوحدة التانية؟» → إجابة فورية + قائمة بأسمائهنّ</li>
+      <li>«اطبعيلي ورقة عمل على البناء الضوئي» → الملف جاهز</li>
+      <li>«جهّزي تقرير نورة لولية أمرها» → بطاقة PDF</li>
+      <li>«إيه اللي مطلوب منّي الأسبوع ده؟» → القائمة</li>
+    </ul>
+    <span class="lbl why">لماذا يغيّر المجرى</span>
+    <p>لأنه يُلغي منحنى التعلّم بالكامل. الكلام لا يحتاج تدريباً. ومع بنك أسئلة وقاعدة بيانات ومكتبة جاهزة، تصبح ٩٠٪ من طلباتها قابلة للتنفيذ من سطر واحد. <strong>القوائم تبقى موجودة لمن يريدها — لكن الصندوق هو الباب.</strong></p>
+  </div>
+</div>
+
+<div class="gap r1">
+  <div class="hd"><div class="rank">٣</div><h3>زر «الزيارة الصفية» — لحظة القلق الأكبر في العام</h3></div>
+  <div class="bd">
+    <span class="lbl pain">الألم الحقيقي</span>
+    <p>الموجّه التربوي أو المنسّقة يدخلان الحصة — أحياناً بإشعار قصير. وفي دقائق يُقيَّم أداؤها المهني على: خطة درس مكتوبة ومطابقة للمعايير، أدلة على مراعاة الفروق الفردية، أدلة على التقويم المستمر، عيّنات من أعمال الطالبات، متابعة المتعثّرات. أغلب المعلّمات يقضين ليلة كاملة في تجميع هذا الملف.</p>
+    <span class="lbl fix">الحل</span>
+    <p>زر واحد: <strong>«جهّزي ملف الزيارة»</strong> → في ثلاثين ثانية يخرج ملف كامل: خطة درس اليوم مربوطة بمعايير المنهج · النسخ الثلاث المتمايزة من ورقة العمل · أدلة التقويم (كرت الخروج، الكويز الأخير، تحليل نتائجه) · عيّنات مصوّرة من دفاتر الطالبات · إحصائيات الفصل ورسومها · الخطة العلاجية للمتعثّرات ومتابعتها · سجل الأنشطة والتجارب.</p>
+    <span class="lbl why">لماذا يغيّر المجرى</span>
+    <p>لأن هذا هو الشيء الذي <strong>يقلقها فعلاً</strong>. حلّ مشكلة الدرجات يوفّر وقتاً — أما حلّ الزيارة الصفية فيوفّر <strong>راحة بال</strong>، وهي أثمن. والمواد موجودة كلها أصلاً في المنصّة، تحتاج فقط أن تُجمع في مستند واحد بضغطة.</p>
+  </div>
+</div>
+
+<!-- ===== المستوى الثاني ===== -->
+<div class="tier t2"><b>المستوى الثاني — يوفّر ساعات كل أسبوع</b><div class="bar"></div></div>
+
+<div class="gap r2">
+  <div class="hd"><div class="rank">٤</div><h3>الرسالة الأسبوعية تُكتب وحدها</h3></div>
+  <div class="bd">
+    <p>هذا التزام <strong>أسبوعي حقيقي</strong> في المدارس القطرية: رسالة تُرسل لأولياء الأمور فيها دروس الأسبوع والواجبات والتقييمات القادمة — وسياسة التقييم نفسها تنصّ على أن التقييمات القصيرة <strong>تُحدَّد عبر الرسائل الأسبوعية</strong>. أي أنها ليست اختيارية.</p>
+    <p>المنصّة تعرف كل هذا سلفاً: الدروس من التوزيع الزمني، والواجبات، والتقييمات من خطة التقييم. <strong>تُولَّد كل خميس تلقائياً</strong> بتصميم أنيق، فتراجعها وترسلها. عمل نصف ساعة أسبوعياً × ٣٦ أسبوعاً = ثمانية عشر ساعة في العام.</p>
+  </div>
+</div>
+
+<div class="gap r2">
+  <div class="hd"><div class="rank">٥</div><h3>الفروق الفردية — ثلاث نسخ بضغطة واحدة</h3></div>
+  <div class="bd">
+    <p>كل زيارة صفية تسأل: «أين مراعاة الفروق الفردية؟». والمطلوب عملياً ثلاث نسخ من كل ورقة عمل: <strong>دعم · أساسي · إثراء</strong>. يُعدّ هذا يدوياً اليوم، فيُهمَل غالباً.</p>
+    <p>عندنا بنك أسئلة مصنّف بمستوى الصعوبة أصلاً — فالنسخ الثلاث تُولَّد <strong>مجاناً تقريباً</strong>: نفس القالب، أسئلة مختلفة. وأكثر من ذلك: المنصّة تعرف مستوى كل طالبة، فتطبع لكل واحدة نسختها المناسبة تلقائياً وباسمها، دون أن تشعر الطالبة بالتصنيف.</p>
+  </div>
+</div>
+
+<div class="gap r2">
+  <div class="hd"><div class="rank">٦</div><h3>الخطة العلاجية المحدّدة — لا العامة</h3></div>
+  <div class="bd">
+    <p>الخطط العلاجية التي تُسلَّم للإدارة عادةً إنشاء عام: «متابعة الطالبة وتكليفها بواجبات إضافية». لا أحد يقرأها ولا تنفع أحداً.</p>
+    <p>منصّتنا تعرف — من تحليل الأسئلة — <strong>أين تعثّرت كل طالبة بالضبط</strong>: «نورة أخطأت في ٤ أسئلة كلها عن تحويلات حالات المادة، بينما أجابت أسئلة الكثافة كلها صحيحة». فتخرج خطة علاجية <strong>مسمّاة ومحدّدة</strong>: هذا هو الضعف، وهذه ثلاثة أنشطة له، وهذا موعد إعادة القياس. تكسب رضا الإدارة، والأهم: <strong>تنفع الطالبة فعلاً</strong>.</p>
+  </div>
+</div>
+
+<div class="gap r2">
+  <div class="hd"><div class="rank">٧</div><h3>زر «أنا غائبة اليوم»</h3></div>
+  <div class="bd">
+    <p>المرض في سنّ الستين وارد، ويوم الغياب اليوم يعني اتصالات ورسائل ومعذرة للزميلات. ضغطة واحدة تُرسل للمدرسة <strong>حزمة كاملة للمعلّمة البديلة</strong>: دروس اليوم، أوراق العمل جاهزة للطباعة، خطة كل حصة، ملاحظات عن كل فصل، ونشاط بديل إن لم تُفهم المادة.</p>
+    <p>الأثر الحقيقي ليس تقنياً: <strong>أن تمرض دون أن تشعر بالذنب.</strong></p>
+  </div>
+</div>
+
+<!-- ===== المستوى الثالث ===== -->
+<div class="tier t3"><b>المستوى الثالث — يخفّف الحمل اليومي</b><div class="bar"></div></div>
+
+<div class="gap r3">
+  <div class="hd"><div class="rank">٨</div><h3>بطاقة العشرين ثانية قبل الحصة</h3></div>
+  <div class="bd">
+    <p>وهي في طريقها للفصل، على شاشة الموبايل: الدرس · ثلاث نقاط تتذكّرها · من غابت أمس · من تحتاج انتباهاً اليوم · اللعبة وأدواتها. لا تفتح شيئاً — تُعرض عليها تلقائياً حسب الوقت والجدول.</p>
+    <p>هذا ليس رفاهية: مع ثلاثة فصول و٧٥ طالبة، الحمل الذهني في التنقّل بينها هو التعب الحقيقي، لا الشرح.</p>
+  </div>
+</div>
+
+<div class="gap r3">
+  <div class="hd"><div class="rank">٩</div><h3>صفر ورق محمول</h3></div>
+  <div class="bd">
+    <p>حمل الدفاتر والأوراق بين ثلاثة فصول عبء جسدي حقيقي في هذا السن. كل شيء على الموبايل أو التابلت، والطباعة <strong>مجمّعة مرّة واحدة أسبوعياً</strong> (حزمة الأسبوع). ورقة الرصد الوحيدة التي تحملها تُصوَّر ثم تُرمى.</p>
+  </div>
+</div>
+
+<div class="gap r3">
+  <div class="hd"><div class="rank">١٠</div><h3>الذاكرة المؤسسية — والتوريث</h3></div>
+  <div class="bd">
+    <p>هذه أعمق نقطة في التدقيق كله. معلّمة في الستين تحمل <strong>ثلاثين سنة من الخبرة</strong>: تعرف أي درس يصعب على الطالبات كل عام، وأي تجربة تنجح، وأي سؤال يربكهنّ. هذه الثروة اليوم في ذاكرتها ودفاترها فقط — وتضيع يوم تتقاعد.</p>
+    <p>المنصّة تحوّلها إلى <strong>أرشيف حيّ</strong>: كل عام يُحفظ، وكل ملاحظة تُسجَّل، وكل سؤال يُعرف معدّل الخطأ فيه. فيصير العام القادم جاهزاً ٩٠٪، وتصير خبرتها <strong>قابلة للتسليم</strong> لمن بعدها.</p>
+    <p style="margin-bottom:0">وهذا — بصراحة — أجمل ما يمكن أن يبنيه ابن لأمّه في آخر سنوات خدمتها.</p>
+  </div>
+</div>
+
+<!-- ===== تحذيران ===== -->
+<h2>تحذيران يجب أن أقولهما</h2>
+
+<div class="card danger">
+  <h3 style="margin-top:0;color:#8C1D18">١) لا تجعل المنصّة تشكّك في أنها صاحبة العمل</h3>
+  <p style="margin-bottom:0">إن سلّمت ملفات مثالية فجأة، قد يسأل الموجّه: «من أعدّ هذا؟». العلاج في التصميم: كل مستند يخرج <strong>بصياغتها وأسلوبها وتوقيعها</strong>، وتراجعه قبل التسليم، وتُضاف فيه ملاحظاتها الشخصية. والأهم: <strong>أن تفهم ما تسلّمه</strong> — فالمنصّة أداة تُنجز عنها العمل الروتيني، لا عقل يفكّر بدلاً عنها.</p>
+</div>
+
+<div class="card warn">
+  <h3 style="margin-top:0">٢) لا تجعلها عاجزة بدون المنصّة</h3>
+  <p style="margin-bottom:0">لو تعطّل الجهاز صباح الاختبار، يجب ألّا تنهار. لذلك: <strong>حزمة ورقية احتياطية</strong> تُطبع مرّة كل فصل (كشوف، أوراق رصد فارغة، خطط أسبوعين)، تبقى في درجها. تُستخدم مرّة كل ثلاث سنوات — لكن وجودها وحده يعطيها الثقة لتعتمد على المنصّة بلا خوف.</p>
+</div>
+
+<!-- ===== الأولويات ===== -->
+<h2>لو نفّذتَ ثلاثة فقط</h2>
+<table>
+  <tr><th style="width:8%">#</th><th style="width:44%">الميزة</th><th>الأثر</th></tr>
+  <tr><td><b>١</b></td><td><strong>الصندوق الواحد (اسألي أو تكلّمي)</strong></td><td>يُلغي منحنى التعلّم — تستخدم المنصّة من اليوم الأول بلا تدريب</td></tr>
+  <tr><td><b>٢</b></td><td><strong>زر الزيارة الصفية</strong></td><td>يزيل أكبر مصدر قلق مهني في عامها</td></tr>
+  <tr><td><b>٣</b></td><td><strong>صندوق الطلبات</strong></td><td>يستردّ مساءاتها من الطلبات المفاجئة</td></tr>
+</table>
+<p>والرابع لو أمكن: <strong>الرسالة الأسبوعية التلقائية</strong> — أرخص ميزة بناءً، وأعلى عائد أسبوعي.</p>
+
+<!-- ===== أسئلة ===== -->
+<h2>أسئلة يجب أن أعرف جوابها قبل البناء</h2>
+<p class="sub">هذه ليست تفاصيل — كل واحدة منها تغيّر شكل المنصّة.</p>
+
+<div class="q"><b>١. العلوم تُدرَّس بالعربية أم الإنجليزية؟</b>
+<span>هذا يغيّر <strong>كل محتوى المكتبة</strong> — العروض وأوراق العمل والاختبارات والمصطلحات. بعض المدارس في قطر تُدرّس العلوم بالإنجليزية، وبعضها ثنائية اللغة.</span></div>
+
+<div class="q"><b>٢. المدرسة حكومية أم خاصة؟</b>
+<span>النماذج المطلوبة والمشرف والدورة الإدارية تختلف بينهما اختلافاً واضحاً.</span></div>
+
+<div class="q"><b>٣. كم حصة أسبوعياً وكم فصلاً؟</b>
+<span>يحدّد التوزيع الزمني وحجم المكتبة وشكل «حزمة الأسبوع».</span></div>
+
+<div class="q"><b>٤. ما أكثر شيء يُتعبها فعلاً هذه السنة؟</b>
+<span>اسألها بهذه الكلمات بالضبط. جوابها يجب أن يكون المرحلة الأولى — مهما كان ترتيبه في أي خطة كتبتُها.</span></div>
+
+<div class="q"><b>٥. هل تكتب على الموبايل أم تفضّل الكلام؟</b>
+<span>يحدّد ما إذا كان الإدخال الصوتي ميزة إضافية أم <strong>الواجهة الأساسية</strong>.</span></div>
+
+<footer>
+  <p><strong>رأيي النهائي:</strong> ما بنيناه ممتاز كأساس، ويكفي لتوفير وقتها. لكن الذي سيجعلها تقول «دي غيّرت حياتي» هو أن تتحوّل المنصّة من <em>أداة تنتظر</em> إلى <em>مساعدة تبادر</em> — تعرف ما سيُطلب منها قبل أن يُطلب، وتردّ على السطر الواحد الذي تكتبه أو تقوله.</p>
+  <p style="margin-bottom:0;font-size:16px;opacity:.8">تدقيق مهني · أغسطس ٢٠٢٦ · مبني على سياسة التقييم القطرية والمتطلبات الإدارية المعتادة في مدارس قطر</p>
+</footer>
+
+</div>
+</body>
+</html>

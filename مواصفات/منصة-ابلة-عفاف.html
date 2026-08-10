@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>منصّة أبلة عفاف</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --maroon:#8A1538;--maroon-d:#5E0E26;--teal:#0F6B62;--tealbg:#E6F2F0;
+  --ink:#1E2430;--ink2:#5A6473;--cream:#FBF8F3;--line:#E4DCD1;
+  --gold:#C08A2E;--goldbg:#FCF3E2;--green:#2E7D4F;--red:#B3261E;--fs:19px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--cream);color:var(--ink);
+  font-family:'Tajawal',"Segoe UI",Tahoma,sans-serif;font-size:var(--fs);line-height:1.8}
+button,input,select,textarea{font-family:inherit;font-size:1rem}
+
+.topbar{position:sticky;top:0;z-index:50;background:linear-gradient(160deg,#8A1538,#5E0E26);
+  color:#fff;padding:12px 14px;display:flex;align-items:center;gap:9px;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.topbar .ttl{flex:1;min-width:0}
+.topbar .ttl b{display:block;font-size:1.02em;font-weight:800;line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .ttl span{display:block;font-size:.76em;opacity:.85;line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;
+  min-width:44px;height:44px;border-radius:12px;font-size:.82em;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0 9px;flex:0 0 auto}
+.iconbtn:active{background:rgba(255,255,255,.32)}
+
+.wrap{max-width:760px;margin:0 auto;padding:16px 14px 120px}
+.screen{display:none}.screen.on{display:block}
+h2.sec{font-size:1.1em;font-weight:800;margin:24px 0 10px;color:var(--maroon);
+  display:flex;align-items:center;gap:8px}
+.muted{color:var(--ink2);font-size:.86em}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.hello{background:linear-gradient(150deg,#0F6B62,#0B534C);color:#fff;border-radius:20px;
+  padding:20px;margin-bottom:16px}
+.hello b{display:block;font-size:1.3em;font-weight:800;margin-bottom:2px}
+.hello span{opacity:.92;font-size:.86em}
+
+/* الأزرار الكبيرة */
+.bigs{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:6px}
+.big{background:#fff;border:2px solid var(--line);border-radius:18px;padding:18px 10px;text-align:center;
+  cursor:pointer;font-weight:800;font-size:.95em;line-height:1.45}
+.big:active{background:#F6F2EB}
+.big .ic{display:block;font-size:2.1em;line-height:1.2;margin-bottom:4px}
+.big.hero{grid-column:1/-1;background:linear-gradient(150deg,#8A1538,#5E0E26);color:#fff;border:none;
+  font-size:1.12em;padding:22px 12px}
+.big.hero .ic{font-size:2.5em}
+
+/* حصة */
+.lesson{display:flex;gap:13px;align-items:flex-start;cursor:pointer;border-inline-start:7px solid var(--teal)}
+.lesson:active{background:#F7F4EF}
+.lesson .tm{background:var(--tealbg);color:var(--teal);border-radius:12px;padding:8px 6px;text-align:center;
+  min-width:66px;flex:0 0 66px;font-weight:800;font-size:.78em;line-height:1.5}
+.lesson .tm b{display:block;font-size:1.35em}
+.lesson .in{flex:1;min-width:0}
+.lesson .in b{display:block;font-size:1.05em;font-weight:800}
+.lesson .in span{color:var(--ink2);font-size:.84em;display:block}
+.ready{display:inline-block;background:#E8F5EC;color:var(--green);border:1px solid #BFE2CB;
+  border-radius:999px;padding:2px 10px;font-size:.72em;font-weight:800;margin-top:5px}
+
+/* عناصر جاهزة */
+.kit{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)}
+.kit:last-child{border-bottom:none}
+.kit .ic{width:44px;height:44px;border-radius:12px;background:var(--goldbg);
+  display:flex;align-items:center;justify-content:center;font-size:1.3em;flex:0 0 44px}
+.kit .in{flex:1;min-width:0}
+.kit .in b{display:block;font-size:.98em;font-weight:700}
+.kit .in span{color:var(--ink2);font-size:.79em}
+.mini{background:var(--teal);color:#fff;border:none;border-radius:11px;min-height:44px;padding:0 15px;
+  font-weight:800;font-size:.84em;cursor:pointer;white-space:nowrap}
+.mini.o{background:#fff;color:var(--maroon);border:2px solid var(--maroon)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;
+  border-radius:15px;border:none;font-weight:800;font-size:1em;cursor:pointer;padding:0 16px;margin-bottom:10px}
+.btn.primary{background:var(--teal);color:#fff}
+.btn.primary:active{background:#0B534C}
+.btn.sec{background:#fff;color:var(--maroon);border:2px solid var(--maroon)}
+.btn.ghost{background:#F1ECE4;color:var(--ink)}
+.btn.gold{background:var(--gold);color:#fff}
+.row2{display:flex;gap:10px}
+
+/* التصوير */
+.camera{background:#221E1B;border-radius:20px;padding:26px 18px;text-align:center;color:#fff;margin-bottom:14px}
+.camera .lens{width:96px;height:96px;border-radius:50%;background:rgba(255,255,255,.12);
+  border:3px solid rgba(255,255,255,.4);margin:0 auto 14px;display:flex;align-items:center;
+  justify-content:center;font-size:2.6em}
+.camera b{display:block;font-size:1.1em}
+.camera span{opacity:.75;font-size:.84em}
+.scanbar{height:10px;background:#EFE9E0;border-radius:99px;overflow:hidden;margin:14px 0 8px}
+.scanbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#0F6B62,#39A99E);
+  transition:width .25s}
+
+/* مراجعة */
+.rev{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.rev:last-child{border-bottom:none}
+.rev .nm{flex:1;font-weight:700;font-size:.92em}
+.rev input{width:78px;min-height:50px;text-align:center;border:2px solid var(--line);border-radius:11px;
+  font-weight:800;font-size:1.1em;background:#fff}
+.rev input:focus{outline:none;border-color:var(--teal);background:#F4FBFA}
+.rev.low input{border-color:var(--gold);background:var(--goldbg)}
+.flag{font-size:.72em;color:var(--gold);font-weight:800;white-space:nowrap}
+
+.banner{background:var(--goldbg);border:1px solid #EBD9B2;border-radius:14px;padding:13px 15px;
+  font-size:.86em;margin-bottom:14px;line-height:1.75}
+.ok{background:#E8F5EC;border:1px solid #BFE2CB;border-radius:14px;padding:13px 15px;
+  font-size:.88em;margin-bottom:14px;line-height:1.75;color:#1B5E37}
+
+.unit{background:#fff;border:1px solid var(--line);border-radius:16px;margin-bottom:12px;overflow:hidden}
+.unit>b{display:block;background:var(--tealbg);color:var(--teal);padding:12px 16px;font-size:.98em;font-weight:800}
+.unit .ls{padding:4px 14px}
+.uline{display:flex;align-items:center;gap:10px;padding:12px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.uline:last-child{border-bottom:none}
+.uline .n{background:#F6E9EE;color:var(--maroon);width:34px;height:34px;border-radius:9px;flex:0 0 34px;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82em}
+.uline .t{flex:1;font-weight:600;font-size:.94em}
+.chev{color:var(--ink2);font-size:1.4em}
+
+.step{display:flex;gap:13px;align-items:flex-start;margin-bottom:14px}
+.step .n{background:var(--maroon);color:#fff;width:38px;height:38px;border-radius:50%;flex:0 0 38px;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9em}
+.step .t{flex:1}
+.step .t b{display:block;font-size:1em}
+.step .t span{color:var(--ink2);font-size:.85em}
+
+.pill{display:inline-block;background:var(--tealbg);color:var(--teal);border:1px solid #CBE3DF;
+  border-radius:999px;padding:3px 12px;font-size:.78em;font-weight:800;margin:0 0 6px 6px}
+.gpill{display:inline-block;background:var(--goldbg);color:#8A6316;border:1px solid #EBD9B2;
+  border-radius:999px;padding:3px 12px;font-size:.78em;font-weight:800;margin:0 0 6px 6px}
+
+.sheet{position:fixed;inset:0;background:rgba(20,16,14,.55);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.sheet.on{display:flex}
+.sheet .box{background:var(--cream);width:100%;max-width:760px;max-height:92vh;overflow-y:auto;
+  border-radius:22px 22px 0 0;padding:18px 16px 26px}
+.grab{width:44px;height:5px;background:#D6CCBE;border-radius:99px;margin:0 auto 14px}
+.sheet h3{margin:0 0 6px;font-size:1.14em;font-weight:800}
+
+.toast{position:fixed;bottom:22px;right:50%;transform:translateX(50%) translateY(140px);
+  background:#1E2430;color:#fff;padding:13px 20px;border-radius:14px;z-index:200;font-weight:700;
+  font-size:.88em;transition:transform .28s;max-width:90%;text-align:center}
+.toast.on{transform:translateX(50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="iconbtn" id="back" style="display:none" onclick="goBack()">→</button>
+  <div class="ttl"><b id="ttl">منصّة أبلة عفاف</b><span id="sub">الأحد ٩ أغسطس · المستوى الخامس</span></div>
+  <button class="iconbtn" dir="ltr" onclick="fs(-1)">A−</button>
+  <button class="iconbtn" dir="ltr" onclick="fs(1)">A+</button>
+</div>
+
+<div class="wrap">
+
+<!-- ================= شاشة اليوم ================= -->
+<div class="screen on" id="s-day">
+  <div class="banner">هذا <b>نموذج للتجربة</b> — كل الأزرار تعمل. جرّبي «صوّري ورقة الرصد» بالذات.</div>
+
+  <div class="hello">
+    <b>صباح الخير أبلة عفاف 🌿</b>
+    <span>عندك ٣ حصص اليوم · كل شيء جاهز ومطبوع ومحضّر</span>
+  </div>
+
+  <div class="bigs">
+    <div class="big hero" onclick="go('s-scan','تصوير الدرجات','بدل الإدخال اليدوي')">
+      <span class="ic">📷</span>صوّري ورقة الرصد<div style="font-size:.72em;font-weight:500;opacity:.9;margin-top:2px">الدرجات تُقرأ لوحدها</div>
+    </div>
+    <div class="big" onclick="go('s-lib','مكتبة الدروس','كل درس ومعه أدواته')"><span class="ic">📚</span>مكتبة<br>الدروس</div>
+    <div class="big" onclick="go('s-motiv','خطة التحفيز','جاهزة للسنة كلها')"><span class="ic">⭐</span>خطة<br>التحفيز</div>
+    <div class="big" onclick="go('s-assess','خطة التقييم','التقويم السنوي')"><span class="ic">🗓️</span>خطة<br>التقييم</div>
+    <div class="big" onclick="go('s-girls','طالباتي','خامس ١ · ٢ · ٣')"><span class="ic">👧</span>طالباتي</div>
+  </div>
+
+  <h2 class="sec">حصص اليوم</h2>
+  <div class="card lesson" onclick="openLesson('دورة الماء في الطبيعة','خامس ١','الحصة الثانية')">
+    <div class="tm"><b>٢</b>خامس ١</div>
+    <div class="in"><b>دورة الماء في الطبيعة</b>
+      <span>الوحدة الثانية · الدرس الرابع</span>
+      <span class="ready">✓ العرض وورقة العمل واللعبة جاهزة</span></div>
+    <div class="chev">‹</div>
+  </div>
+  <div class="card lesson" onclick="openLesson('حالات المادة','خامس ٢','الحصة الرابعة')">
+    <div class="tm"><b>٤</b>خامس ٢</div>
+    <div class="in"><b>حالات المادة</b>
+      <span>الوحدة الأولى · الدرس السادس</span>
+      <span class="ready">✓ جاهزة + تجربة عملية</span></div>
+    <div class="chev">‹</div>
+  </div>
+  <div class="card lesson" onclick="openLesson('مراجعة الوحدة الأولى','خامس ٣','الحصة السادسة')">
+    <div class="tm"><b>٦</b>خامس ٣</div>
+    <div class="in"><b>مراجعة الوحدة الأولى</b>
+      <span>مراجعة قبل الاختبار القصير</span>
+      <span class="ready">✓ لعبة مراجعة + كويز جاهز</span></div>
+    <div class="chev">‹</div>
+  </div>
+
+  <h2 class="sec">تحتاج انتباهك</h2>
+  <div class="card" style="border-inline-start:6px solid var(--gold)">
+    <b style="display:block">نورة خالد — غابت ٤ أيام هذا الشهر</b>
+    <span class="muted">اقترح التواصل مع ولية أمرها · اضغطي لتجهيز رسالة</span>
+  </div>
+  <div class="card" style="border-inline-start:6px solid var(--gold)">
+    <b style="display:block">اختبار قصير بعد ٥ أيام — خامس ٢</b>
+    <span class="muted">الاختبار جاهز ومطبوع · راجعيه فقط</span>
+  </div>
+</div>
+
+<!-- ================= الحصة ================= -->
+<div class="screen" id="s-lesson">
+  <div class="ok">كل ما تحتاجينه لهذه الحصة جاهز. لا تحتاجين تحضير شيء — افتحي أو اطبعي.</div>
+  <div class="card" style="padding:0">
+    <div class="kit"><div class="ic">🖥️</div><div class="in"><b>العرض التقديمي</b><span>١٤ شريحة · بالصور والأسئلة</span></div><button class="mini" onclick="t('يُفتح العرض على السبورة الذكية')">افتحي</button></div>
+    <div class="kit"><div class="ic">📄</div><div class="in"><b>ورقة العمل</b><span>صفحة واحدة · مع نسخة الإجابات</span></div><button class="mini o" onclick="t('جاري إرسالها للطابعة…')">اطبعي</button></div>
+    <div class="kit"><div class="ic">🎲</div><div class="in"><b>لعبة الحصة: سباق التصنيف</b><span>٧ دقائق · بطاقات مطبوعة جاهزة</span></div><button class="mini" onclick="go('s-games','ألعاب وأنشطة','مناسبة لسن ١٠ سنوات')">التفاصيل</button></div>
+    <div class="kit"><div class="ic">🧪</div><div class="in"><b>التجربة العملية</b><span>أدواتها: كوب · ماء ساخن · صحن · ثلج</span></div><button class="mini o" onclick="t('تم فتح خطوات التجربة وإرشادات السلامة')">افتحي</button></div>
+    <div class="kit"><div class="ic">✅</div><div class="in"><b>كرت الخروج</b><span>سؤال واحد قبل الجرس</span></div><button class="mini o" onclick="t('جاري إرسال ٢٥ كرتاً للطابعة…')">اطبعي</button></div>
+    <div class="kit"><div class="ic">📝</div><div class="in"><b>خطة الدرس للإدارة</b><span>بنموذج المدرسة · Word</span></div><button class="mini o" onclick="t('تم تجهيز ملف Word')">حمّلي</button></div>
+    <div class="kit"><div class="ic">🖨️</div><div class="in"><b>ورقة رصد المشاركة</b><span>بأسماء الطالبات وخانات للتصوير لاحقاً</span></div><button class="mini" onclick="t('جاهزة للطباعة — اكتبي عليها بالقلم')">اطبعي</button></div>
+  </div>
+  <button class="btn primary" onclick="t('بدأت الحصة — فُتح العرض وسُجّل الحضور')">▶ ابدئي الحصة</button>
+  <button class="btn ghost" onclick="t('في النسخة الكاملة: تعديل أي عنصر أو استبداله')">أريد تعديل شيء</button>
+</div>
+
+<!-- ================= التصوير ================= -->
+<div class="screen" id="s-scan">
+  <div class="banner">
+    <b>الفكرة ببساطة:</b> التطبيق يطبع لك ورقة رصد فيها أسماء الطالبات وخانات كبيرة. تكتبين الدرجات بالقلم كعادتك،
+    ثم تصوّرينها — والتطبيق يقرأها ويسألك: «صح كده؟»
+  </div>
+
+  <div id="scan-1">
+    <div class="camera">
+      <div class="lens">📷</div>
+      <b>صوّري ورقة الرصد</b>
+      <span>أو ارفعي ملف PDF أو صورة ورقة الاختبار</span>
+    </div>
+    <button class="btn primary" onclick="startScan()">📷 التقطي صورة الآن</button>
+    <button class="btn sec" onclick="startScan()">📎 ارفعي ملفاً من الجهاز</button>
+    <button class="btn ghost" onclick="t('تُطبع ورقة رصد بأسماء الفصل وخانات كبيرة')">🖨️ اطبعي ورقة رصد جديدة</button>
+  </div>
+
+  <div id="scan-2" style="display:none">
+    <div class="card">
+      <b style="display:block;margin-bottom:6px" id="scanTxt">جاري قراءة الورقة…</b>
+      <div class="scanbar"><i id="bar"></i></div>
+      <span class="muted" id="scanSub">تحديد الخانات…</span>
+    </div>
+  </div>
+
+  <div id="scan-3" style="display:none">
+    <div class="ok">قرأتُ <b>١٠ درجات</b> من الورقة. راجعيها بسرعة — الخانات <b>الملوّنة</b> هي التي لم أتأكد منها.</div>
+    <div class="card">
+      <div class="muted" style="margin-bottom:8px">خامس ١ · التقييم القصير الأول · من ١٥</div>
+      <div id="revList"></div>
+    </div>
+    <button class="btn primary" onclick="approve()">✓ اعتمدي الدرجات</button>
+    <button class="btn ghost" onclick="resetScan()">إعادة التصوير</button>
+  </div>
+</div>
+
+<!-- ================= المكتبة ================= -->
+<div class="screen" id="s-lib">
+  <div class="ok">كل درس في المنهج جاهز مسبقاً بعرضه وورقة عمله ولعبته وتجربته وكويزه. لا شيء يُبنى من الصفر.</div>
+  <div class="unit"><b>الوحدة الأولى — المادة وخواصها</b><div class="ls" id="u1"></div></div>
+  <div class="unit"><b>الوحدة الثانية — الماء والطقس</b><div class="ls" id="u2"></div></div>
+  <div class="unit"><b>الوحدة الثالثة — الكائنات الحية</b><div class="ls" id="u3"></div></div>
+</div>
+
+<!-- ================= الألعاب ================= -->
+<div class="screen" id="s-games">
+  <div class="ok">ألعاب وأنشطة مختارة لسن ١٠ سنوات — قصيرة، بلا تجهيز معقّد، وكلها بطاقاتها مطبوعة جاهزة.</div>
+  <div id="gameList"></div>
+</div>
+
+<!-- ================= التحفيز ================= -->
+<div class="screen" id="s-motiv">
+  <div class="ok">خطة تحفيز كاملة للسنة — جاهزة وتعمل تلقائياً. دورك: توزّعي النجوم في الحصة فقط.</div>
+
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">١) اليومي — النجوم</h2>
+    <p class="muted" style="margin-top:0">أثناء الحصة تضغطين على اسم الطالبة فتأخذ نجمة. لا حساب ولا ورق.</p>
+    <span class="pill">مشاركة ⭐</span><span class="pill">واجب ⭐⭐</span><span class="pill">تجربة ⭐⭐⭐</span>
+    <span class="pill">مساعدة زميلة ⭐⭐</span><span class="gpill">تحسّن شخصي ⭐⭐⭐⭐⭐</span>
+  </div>
+
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">٢) الأسبوعي — لوحة الشرف</h2>
+    <p class="muted" style="margin-top:0;margin-bottom:6px">تُطبع كل خميس تلقائياً وتُعلّق في الفصل. ثلاث فئات حتى لا تُحتكر:</p>
+    <ul style="margin-bottom:0"><li>نجمة الأسبوع</li><li>الأكثر تحسّناً</li><li>مجموعة الأسبوع</li></ul>
+  </div>
+
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">٣) الشهري — الاحتفال</h2>
+    <p class="muted" style="margin-top:0;margin-bottom:6px">شهادات مطبوعة + صرف النجوم من متجر المكافآت:</p>
+    <span class="gpill">اختيار نشاط الحصة</span><span class="gpill">مساعِدة المعلّمة ليوم</span>
+    <span class="gpill">تأجيل واجب</span><span class="gpill">شهادة للبيت</span><span class="gpill">ملصقات</span>
+  </div>
+
+  <div class="card" style="border-inline-start:6px solid var(--gold)">
+    <b style="display:block">القاعدة التي تحمي الضعيفات</b>
+    <span class="muted">أعلى مكافأة ليست للدرجة العالية بل <b>للتحسّن</b>. طالبة انتقلت من ٤٠ إلى ٥٥ تكسب أكثر من طالبة أخذت ٩٥ للمرة العاشرة — فلا تنسحب أي طالبة نفسياً.</span>
+  </div>
+
+  <button class="btn primary" onclick="t('تُطبع بطاقات النجوم وشهادات الشهر ولوحة الشرف')">🖨️ اطبعي أدوات التحفيز</button>
+</div>
+
+<!-- ================= التقييم ================= -->
+<div class="screen" id="s-assess">
+  <div class="ok">خطة التقييم موزّعة على السنة بالتواريخ — والتطبيق يذكّرك قبل كل موعد ويجهّز الاختبار مسبقاً.</div>
+
+  <div class="card">
+    <div class="muted" style="margin-bottom:8px">توزيع درجات الفصل الدراسي — من ١٠٠</div>
+    <div class="kit" style="border-bottom:1px solid var(--line)"><div class="ic">📝</div><div class="in"><b>اختبار منتصف الفصل</b><span>موعد موحّد من الوزارة</span></div><b style="font-size:1.2em;color:var(--maroon)">٢٥</b></div>
+    <div class="kit"><div class="ic">✏️</div><div class="in"><b>التقييمات القصيرة</b><span>٣ تقييمات · مجهّزة مسبقاً</span></div><b style="font-size:1.2em;color:var(--maroon)">١٥</b></div>
+    <div class="kit"><div class="ic">🙋</div><div class="in"><b>المشاركة الصفية</b><span>تُحسب من النجوم تلقائياً</span></div><b style="font-size:1.2em;color:var(--maroon)">١٥</b></div>
+    <div class="kit"><div class="ic">📚</div><div class="in"><b>الواجبات</b><span>من ورقة الرصد المصوّرة</span></div><b style="font-size:1.2em;color:var(--maroon)">١٠</b></div>
+    <div class="kit"><div class="ic">📋</div><div class="in"><b>اختبار نهاية الفصل</b><span>جاهز + نموذج إجابة + جدول مواصفات</span></div><b style="font-size:1.2em;color:var(--maroon)">٣٥</b></div>
+  </div>
+
+  <h2 class="sec">تقويم الفصل الأول</h2>
+  <div class="card"><div class="step"><div class="n">١</div><div class="t"><b>الأسبوع ٣ — تقييم قصير (١)</b><span>على الوحدة الأولى · جاهز ومطبوع</span></div></div>
+    <div class="step"><div class="n">٢</div><div class="t"><b>الأسبوع ٦ — مشروع علمي جماعي</b><span>مع سلّم تقدير مصوّر للطالبات</span></div></div>
+    <div class="step"><div class="n">٣</div><div class="t"><b>الأسبوع ٨ — اختبار منتصف الفصل</b><span>يُجهَّز قبلها بأسبوعين تلقائياً</span></div></div>
+    <div class="step"><div class="n">٤</div><div class="t"><b>الأسبوع ١١ — تقييم قصير (٢)</b><span>+ تقييم عملي للتجارب</span></div></div>
+    <div class="step" style="margin-bottom:0"><div class="n">٥</div><div class="t"><b>الأسبوع ١٤ — اختبار نهاية الفصل</b><span>+ تقارير أولياء الأمور تلقائياً</span></div></div></div>
+
+  <button class="btn primary" onclick="t('تم تجهيز كل اختبارات الفصل مسبقاً')">📋 اعرضي الاختبارات الجاهزة</button>
+</div>
+
+<!-- ================= الطالبات ================= -->
+<div class="screen" id="s-girls">
+  <div class="ok">الأسماء تُدخل <b>مرّة واحدة فقط</b> في بداية العام — بلصق القائمة أو تصوير الكشف. بعدها لا تكتبين اسماً أبداً.</div>
+  <div class="card lesson" onclick="t('يفتح فصل خامس ١ وفيه ٢٥ طالبة')"><div class="tm"><b>٥/١</b>فصل</div>
+    <div class="in"><b>خامس ١</b><span>٢٥ طالبة · متوسط الفصل ٧٧</span></div><div class="chev">‹</div></div>
+  <div class="card lesson" onclick="t('يفتح فصل خامس ٢ وفيه ٢٣ طالبة')"><div class="tm"><b>٥/٢</b>فصل</div>
+    <div class="in"><b>خامس ٢</b><span>٢٣ طالبة · متوسط الفصل ٧٤</span></div><div class="chev">‹</div></div>
+  <div class="card lesson" onclick="t('يفتح فصل خامس ٣ وفيه ٢٦ طالبة')"><div class="tm"><b>٥/٣</b>فصل</div>
+    <div class="in"><b>خامس ٣</b><span>٢٦ طالبة · متوسط الفصل ٧٩</span></div><div class="chev">‹</div></div>
+  <button class="btn sec" onclick="t('صوّري كشف الأسماء أو الصقيه نصاً')">📷 أضيفي فصلاً بتصوير كشفه</button>
+</div>
+
+</div>
+
+<div class="sheet" id="sh" onclick="if(event.target===this)close_()">
+  <div class="box"><div class="grab"></div>
+    <h3 id="shT"></h3><div id="shB"></div>
+    <button class="btn ghost" style="margin-top:14px" onclick="close_()">إغلاق</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=i=>document.getElementById(i);
+const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+function t(m){const e=$('toast');e.textContent=m;e.classList.add('on');clearTimeout(e._);e._=setTimeout(()=>e.classList.remove('on'),2400)}
+let fsz=19;function fs(d){fsz=Math.min(26,Math.max(16,fsz+d*2));document.documentElement.style.setProperty('--fs',fsz+'px');t('حجم الخط: '+ar(fsz))}
+let hist=[];
+function go(id,title,sub){
+  hist.push({id:cur,t:$('ttl').textContent,s:$('sub').textContent});
+  showScreen(id,title,sub,true);
+}
+let cur='s-day';
+function showScreen(id,title,sub,back){
+  document.querySelectorAll('.screen').forEach(e=>e.classList.remove('on'));
+  $(id).classList.add('on'); cur=id;
+  $('ttl').textContent=title;$('sub').textContent=sub;
+  $('back').style.display=back?'flex':'none';window.scrollTo(0,0);
+}
+function goBack(){const p=hist.pop();if(!p)return;showScreen(p.id,p.t,p.s,hist.length>0)}
+function close_(){$('sh').classList.remove('on')}
+function openLesson(name,cls,hour){
+  go('s-lesson',name,cls+' · '+hour);
+}
+
+/* ============ التصوير ============ */
+const GIRLS=['فاطمة أحمد المري','نورة خالد الكواري','مريم عبدالله السليطي','عائشة محمد النعيمي',
+'لطيفة سعد الدوسري','هند ناصر المهندي','شيخة علي الهاجري','موزة راشد المناعي','الجازي فهد العطية','ريم يوسف الخاطر'];
+const READ=[14,11,15,13,9,12,15,10,13,8];
+const UNSURE=[4,7];
+function startScan(){
+  $('scan-1').style.display='none';$('scan-3').style.display='none';
+  $('scan-2').style.display='block';
+  const steps=[['تحديد أركان الورقة…',18],['قراءة الخانات…',46],['مطابقة الأسماء بالترتيب…',74],['التحقق من الأرقام…',100]];
+  let i=0;
+  const run=()=>{
+    if(i>=steps.length){setTimeout(showReview,320);return}
+    $('scanSub').textContent=steps[i][0];$('bar').style.width=steps[i][1]+'%';i++;setTimeout(run,620);
+  };run();
+}
+function showReview(){
+  $('scan-2').style.display='none';$('scan-3').style.display='block';
+  $('revList').innerHTML=GIRLS.map((g,i)=>`
+    <div class="rev ${UNSURE.includes(i)?'low':''}">
+      <div class="nm">${g}</div>
+      ${UNSURE.includes(i)?'<span class="flag">تأكّدي</span>':''}
+      <input type="number" min="0" max="15" value="${READ[i]}"></div>`).join('');
+}
+function approve(){
+  t('تم اعتماد ١٠ درجات وترحيلها للتقييم القصير الأول ✓');
+  setTimeout(()=>{resetScan();goBack()},1400);
+}
+function resetScan(){$('scan-2').style.display='none';$('scan-3').style.display='none';$('scan-1').style.display='block';$('bar').style.width='0'}
+
+/* ============ المكتبة ============ */
+const UNITS={u1:['خواص المادة','الكتلة والحجم','الكثافة','المخاليط والمحاليل','التغيرات الفيزيائية','حالات المادة'],
+u2:['الماء على الأرض','خواص الماء','دورة الماء في الطبيعة','الطقس والمناخ','أدوات قياس الطقس'],
+u3:['خلايا الكائنات الحية','النباتات وأجزاؤها','البناء الضوئي','السلاسل الغذائية','التكيّف مع البيئة']};
+Object.entries(UNITS).forEach(([u,ls])=>{
+  $(u).innerHTML=ls.map((l,i)=>`<div class="uline" onclick="openLesson('${l}','المكتبة','${u==='u1'?'الوحدة الأولى':u==='u2'?'الوحدة الثانية':'الوحدة الثالثة'}')">
+    <div class="n">${ar(i+1)}</div><div class="t">${l}</div><div class="chev">‹</div></div>`).join('');
+});
+
+/* ============ الألعاب ============ */
+const GAMES=[
+ ['🃏','سباق التصنيف','٧ دقائق','بطاقات تُوزَّع على المجموعات، كل مجموعة تصنّفها في عمودين (مثال: موصل / عازل). أسرع مجموعة صحيحة تفوز.'],
+ ['❓','من أنا؟','٥ دقائق','تلصقين بطاقة على ظهر الطالبة وتسأل زميلاتها أسئلة بنعم أو لا حتى تعرف من هي (كائن حي، جهاز، حالة مادة).'],
+ ['🙆','صح أو خطأ بالحركة','٤ دقائق','تقرئين عبارة علمية: الصحيحة يقفن، والخاطئة يجلسن. حركة ومراجعة معاً — ممتازة بعد الحصة الطويلة.'],
+ ['🎱','بينجو المصطلحات','١٠ دقائق','لكل طالبة بطاقة بمصطلحات الوحدة. تقرئين التعريف وهي تغطّي المصطلح. أول من تكمل صفاً تنادي «بينجو».'],
+ ['🎟️','كرت الخروج','٢ دقيقة','سؤال واحد قبل الجرس على ورقة صغيرة. تعرفين فوراً من فهمت ومن تحتاج إعادة — أقوى أداة تقييم سريع.'],
+ ['🔬','المحطات العلمية','٢٠ دقيقة','أربع محطات في أركان الفصل، كل مجموعة ٥ دقائق في محطة ثم تنتقل. تجربة · صور · قراءة · تركيب.'],
+ ['🎭','مسرح العلوم','١٢ دقيقة','تمثّل كل مجموعة مرحلة من دورة الماء أو رحلة الطعام في الجهاز الهضمي. يُثبّت المعلومة بشكل لا يُنسى.'],
+ ['🗺️','الخريطة الذهنية الجماعية','١٠ دقائق','ورقة كبيرة على السبورة، كل طالبة تضيف فرعاً واحداً. تُصوَّر وتُحفظ في ملف الوحدة.'],
+ ['📦','صندوق الأسئلة الغامضة','٥ دقائق','صندوق فيه أسئلة الوحدة. تسحب طالبة سؤالاً وتجيب — وإن عجزت تستنجد بزميلة (وتكسب الاثنتان نجمة).'],
+ ['🏁','سباق السبورة','٨ دقائق','فريقان، سؤال سريع، أول من تكتب الإجابة الصحيحة تكسب نقطة لفريقها.'],
+ ['🧩','لغز اليوم','٣ دقائق','لغز علمي على السبورة في بداية الحصة، تُحلّ إجابته في نهايتها — يشدّ الانتباه من أول دقيقة.'],
+ ['🔎','كنز المفردات','٦ دقائق','مفردات مخبّأة في نص قصير، تبحث عنها الطالبات وتربطها بتعريفاتها.']
+];
+$('gameList').innerHTML=GAMES.map(g=>`
+ <div class="card"><div style="display:flex;gap:12px;align-items:flex-start">
+   <div style="font-size:1.9em;line-height:1">${g[0]}</div>
+   <div style="flex:1"><b style="display:block;font-size:1.03em">${g[1]}</b>
+   <span class="pill">${g[2]}</span>
+   <div class="muted" style="margin-top:4px">${g[3]}</div></div></div>
+   <button class="btn sec" style="margin:12px 0 0;min-height:48px" onclick="t('جاري تجهيز بطاقات «${g[1]}» للطباعة…')">🖨️ اطبعي أدوات اللعبة</button>
+ </div>`).join('');
+</script>
+</body>
+</html>
