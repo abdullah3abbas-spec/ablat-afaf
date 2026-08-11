@@ -17,8 +17,8 @@ export default {
         maroon: { DEFAULT: "#8A1538", dark: "#5E0E26" },
         // التركوازي — لون الإجراء الأساسي
         teal: { DEFAULT: "#0F6B62", dark: "#0B534C", bg: "#E6F2F0" },
-        // الذهبي — لون التنبيه والانتباه
-        gold: { DEFAULT: "#C08A2E", bg: "#FCF3E2" },
+        // الذهبي — لون التنبيه والانتباه (dark للنص على الخلفية الذهبية — تباين AA)
+        gold: { DEFAULT: "#C08A2E", dark: "#7A5716", bg: "#FCF3E2" },
         // خلفية الصفحات
         cream: "#FBF8F3",
         // خطوط الفصل والحدود

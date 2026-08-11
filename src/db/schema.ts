@@ -74,6 +74,8 @@ export interface Settings extends Timestamped {
   numeralsCert: Numerals;
   schoolName: string;
   currentAcademicYearId: number;
+  /** الفصل الدراسي الحالي (١ أو ٢) — يظهر في الشريط العلوي */
+  currentTerm?: Term;
   /** آخر فصل عملت فيه المعلّمة — تتذكّره كل الشاشات */
   lastUsedClassId?: number;
   /** ترتيب أعمدة التصدير الرسمي — يُضبط مرة واحدة */
