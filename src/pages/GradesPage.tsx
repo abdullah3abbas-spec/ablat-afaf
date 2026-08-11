@@ -27,6 +27,7 @@ import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
+import GradeBook from "@/components/GradeBook";
 
 type Step = "pick" | "scan" | "review";
 
@@ -46,6 +47,7 @@ export default function GradesPage() {
   const [step, setStep] = useState<Step>("pick");
   const [classId, setClassId] = useState<number>(0);
   const [componentId, setComponentId] = useState<number>(0);
+  const [term, setTerm] = useState<Term>(1);
   const [components, setComponents] = useState<GradeComponent[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [busy, setBusy] = useState(false);
@@ -73,8 +75,9 @@ export default function GradesPage() {
       const klass = await db.classes.get(classId);
       if (!klass) return;
       const settings = await db.settings.get(1);
-      const term = (settings?.currentTerm ?? 1) as Term;
-      const comps = await ensureGradeComponents(klass.academicYearId, term);
+      const currentTerm = (settings?.currentTerm ?? 1) as Term;
+      setTerm(currentTerm);
+      const comps = await ensureGradeComponents(klass.academicYearId, currentTerm);
       setComponents(comps);
       if (comps.length > 0 && !comps.some((c) => c.id === componentId)) {
         setComponentId(comps[0].id!);
@@ -270,6 +273,10 @@ export default function GradesPage() {
               </button>
             )}
           </section>
+
+          {klass && components.length > 0 && students.length > 0 && (
+            <GradeBook classId={klass.id!} components={components} term={term} />
+          )}
 
           <BatchHistory />
 

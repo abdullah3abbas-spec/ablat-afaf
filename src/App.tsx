@@ -17,6 +17,7 @@ import StudioPage from "@/pages/StudioPage";
 import GradesPage from "@/pages/GradesPage";
 import DevOcrPage from "@/pages/DevOcrPage";
 import SettingsPage from "@/pages/SettingsPage";
+import PolicyPage from "@/pages/PolicyPage";
 
 const router = createHashRouter([
   {
@@ -33,6 +34,7 @@ const router = createHashRouter([
       { path: "/grades", element: <GradesPage /> },
       { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
+      { path: "/settings/policy", element: <PolicyPage /> },
       { path: "*", element: <Navigate to="/" replace /> },
     ],
   },

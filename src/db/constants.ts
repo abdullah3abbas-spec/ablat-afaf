@@ -38,6 +38,16 @@ export const DEFAULT_COGNITIVE: Record<CognitiveLevel, number> = {
   higher: 5,
 };
 
+/** شرائح التقدير الافتراضية (نسب مئوية) — بيانات قابلة للتعديل */
+export const DEFAULT_GRADE_SCALE = [
+  { min: 90, label: "امتياز" },
+  { min: 80, label: "جيد جداً" },
+  { min: 70, label: "جيد" },
+  { min: 60, label: "مقبول" },
+  { min: 50, label: "ضعيف" },
+  { min: 0, label: "دون الحد" },
+];
+
 /** المستويات التحفيزية — بصيغة المؤنث، قابلة للتعديل من الإعدادات */
 export const DEFAULT_POINT_LEVELS: PointLevel[] = [
   { key: "explorer", nameAr: "مستكشفة مبتدئة", min: 0, max: 49 },

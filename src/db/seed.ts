@@ -8,6 +8,7 @@ import { db } from "./db";
 import {
   DEFAULT_COGNITIVE,
   DEFAULT_EXAM_TYPES,
+  DEFAULT_GRADE_SCALE,
   DEFAULT_MAX_GRADE,
   DEFAULT_PASS_GRADE,
   DEFAULT_POINT_LEVELS,
@@ -113,6 +114,7 @@ async function runSeed(): Promise<void> {
         passGrade: DEFAULT_PASS_GRADE,
         examTypes: DEFAULT_EXAM_TYPES,
         cognitiveDefault: DEFAULT_COGNITIVE,
+        gradeScale: DEFAULT_GRADE_SCALE,
         isDemo: true,
         createdAt: now,
       });

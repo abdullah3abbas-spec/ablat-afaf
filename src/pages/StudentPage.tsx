@@ -29,6 +29,7 @@ import { useToast } from "@/store/toast";
 import Modal from "@/components/Modal";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EmptyState from "@/components/EmptyState";
+import StudentGrades from "@/components/StudentGrades";
 
 type Tab = "data" | "grades" | "attendancePoints" | "notes";
 
@@ -154,9 +155,7 @@ export default function StudentPage() {
       </div>
 
       {tab === "data" && <DataTab student={student} />}
-      {tab === "grades" && (
-        <EmptyState icon={BarChart3} title={s.studentFile.gradesEmpty} hint={s.studentFile.gradesEmptyHint} />
-      )}
+      {tab === "grades" && <StudentGrades studentId={studentId} />}
       {tab === "attendancePoints" && (
         <EmptyState
           icon={CalendarCheck}

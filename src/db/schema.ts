@@ -130,6 +130,14 @@ export interface ExamTypeDef {
 /** المستوى المعرفي (تصنيف بلوم المبسّط) */
 export type CognitiveLevel = "remember" | "understand" | "apply" | "higher";
 
+/** شريحة تقدير: من نسبة مئوية معيّنة فأعلى — تُخزَّن بيانات لا كوداً (§4) */
+export interface GradeScaleBand {
+  /** الحد الأدنى للنسبة المئوية (شامل) */
+  min: number;
+  /** «امتياز» «جيد جداً» … */
+  label: string;
+}
+
 export interface AssessmentPolicy extends Timestamped, DemoFlaggable {
   id?: number;
   /** السياسة مملوكة لعام — تعديل عام قادم لا يمسّ أعواماً سابقة */
@@ -145,6 +153,8 @@ export interface AssessmentPolicy extends Timestamped, DemoFlaggable {
   examTypes: ExamTypeDef[];
   /** النسب الافتراضية للمستويات المعرفية في بناء الاختبار */
   cognitiveDefault: Record<CognitiveLevel, number>;
+  /** شرائح التقدير مرتبة تنازلياً حسب min */
+  gradeScale?: GradeScaleBand[];
   note?: string;
 }
 

@@ -7,6 +7,7 @@
  * - لا تُسنِد null لأي جدول (يحذفه!) ولا تضيّق المخطط أبداً.
  */
 import Dexie, { type Table } from "dexie";
+import { DEFAULT_GRADE_SCALE } from "./constants";
 import type {
   AcademicYear,
   AiSendLogEntry,
@@ -137,6 +138,17 @@ export class ManassatDB extends Dexie {
     this.version(3).stores({
       gradeBatches: "++id, classId, gradeComponentId, [classId+gradeComponentId], createdAt, deletedAt",
     });
+
+    // v4 — الأمر ٢: تعبئة شرائح التقدير في السياسات القائمة (بيانات لا كود §4)
+    // ⚠️ لا await import هنا — معاملة IndexedDB تُغلق فور خلو طابور المهام
+    this.version(4).upgrade((tx) =>
+      tx
+        .table("assessmentPolicy")
+        .toCollection()
+        .modify((p: { gradeScale?: unknown }) => {
+          p.gradeScale ??= DEFAULT_GRADE_SCALE;
+        })
+    );
   }
 }
 

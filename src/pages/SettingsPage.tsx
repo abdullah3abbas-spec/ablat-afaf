@@ -3,8 +3,9 @@
  * + الذكاء الاصطناعي والخصوصية (§2-هـ): قطع الاتصال، الحدود، سجل الإرسال.
  */
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Download, Plug, PlugZap, ShieldCheck } from "lucide-react";
+import { Download, Plug, PlugZap, Scale, ShieldCheck } from "lucide-react";
 import { clearDemo, db, reseedDemo } from "@/db";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
@@ -42,6 +43,16 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <h1 className="font-heading text-2xl font-bold text-maroon">{s.settings.title}</h1>
+
+      {/* سياسة التقييم (§4) */}
+      <Link
+        to="/settings/policy"
+        className="card flex min-h-[64px] items-center gap-3 font-bold transition-colors hover:border-teal hover:bg-teal-bg"
+      >
+        <Scale className="size-7 text-teal-dark" aria-hidden />
+        <span className="me-auto">{s.policy.openFromSettings}</span>
+        <span className="text-sm font-normal text-ink-soft">{s.policy.subtitle}</span>
+      </Link>
 
       {/* حجم الخط */}
       <section className="card space-y-3">

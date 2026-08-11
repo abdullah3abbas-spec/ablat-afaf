@@ -4,7 +4,7 @@
  * ⚠️ قاعدة §4: لا رقم من أرقام سياسة التقييم مكتوب هنا.
  * الأوزان والحدود تأتي دائماً من صف assessmentPolicy في قاعدة البيانات.
  */
-import type { AssessmentPolicy } from "@/db/schema";
+import type { AssessmentPolicy, Grade, GradeComponent, GradeScaleBand } from "@/db/schema";
 
 /**
  * الدرجة النهائية للعام = (فصل١ × وزن١ + فصل٢ × وزن٢) ÷ 100
@@ -25,6 +25,50 @@ export function isPassing(
   policy: Pick<AssessmentPolicy, "passGrade">
 ): boolean {
   return grade >= policy.passGrade;
+}
+
+/**
+ * مجموع درجات فصلٍ لطالبة: آخر درجة حيّة لكل مكوّن ورقي.
+ * المكوّن بلا درجة مرصودة لا يدخل المجموع (لا يُعد صفراً).
+ */
+export function termTotal(grades: Grade[], leafComponents: GradeComponent[]): {
+  total: number;
+  /** كم مكوّناً رُصد من أصل الورقية */
+  counted: number;
+  outOf: number;
+} {
+  let total = 0;
+  let counted = 0;
+  let outOf = 0;
+  for (const comp of leafComponents) {
+    outOf += comp.maxMark;
+    const live = grades
+      .filter((g) => !g.deletedAt && g.gradeComponentId === comp.id)
+      .sort((a, b) => b.createdAt - a.createdAt);
+    if (live.length > 0) {
+      total += live[0].mark;
+      counted++;
+    }
+  }
+  return { total, counted, outOf };
+}
+
+/** النسبة المئوية من درجة عظمى معطاة — تُقرَّب لمنزلة واحدة */
+export function percentOf(total: number, outOf: number): number {
+  if (outOf <= 0) return 0;
+  return Math.round((total / outOf) * 1000) / 10;
+}
+
+/**
+ * التقدير من شرائح السياسة (بيانات §4): أعلى شريحة يبلغ الحد الأدنى لها.
+ * الشرائح قد تصل بأي ترتيب — نرتبها تنازلياً هنا.
+ */
+export function gradeLabel(percent: number, scale: GradeScaleBand[]): string {
+  const sorted = [...scale].sort((a, b) => b.min - a.min);
+  for (const band of sorted) {
+    if (percent >= band.min) return band.label;
+  }
+  return sorted[sorted.length - 1]?.label ?? "";
 }
 
 /**
