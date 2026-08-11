@@ -6,7 +6,9 @@
  */
 import { createHashRouter, Navigate, RouterProvider } from "react-router-dom";
 import RootLayout from "@/layouts/RootLayout";
-import HomePage from "@/pages/HomePage";
+import TodayPage from "@/pages/TodayPage";
+import LibraryPage from "@/pages/LibraryPage";
+import LessonKitPage from "@/pages/LessonKitPage";
 import ClassesPage from "@/pages/ClassesPage";
 import ClassStudentsPage from "@/pages/ClassStudentsPage";
 import StudentPage from "@/pages/StudentPage";
@@ -20,7 +22,9 @@ const router = createHashRouter([
   {
     element: <RootLayout />,
     children: [
-      { path: "/", element: <HomePage /> },
+      { path: "/", element: <TodayPage /> },
+      { path: "/library", element: <LibraryPage /> },
+      { path: "/library/:lessonId", element: <LessonKitPage /> },
       { path: "/classes", element: <ClassesPage /> },
       { path: "/classes/:classId", element: <ClassStudentsPage /> },
       { path: "/students/:studentId", element: <StudentPage /> },
