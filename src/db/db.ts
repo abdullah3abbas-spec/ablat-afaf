@@ -9,6 +9,7 @@
 import Dexie, { type Table } from "dexie";
 import type {
   AcademicYear,
+  AiSendLogEntry,
   AssessmentPolicy,
   Attendance,
   BackupMeta,
@@ -32,6 +33,7 @@ import type {
   RewardRedemption,
   Settings,
   Student,
+  StudioRequest,
   Subject,
   Unit,
   Worksheet,
@@ -65,6 +67,8 @@ export class ManassatDB extends Dexie {
   parentContacts!: Table<ParentContact, number>;
   certificates!: Table<Certificate, number>;
   backups!: Table<BackupMeta, number>;
+  aiSendLog!: Table<AiSendLogEntry, number>;
+  studioRequests!: Table<StudioRequest, number>;
 
   constructor() {
     super("manassat-abla-afaf");
@@ -117,6 +121,14 @@ export class ManassatDB extends Dexie {
       parentContacts: "++id, studentId, [studentId+date], followUpDate, deletedAt",
       certificates: "++id, templateKey, studentId, classId, date, scope, deletedAt",
       backups: "++id, createdAt, trigger",
+    });
+
+    // v2 — الأمر ١-أ: سجل الإرسال وطلبات الاستوديو (جديدان)
+    // + فهرس category على المصادر. ترقية إضافية بحتة — لا يمسّ شيئاً قائماً.
+    this.version(2).stores({
+      aiSendLog: "++id, createdAt, kind, status",
+      studioRequests: "++id, resourceId, status, createdAt",
+      resources: "++id, subjectId, kind, category, [grade+term], [unitId+lessonId], *tags, deletedAt",
     });
   }
 }

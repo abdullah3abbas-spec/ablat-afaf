@@ -12,6 +12,7 @@ import {
   CalendarCheck,
   ClipboardList,
   FileBarChart,
+  FolderOpen,
   RefreshCw,
   School,
   Settings,
@@ -56,6 +57,7 @@ export default function HomePage() {
 
   const sections = [
     { key: "classes", label: s.home.sections.classes, icon: School, to: "/classes" },
+    { key: "resources", label: s.resources.title, icon: FolderOpen, to: "/resources" },
     { key: "grades", label: s.home.sections.grades, icon: BarChart3 },
     { key: "attendance", label: s.home.sections.attendance, icon: CalendarCheck },
     { key: "points", label: s.home.sections.points, icon: Star },

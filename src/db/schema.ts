@@ -520,13 +520,36 @@ export interface LessonPlan extends Timestamped, SoftDeletable, DemoFlaggable {
   fields?: Record<string, string>;
 }
 
-// ── resources — مركز المصادر: مسار فقط، لا بايتات ─────────────
+// ── resources — مركز المصادر: مرجع للملف لا بايتاته ───────────
+
+/** أنواع مصادر أول العام الثمانية (§2-و) + أخرى */
+export type ResourceCategory =
+  | "textbook"        // كتاب العلوم للمستوى الخامس
+  | "workbook"        // ملازم الأسئلة
+  | "term_plan"       // الخطط الفصلية
+  | "presentation"    // عروضها الحالية
+  | "worksheet"       // أوراق عملها
+  | "student_list"    // قوائم الطالبات
+  | "grade_template"  // قالب كشف الدرجات المعتمد
+  | "schedule"        // الجدول الدراسي
+  | "other";
 
 export interface Resource extends Timestamped, SoftDeletable, DemoFlaggable {
   id?: number;
   title: string;
-  kind: "pptx" | "pdf" | "image" | "video" | "link" | "doc" | "other";
-  /** المسار/المرجع فقط — الملف يبقى في مجلده (§7) */
+  kind: "pptx" | "pdf" | "image" | "video" | "link" | "doc" | "xlsx" | "other";
+  /** تصنيف المصدر — أساس فلترة المركز ومرجعية الذكاء الاصطناعي */
+  category: ResourceCategory;
+  /**
+   * مرجع الملف في مكانه (§7 — «المسار لا الملف»):
+   * مقبض نظام الملفات (كروم/إيدج) يُخزَّن كما هو في IndexedDB.
+   */
+  handle?: FileSystemFileHandle;
+  /** بديل للمتصفحات بلا مقابض: الملفات الصغيرة فقط تُخزَّن Blob */
+  blob?: Blob;
+  /** اسم الملف الأصلي وقت الرفع */
+  fileName?: string;
+  /** مسار نصي (يُستخدم في Tauri لاحقاً) */
   path?: string;
   url?: string;
   subjectId?: number;
@@ -539,6 +562,11 @@ export interface Resource extends Timestamped, SoftDeletable, DemoFlaggable {
   thumbnailPath?: string;
   /** نص مستخرج للبحث داخل المحتوى */
   searchText?: string;
+  /** نصوص الشرائح/الصفحات واحدة واحدة — للمعاينة والاستوديو */
+  extractedSlides?: string[];
+  /** نسخ الاستوديو — الأصل لا يُمسّ أبداً (§2-و) */
+  versions?: DocVersion[];
+  currentVersion?: number;
   tags?: string[];
 }
 
@@ -579,6 +607,35 @@ export interface Certificate extends Timestamped, SoftDeletable, DemoFlaggable {
   qrPayload?: string;
   /** مسار PDF/PNG المولّد */
   path?: string;
+}
+
+// ── aiSendLog — سجل الإرسال الكامل (§2-هـ ضمانة ٢) ────────────
+
+export interface AiSendLogEntry extends Timestamped {
+  id?: number;
+  /** نوع الإرسال */
+  kind: "studio-edit" | "generation" | "ocr" | "other";
+  title: string;
+  /** المحتوى الفعلي الذي سيُرسل — يُعرض في شاشة «ما سيُرسل» ويبقى للمراجعة */
+  contentPreview: string;
+  sizeBytes: number;
+  /** pending = مسجَّل والاتصال مقطوع · sent = أُرسل · cancelled = ألغته المعلّمة */
+  status: "pending" | "sent" | "cancelled";
+  note?: string;
+}
+
+// ── studioRequests — طلبات تعديل الاستوديو (تُعالَج لاحقاً) ────
+
+export interface StudioRequest extends Timestamped {
+  id?: number;
+  resourceId: number;
+  /** طلب المعلّمة بالعامية كما كتبته */
+  instruction: string;
+  status: "pending" | "done" | "cancelled";
+  /** رقم النسخة الناتجة حين يُنفَّذ */
+  resultVersion?: number;
+  /** ربط بسجل الإرسال */
+  sendLogId?: number;
 }
 
 // ── backups — بيانات وصفية فقط، الملف نفسه يُنزَّل ────────────

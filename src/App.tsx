@@ -10,6 +10,8 @@ import HomePage from "@/pages/HomePage";
 import ClassesPage from "@/pages/ClassesPage";
 import ClassStudentsPage from "@/pages/ClassStudentsPage";
 import StudentPage from "@/pages/StudentPage";
+import ResourcesPage from "@/pages/ResourcesPage";
+import StudioPage from "@/pages/StudioPage";
 import SettingsPage from "@/pages/SettingsPage";
 
 const router = createHashRouter([
@@ -20,6 +22,8 @@ const router = createHashRouter([
       { path: "/classes", element: <ClassesPage /> },
       { path: "/classes/:classId", element: <ClassStudentsPage /> },
       { path: "/students/:studentId", element: <StudentPage /> },
+      { path: "/resources", element: <ResourcesPage /> },
+      { path: "/studio/:resourceId", element: <StudioPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "*", element: <Navigate to="/" replace /> },
     ],
