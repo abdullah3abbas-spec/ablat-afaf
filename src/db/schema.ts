@@ -638,6 +638,24 @@ export interface StudioRequest extends Timestamped {
   sendLogId?: number;
 }
 
+// ── gradeBatches — عملية رصد واحدة (تصوير أو يدوي) كوحدة ──────
+
+export interface GradeBatch extends Timestamped, SoftDeletable {
+  id?: number;
+  classId: number;
+  gradeComponentId: number;
+  academicYearId: number;
+  term: Term;
+  /** photo = من ورقة مصوّرة · manual = إدخال مباشر في شاشة المراجعة */
+  source: "photo" | "manual";
+  /** الصورة الأصلية محفوظة مع العملية — للرجوع عند أي خلاف (§2-ب) */
+  image?: Blob;
+  /** رمز الورقة المطبوع (AA-C..-K..-تاريخ) */
+  sheetCode?: string;
+  /** عدد الدرجات المعتمدة في هذه الدفعة */
+  savedCount: number;
+}
+
 // ── backups — بيانات وصفية فقط، الملف نفسه يُنزَّل ────────────
 
 export interface BackupMeta extends Timestamped {

@@ -20,6 +20,7 @@ import type {
   ExamQuestion,
   ExamResult,
   Grade,
+  GradeBatch,
   GradeComponent,
   Klass,
   Lesson,
@@ -69,6 +70,7 @@ export class ManassatDB extends Dexie {
   backups!: Table<BackupMeta, number>;
   aiSendLog!: Table<AiSendLogEntry, number>;
   studioRequests!: Table<StudioRequest, number>;
+  gradeBatches!: Table<GradeBatch, number>;
 
   constructor() {
     super("manassat-abla-afaf");
@@ -129,6 +131,11 @@ export class ManassatDB extends Dexie {
       aiSendLog: "++id, createdAt, kind, status",
       studioRequests: "++id, resourceId, status, createdAt",
       resources: "++id, subjectId, kind, category, [grade+term], [unitId+lessonId], *tags, deletedAt",
+    });
+
+    // v3 — الأمر ١-ب: دفعات الرصد (عملية التصوير/الاعتماد كوحدة واحدة)
+    this.version(3).stores({
+      gradeBatches: "++id, classId, gradeComponentId, [classId+gradeComponentId], createdAt, deletedAt",
     });
   }
 }

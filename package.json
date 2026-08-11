@@ -12,15 +12,18 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@techstark/opencv-js": "^5.0.0-release.1",
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^1.1.7",
     "exceljs": "^4.4.0",
     "jszip": "^3.10.1",
     "lucide-react": "^1.31.0",
     "pdfjs-dist": "^6.2.108",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.0",
+    "tesseract.js": "^7.0.0",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
@@ -28,6 +31,7 @@
     "@fontsource/cairo": "^5.1.0",
     "@fontsource/tajawal": "^5.1.0",
     "@types/node": "^20.19.43",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",

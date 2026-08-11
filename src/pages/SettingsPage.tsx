@@ -209,6 +209,9 @@ function AiPrivacySection() {
         </button>
       </div>
 
+      {/* ملاحظة خصوصية قارئ الدرجات (§2-ب خامساً) */}
+      <p className="rounded-card bg-cream p-4 text-ink-soft">{s.grades.privacyNote}</p>
+
       {/* جدول الحدود */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-card border-2 border-danger bg-danger-bg p-4">

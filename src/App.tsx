@@ -12,6 +12,8 @@ import ClassStudentsPage from "@/pages/ClassStudentsPage";
 import StudentPage from "@/pages/StudentPage";
 import ResourcesPage from "@/pages/ResourcesPage";
 import StudioPage from "@/pages/StudioPage";
+import GradesPage from "@/pages/GradesPage";
+import DevOcrPage from "@/pages/DevOcrPage";
 import SettingsPage from "@/pages/SettingsPage";
 
 const router = createHashRouter([
@@ -24,6 +26,8 @@ const router = createHashRouter([
       { path: "/students/:studentId", element: <StudentPage /> },
       { path: "/resources", element: <ResourcesPage /> },
       { path: "/studio/:resourceId", element: <StudioPage /> },
+      { path: "/grades", element: <GradesPage /> },
+      { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "*", element: <Navigate to="/" replace /> },
     ],
