@@ -6,13 +6,17 @@
  */
 import { db } from "./db";
 import {
+  DEFAULT_ABSENCE_ALERT,
   DEFAULT_COGNITIVE,
   DEFAULT_EXAM_TYPES,
   DEFAULT_GRADE_SCALE,
   DEFAULT_MAX_GRADE,
+  DEFAULT_MONTHLY_POINTS_CAP,
   DEFAULT_PASS_GRADE,
   DEFAULT_POINT_LEVELS,
+  DEFAULT_POINT_RULES,
   DEFAULT_POLICY_COMPONENTS,
+  DEFAULT_REWARDS,
   DEFAULT_TERM_WEIGHTS,
 } from "./constants";
 import type { Lesson, Student, Unit } from "./schema";
@@ -92,7 +96,7 @@ async function runSeed(): Promise<void> {
 
   await db.transaction(
     "rw",
-    [db.settings, db.academicYears, db.assessmentPolicy, db.subjects, db.classes, db.students, db.units, db.lessons],
+    [db.settings, db.academicYears, db.assessmentPolicy, db.subjects, db.classes, db.students, db.units, db.lessons, db.pointRules, db.rewards],
     async () => {
       // ١) العام الأكاديمي
       const yearId = await db.academicYears.add({
@@ -165,6 +169,8 @@ async function runSeed(): Promise<void> {
             currentAcademicYearId: yearId,
             lastUsedClassId: classId,
             pointLevels: prev?.pointLevels ?? DEFAULT_POINT_LEVELS,
+            monthlyPointsCap: prev?.monthlyPointsCap ?? DEFAULT_MONTHLY_POINTS_CAP,
+            absenceAlertThreshold: prev?.absenceAlertThreshold ?? DEFAULT_ABSENCE_ALERT,
             aiConnectionEnabled: prev?.aiConnectionEnabled ?? false,
             seeded: true,
             createdAt: prev?.createdAt ?? now,
@@ -173,7 +179,19 @@ async function runSeed(): Promise<void> {
         }
       }
 
-      // ٥) وحدتان بدروسهما
+      // ٥) قواعد النقاط والمتجر — إن لم تكن موجودة
+      if ((await db.pointRules.count()) === 0) {
+        await db.pointRules.bulkAdd(
+          DEFAULT_POINT_RULES.map((r) => ({ ...r, active: true, isDemo: true, createdAt: now }))
+        );
+      }
+      if ((await db.rewards.count()) === 0) {
+        await db.rewards.bulkAdd(
+          DEFAULT_REWARDS.map((r) => ({ ...r, active: true, isDemo: true, createdAt: now }))
+        );
+      }
+
+      // ٦) وحدتان بدروسهما
       const unitsData: { title: string; lessons: SeedLesson[] }[] = [
         { title: "المادة وتغيّراتها", lessons: UNIT_1_LESSONS },
         { title: "أجهزة جسم الإنسان", lessons: UNIT_2_LESSONS },
@@ -214,6 +232,8 @@ export async function clearDemo(): Promise<void> {
     db.students,
     db.units,
     db.lessons,
+    db.pointRules,
+    db.rewards,
   ];
   await db.transaction("rw", [...tables, db.settings], async () => {
     for (const table of tables) {

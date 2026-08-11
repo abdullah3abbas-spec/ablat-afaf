@@ -83,6 +83,10 @@ export interface Settings extends Timestamped {
   /** قفل التطبيق الاختياري — تجزئة، لا نص صريح */
   passwordHash?: string;
   pointLevels: PointLevel[];
+  /** السقف الشهري للنقاط — يمنع الاحتكار، قابل للتعديل (بيانات لا كود) */
+  monthlyPointsCap?: number;
+  /** عتبة تنبيه تكرار الغياب في الشهر */
+  absenceAlertThreshold?: number;
   /** مفتاح «اقطعي الاتصال» — المنصّة تعمل كاملة بدونه */
   aiConnectionEnabled: boolean;
   lastBackupAt?: number;

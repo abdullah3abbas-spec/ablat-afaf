@@ -30,6 +30,7 @@ import Modal from "@/components/Modal";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EmptyState from "@/components/EmptyState";
 import StudentGrades from "@/components/StudentGrades";
+import StudentAttendancePoints from "@/components/StudentAttendancePoints";
 
 type Tab = "data" | "grades" | "attendancePoints" | "notes";
 
@@ -156,13 +157,7 @@ export default function StudentPage() {
 
       {tab === "data" && <DataTab student={student} />}
       {tab === "grades" && <StudentGrades studentId={studentId} />}
-      {tab === "attendancePoints" && (
-        <EmptyState
-          icon={CalendarCheck}
-          title={s.studentFile.attendanceEmpty}
-          hint={s.studentFile.attendanceEmptyHint}
-        />
-      )}
+      {tab === "attendancePoints" && <StudentAttendancePoints studentId={studentId} />}
       {tab === "notes" && <NotesTab studentId={studentId} notes={notes ?? []} />}
 
       {/* سجل النقل إن وُجد */}

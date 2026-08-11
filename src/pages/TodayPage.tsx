@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   BarChart3,
   BookOpen,
+  CalendarCheck,
   Camera,
   CheckCircle2,
   FolderOpen,
@@ -40,10 +41,30 @@ export default function TodayPage() {
       .filter((l) => !l.deletedAt)
       .sort((a, b) => a.unitId - b.unitId || a.order - b.order);
     const units = new Map((await db.units.toArray()).map((u) => [u.id!, u.title]));
-    const studentsCount = (await db.students.toArray()).filter((st) => !st.deletedAt).length;
+    const allStudents = (await db.students.toArray()).filter((st) => !st.deletedAt);
     const pendingRequests = (await db.studioRequests.toArray()).filter((r) => r.status === "pending").length;
-    const anyDemo = (await db.students.toArray()).some((st) => st.isDemo && !st.deletedAt);
-    return { lessons, units, studentsCount, pendingRequests, anyDemo };
+    const anyDemo = allStudents.some((st) => st.isDemo);
+
+    // تنبيه تكرار الغياب هذا الشهر (العتبة من الإعدادات — بيانات)
+    const settings = await db.settings.get(1);
+    const threshold = settings?.absenceAlertThreshold ?? 4;
+    const mk = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+    const attendance = (await db.attendance.toArray()).filter((a) => !a.deletedAt && a.status === "absent");
+    const byStudent = new Map<number, number>();
+    for (const a of attendance) {
+      const d = new Date(a.date);
+      const amk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (amk === mk) byStudent.set(a.studentId, (byStudent.get(a.studentId) ?? 0) + 1);
+    }
+    const absenceAlerts: { name: string; count: number }[] = [];
+    for (const [sid, count] of byStudent) {
+      if (count >= threshold) {
+        const st = allStudents.find((x) => x.id === sid);
+        if (st) absenceAlerts.push({ name: st.name, count });
+      }
+    }
+
+    return { lessons, units, studentsCount: allStudents.length, pendingRequests, anyDemo, absenceAlerts };
   });
 
   const upcoming = (data?.lessons ?? []).slice(0, 3).map((l) => ({
@@ -79,7 +100,7 @@ export default function TodayPage() {
 
   const bigButtons = [
     { key: "library", label: s.today.bigButtons.library, icon: BookOpen, to: "/library" },
-    { key: "motivation", label: s.today.bigButtons.motivation, icon: Star, soon: true },
+    { key: "motivation", label: s.today.bigButtons.motivation, icon: Star, to: "/points" },
     { key: "assessment", label: s.today.bigButtons.assessment, icon: BarChart3, to: "/grades" },
     { key: "students", label: s.today.bigButtons.students, icon: Users, to: "/classes" },
   ];
@@ -113,24 +134,16 @@ export default function TodayPage() {
           {s.today.bigButtons.scan}
         </Link>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {bigButtons.map((b) =>
-            b.soon ? (
-              <div key={b.key} className="card flex min-h-[64px] items-center justify-center gap-2 opacity-55">
-                <b.icon className="size-6" aria-hidden />
-                <span className="font-bold">{b.label}</span>
-                <span className="rounded-pill bg-gold-bg px-2 text-sm font-medium text-gold-dark">{s.today.soonBadge}</span>
-              </div>
-            ) : (
-              <Link
-                key={b.key}
-                to={b.to!}
-                className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg"
-              >
-                <b.icon className="size-6 text-teal-dark" aria-hidden />
-                {b.label}
-              </Link>
-            )
-          )}
+          {bigButtons.map((b) => (
+            <Link
+              key={b.key}
+              to={b.to}
+              className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg"
+            >
+              <b.icon className="size-6 text-teal-dark" aria-hidden />
+              {b.label}
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -180,6 +193,11 @@ export default function TodayPage() {
             <p className="text-ink-soft">{s.common.loading}</p>
           ) : (
             <ul className="space-y-2">
+              {data.absenceAlerts.map((a) => (
+                <li key={a.name} className="rounded-card bg-danger-bg px-3 py-2 font-medium text-danger">
+                  {s.attendance.absenceAlertLine(a.name, fmtNum(a.count, numerals))}
+                </li>
+              ))}
               {data.pendingRequests > 0 && (
                 <li className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
                   {s.today.pendingRequests(fmtNum(data.pendingRequests, numerals))}
@@ -188,7 +206,7 @@ export default function TodayPage() {
               {data.anyDemo && (
                 <li className="rounded-card bg-cream px-3 py-2 text-ink-soft">{s.today.demoNote}</li>
               )}
-              {data.pendingRequests === 0 && !data.anyDemo && (
+              {data.pendingRequests === 0 && !data.anyDemo && data.absenceAlerts.length === 0 && (
                 <li className="text-ink-soft">{s.today.attentionEmpty}</li>
               )}
             </ul>
@@ -210,6 +228,10 @@ export default function TodayPage() {
 
       {/* وصول سريع ثانوي */}
       <nav className="flex flex-wrap gap-3">
+        <Link to="/attendance" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <CalendarCheck className="size-5" aria-hidden />
+          {s.attendance.title}
+        </Link>
         <Link to="/resources" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <FolderOpen className="size-5" aria-hidden />
           {s.resources.title}

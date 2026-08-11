@@ -170,6 +170,7 @@ export default function GradesPage() {
     const settings = await db.settings.get(1);
     const term = (settings?.currentTerm ?? 1) as Term;
 
+    let savedBatchId = 0;
     await db.transaction("rw", [db.gradeBatches, db.grades], async () => {
       const batchId = await db.gradeBatches.add({
         classId: klass.id!,
@@ -196,7 +197,12 @@ export default function GradesPage() {
           createdAt: now,
         });
       }
+      savedBatchId = batchId;
     });
+
+    // الاحتساب التلقائي للنقاط (90%+ والتحسّن) — آمن التكرار
+    const { awardAfterGradeBatch } = await import("@/lib/points");
+    await awardAfterGradeBatch(savedBatchId);
 
     setBusy(false);
     show(s.grades.review.approved(fmtNum(valid.length, numerals)));
@@ -205,6 +211,7 @@ export default function GradesPage() {
     setScanImage(null);
     setWarpedPreview(undefined);
   }
+
 
   const selectCls = "min-h-touch rounded-card border-2 border-line bg-white px-3 focus:border-teal";
 

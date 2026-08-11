@@ -7,7 +7,13 @@
  * - لا تُسنِد null لأي جدول (يحذفه!) ولا تضيّق المخطط أبداً.
  */
 import Dexie, { type Table } from "dexie";
-import { DEFAULT_GRADE_SCALE } from "./constants";
+import {
+  DEFAULT_ABSENCE_ALERT,
+  DEFAULT_GRADE_SCALE,
+  DEFAULT_MONTHLY_POINTS_CAP,
+  DEFAULT_POINT_RULES,
+  DEFAULT_REWARDS,
+} from "./constants";
 import type {
   AcademicYear,
   AiSendLogEntry,
@@ -149,6 +155,30 @@ export class ManassatDB extends Dexie {
           p.gradeScale ??= DEFAULT_GRADE_SCALE;
         })
     );
+
+    // v5 — الأمر ٣: تعبئة قواعد النقاط والمتجر والسقف في القواعد القائمة
+    this.version(5).upgrade(async (tx) => {
+      const now = Date.now();
+      await tx
+        .table("settings")
+        .toCollection()
+        .modify((s: { monthlyPointsCap?: number; absenceAlertThreshold?: number }) => {
+          s.monthlyPointsCap ??= DEFAULT_MONTHLY_POINTS_CAP;
+          s.absenceAlertThreshold ??= DEFAULT_ABSENCE_ALERT;
+        });
+      const rulesCount = await tx.table("pointRules").count();
+      if (rulesCount === 0) {
+        await tx.table("pointRules").bulkAdd(
+          DEFAULT_POINT_RULES.map((r) => ({ ...r, active: true, isDemo: true, createdAt: now }))
+        );
+      }
+      const rewardsCount = await tx.table("rewards").count();
+      if (rewardsCount === 0) {
+        await tx.table("rewards").bulkAdd(
+          DEFAULT_REWARDS.map((r) => ({ ...r, active: true, isDemo: true, createdAt: now }))
+        );
+      }
+    });
   }
 }
 

@@ -48,6 +48,35 @@ export const DEFAULT_GRADE_SCALE = [
   { min: 0, label: "دون الحد" },
 ];
 
+/** قواعد النقاط الافتراضية التسع (سلوك ← نقاط) — تعدّلها المعلّمة */
+export const DEFAULT_POINT_RULES = [
+  { key: "full_week", nameAr: "حضور أسبوع كامل", points: 5, autoTrigger: "attendance_week" },
+  { key: "participation", nameAr: "مشاركة مميزة", points: 2 },
+  { key: "homework", nameAr: "تسليم واجب", points: 3 },
+  { key: "experiment", nameAr: "إنجاز تجربة", points: 8 },
+  { key: "smart_question", nameAr: "سؤال علمي ذكي", points: 5 },
+  { key: "help_classmate", nameAr: "مساعدة زميلة", points: 4 },
+  { key: "grade_90", nameAr: "درجة 90% فأعلى", points: 10, autoTrigger: "grade_90" },
+  { key: "improvement", nameAr: "تحسّن شخصي عن آخر تقييم", points: 15, autoTrigger: "grade_improved" },
+  { key: "extra_project", nameAr: "مشروع إضافي", points: 20 },
+];
+
+/** السقف الشهري الافتراضي للنقاط — يمنع احتكار الصدارة، قابل للتعديل */
+export const DEFAULT_MONTHLY_POINTS_CAP = 100;
+
+/** عتبة تنبيه تكرار الغياب في الشهر */
+export const DEFAULT_ABSENCE_ALERT = 4;
+
+/** متجر المكافآت الافتراضي — أسعار بالنقاط، قابل للتعديل */
+export const DEFAULT_REWARDS = [
+  { nameAr: "ملصقات علوم مميزة", costPoints: 20 },
+  { nameAr: "قلم المعلّمة الخاص ليوم", costPoints: 30 },
+  { nameAr: "شهادة تميّز فورية", costPoints: 40 },
+  { nameAr: "اختيار مقعدك لأسبوع", costPoints: 50 },
+  { nameAr: "مساعِدة المعلّمة ليوم كامل", costPoints: 60 },
+  { nameAr: "قائدة التجربة القادمة", costPoints: 80 },
+];
+
 /** المستويات التحفيزية — بصيغة المؤنث، قابلة للتعديل من الإعدادات */
 export const DEFAULT_POINT_LEVELS: PointLevel[] = [
   { key: "explorer", nameAr: "مستكشفة مبتدئة", min: 0, max: 49 },
