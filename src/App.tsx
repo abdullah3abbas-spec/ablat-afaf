@@ -18,6 +18,10 @@ import GradesPage from "@/pages/GradesPage";
 import AttendancePage from "@/pages/AttendancePage";
 import PointsPage from "@/pages/PointsPage";
 import BoardPage from "@/pages/BoardPage";
+import QuestionsPage from "@/pages/QuestionsPage";
+import ExamsPage from "@/pages/ExamsPage";
+import ExamWizardPage from "@/pages/ExamWizardPage";
+import ExamResultsPage from "@/pages/ExamResultsPage";
 import DevOcrPage from "@/pages/DevOcrPage";
 import SettingsPage from "@/pages/SettingsPage";
 import PolicyPage from "@/pages/PolicyPage";
@@ -38,6 +42,11 @@ const router = createHashRouter([
       { path: "/attendance", element: <AttendancePage /> },
       { path: "/points", element: <PointsPage /> },
       { path: "/points/board", element: <BoardPage /> },
+      { path: "/questions", element: <QuestionsPage /> },
+      { path: "/exams", element: <ExamsPage /> },
+      { path: "/exams/new", element: <ExamWizardPage /> },
+      { path: "/exams/:examId/build", element: <ExamWizardPage /> },
+      { path: "/exams/:examId/results", element: <ExamResultsPage /> },
       { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/settings/policy", element: <PolicyPage /> },

@@ -10,6 +10,7 @@ import {
   BarChart3,
   BookOpen,
   CalendarCheck,
+  ClipboardList,
   Camera,
   CheckCircle2,
   FolderOpen,
@@ -231,6 +232,10 @@ export default function TodayPage() {
         <Link to="/attendance" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <CalendarCheck className="size-5" aria-hidden />
           {s.attendance.title}
+        </Link>
+        <Link to="/exams" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <ClipboardList className="size-5" aria-hidden />
+          {s.exams.title}
         </Link>
         <Link to="/resources" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <FolderOpen className="size-5" aria-hidden />

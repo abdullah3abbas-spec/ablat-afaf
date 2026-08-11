@@ -86,8 +86,27 @@ const UNIT_2_LESSONS: SeedLesson[] = [
 /** يزرع البيانات التجريبية إن كانت القاعدة فارغة (حارس التشغيل الأول) */
 export async function seedIfEmpty(): Promise<void> {
   const existing = await db.settings.get(1);
-  if (existing?.seeded) return;
+  if (existing?.seeded) {
+    await seedQuestionBankIfEmpty();
+    return;
+  }
   await runSeed();
+  await seedQuestionBankIfEmpty();
+}
+
+/**
+ * بذر بنك الأسئلة إن كان فارغاً — يعمل أيضاً للقواعد المزروعة سابقاً
+ * (يُستدعى عند كل إقلاع، آمن التكرار).
+ */
+export async function seedQuestionBankIfEmpty(): Promise<void> {
+  if ((await db.questions.count()) > 0) return;
+  const { buildBankQuestions } = await import("@/content/questionBank");
+  const units = (await db.units.toArray()).filter((u) => !u.deletedAt);
+  const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt);
+  const unitByTitle = new Map(units.map((u) => [u.title, u.id!]));
+  const lessonByTitle = new Map(lessons.map((l) => [l.title, { id: l.id!, unitId: l.unitId }]));
+  const rows = buildBankQuestions(unitByTitle, lessonByTitle);
+  if (rows.length > 0) await db.questions.bulkAdd(rows);
 }
 
 /** الزرع الفعلي — معاملة واحدة شاملة */
@@ -234,6 +253,7 @@ export async function clearDemo(): Promise<void> {
     db.lessons,
     db.pointRules,
     db.rewards,
+    db.questions,
   ];
   await db.transaction("rw", [...tables, db.settings], async () => {
     for (const table of tables) {
