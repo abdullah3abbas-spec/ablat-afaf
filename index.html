@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+    <meta name="description" content="منصّة أبلة عفاف — منصّة معلّمة العلوم، تعمل محلياً بلا إنترنت" />
+    <meta name="theme-color" content="#8A1538" />
+    <title>منصّة أبلة عفاف</title>
+    <!-- تطبيق حجم الخط المحفوظ قبل أول رسم — بلا وميض (§6) -->
+    <script>
+      try {
+        var f = localStorage.getItem("fontScale");
+        if (f) document.documentElement.style.fontSize = f + "px";
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
