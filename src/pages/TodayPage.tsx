@@ -68,7 +68,11 @@ export default function TodayPage() {
     const { earlyWarnings } = await import("@/lib/analytics");
     const warnings = (await earlyWarnings(0, now)).slice(0, 6);
 
-    return { lessons, units, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests };
+    // تذكير النسخ الاحتياطي كل ٧ أيام (§7)
+    const { needsBackupReminder } = await import("@/lib/backup");
+    const backupOverdue = await needsBackupReminder(now);
+
+    return { lessons, units, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests, backupOverdue };
   });
 
   const upcoming = (data?.lessons ?? []).slice(0, 3).map((l) => ({
@@ -216,6 +220,11 @@ export default function TodayPage() {
                   ) : w.message}
                 </li>
               ))}
+              {data.backupOverdue && (
+                <li className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
+                  <Link to="/settings" className="hover:underline">{s.backup.reminder}</Link>
+                </li>
+              )}
               {data.dueSoonRequests.map((r) => (
                 <li key={`req-${r.id}`} className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
                   <Link to="/requests" className="hover:underline">{s.requests.dueSoon(r.title)}</Link>
@@ -229,7 +238,7 @@ export default function TodayPage() {
               {data.anyDemo && (
                 <li className="rounded-card bg-cream px-3 py-2 text-ink-soft">{s.today.demoNote}</li>
               )}
-              {data.pendingRequests === 0 && !data.anyDemo && data.warnings.length === 0 && data.dueSoonRequests.length === 0 && (
+              {data.pendingRequests === 0 && !data.anyDemo && data.warnings.length === 0 && data.dueSoonRequests.length === 0 && !data.backupOverdue && (
                 <li className="text-ink-soft">{s.today.attentionEmpty}</li>
               )}
             </ul>

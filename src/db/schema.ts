@@ -723,4 +723,6 @@ export interface BackupMeta extends Timestamped {
   /** عدد السجلات لكل جدول لحظة النسخ */
   recordCounts?: Record<string, number>;
   path?: string;
+  /** لقطة البيانات المضمّنة — للنسخ الصامتة قبل الحذف الجماعي (نقطة استرجاع) */
+  snapshot?: string;
 }

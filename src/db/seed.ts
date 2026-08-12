@@ -275,6 +275,13 @@ async function runSeed(): Promise<void> {
 
 /** حذف البيانات التجريبية فقط — لا يقترب من أي بيانات حقيقية */
 export async function clearDemo(): Promise<void> {
+  // §7: نسخة صامتة قبل أي حذف جماعي (نقطة استرجاع)
+  try {
+    const { silentBackup } = await import("@/lib/backup");
+    await silentBackup("before_bulk_delete");
+  } catch {
+    /* لا نمنع الحذف إن فشلت النسخة الصامتة */
+  }
   const tables = [
     db.academicYears,
     db.assessmentPolicy,

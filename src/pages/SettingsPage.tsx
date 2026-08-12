@@ -2,12 +2,14 @@
  * الإعدادات: حجم الخط + شكل الأرقام + البيانات التجريبية
  * + الذكاء الاصطناعي والخصوصية (§2-هـ): قطع الاتصال، الحدود، سجل الإرسال.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Download, Plug, PlugZap, Scale, ShieldCheck } from "lucide-react";
+import { Download, Lock, Plug, PlugZap, Save, Scale, ShieldCheck, Upload } from "lucide-react";
 import { clearDemo, db, reseedDemo } from "@/db";
 import { downloadDataJson } from "@/lib/dataExport";
+import { downloadFullBackup, restoreFromBackup, silentBackup, daysSinceBackup, latestRestorePoint, restoreFromPoint, type FullBackup } from "@/lib/backup";
+import { setPin as setPinLib, removePin, isLockEnabled } from "@/lib/lock";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useToast } from "@/store/toast";
@@ -180,10 +182,208 @@ export default function SettingsPage() {
         </button>
       </section>
 
+      <BackupSection />
+
+      <LockSection />
+
       <AiPrivacySection />
 
       <p className="card bg-teal-bg text-teal-dark">{s.settings.workingOffline}</p>
     </div>
+  );
+}
+
+/** النسخ الاحتياطي والاستعادة (§7 · الأمر ٩) */
+function BackupSection() {
+  const s = useStrings();
+  const numerals = useUi((x) => x.numeralsTable);
+  const show = useToast((x) => x.show);
+  const [days, setDays] = useState<number | null>(null);
+  const [point, setPoint] = useState<{ id: number; createdAt: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState<0 | 1 | 2>(0);
+  const pendingFile = useRef<FullBackup | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      setDays(await daysSinceBackup());
+      setPoint(await latestRestorePoint());
+    })();
+  }, [busy]);
+
+  async function backupNow() {
+    setBusy(true);
+    try {
+      const { fileName } = await downloadFullBackup("manual");
+      show(s.backup.backupDone(fileName));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    try {
+      pendingFile.current = JSON.parse(await f.text()) as FullBackup;
+      setStep(1);
+    } catch {
+      show(s.backup.restoreError, { kind: "danger" });
+    }
+  }
+
+  async function doRestore() {
+    if (!pendingFile.current) return;
+    setBusy(true);
+    setStep(0);
+    try {
+      await silentBackup("before_import");
+      const r = await restoreFromBackup(pendingFile.current);
+      if (r.ok) {
+        show(s.backup.restored);
+        setTimeout(() => location.reload(), 1200);
+      } else show(r.error ?? s.backup.restoreError, { kind: "danger" });
+    } finally {
+      setBusy(false);
+      pendingFile.current = null;
+    }
+  }
+
+  async function goToPoint() {
+    if (!point) return;
+    setBusy(true);
+    try {
+      const r = await restoreFromPoint(point.id);
+      if (r.ok) {
+        show(s.backup.restored);
+        setTimeout(() => location.reload(), 1200);
+      } else show(r.error ?? s.backup.restoreError, { kind: "danger" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const overdue = days != null && days >= 7;
+
+  return (
+    <section className="card space-y-3">
+      <h2 className="flex items-center gap-2 font-heading text-xl font-bold">
+        <ShieldCheck className="size-6 text-teal-dark" aria-hidden />
+        {s.backup.title}
+      </h2>
+      <p className="text-ink-soft">{s.backup.hint}</p>
+      <p className={"rounded-card px-3 py-2 " + (overdue ? "bg-gold-bg text-gold-dark" : "bg-cream text-ink-soft")}>
+        {days == null ? s.common.loading : days === Infinity ? s.backup.lastBackupNever : s.backup.lastBackup(fmtNum(days, numerals))}
+        {overdue && ` — ${s.backup.reminder}`}
+      </p>
+
+      <div className="flex flex-wrap gap-3">
+        <button type="button" onClick={() => void backupNow()} disabled={busy} className="btn-primary disabled:opacity-50">
+          <Save className="size-5" aria-hidden />
+          {s.backup.backupNow}
+        </button>
+        <label className="btn cursor-pointer border-2 border-line bg-white text-ink hover:border-teal">
+          <Upload className="size-5" aria-hidden />
+          {s.backup.restore}
+          <input type="file" accept="application/json,.json" onChange={(e) => void onPickFile(e)} className="hidden" />
+        </label>
+      </div>
+      <p className="text-sm text-ink-soft">{s.backup.restoreHint}</p>
+
+      {point && (
+        <div className="rounded-card border border-line p-3">
+          <p className="text-ink-soft">{s.backup.restorePoint(fmtNum(Math.max(0, Math.floor((Date.now() - point.createdAt) / 86400000)), numerals))}</p>
+          <button type="button" onClick={() => void goToPoint()} disabled={busy} className="btn-secondary mt-2 px-4">{s.backup.restorePointNow}</button>
+        </div>
+      )}
+
+      {step === 1 && (
+        <div className="space-y-2 rounded-card border-2 border-danger bg-danger-bg p-4">
+          <p className="font-bold">{s.backup.restoreConfirm1}</p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={() => setStep(2)} className="btn-danger">{s.common.continue}</button>
+            <button type="button" onClick={() => { setStep(0); pendingFile.current = null; }} className="btn border-2 border-line bg-white text-ink">{s.common.cancel}</button>
+          </div>
+        </div>
+      )}
+      {step === 2 && (
+        <div className="space-y-2 rounded-card border-2 border-danger bg-danger-bg p-4">
+          <p className="font-bold">{s.backup.restoreConfirm2}</p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={() => void doRestore()} disabled={busy} className="btn-danger">{s.backup.restore}</button>
+            <button type="button" onClick={() => { setStep(0); pendingFile.current = null; }} className="btn border-2 border-line bg-white text-ink">{s.common.cancel}</button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** قفل التطبيق برقم سرّي (§7 · الأمر ٩) */
+function LockSection() {
+  const s = useStrings();
+  const show = useToast((x) => x.show);
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [pin, setPin] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    void (async () => setEnabled(await isLockEnabled()))();
+  }, [editing]);
+
+  async function save() {
+    if (!/^\d{4,6}$/.test(pin)) return setErr(s.backup.lock.tooShort);
+    if (pin !== confirm) return setErr(s.backup.lock.mismatch);
+    await setPinLib(pin);
+    setEditing(false);
+    setPin(""); setConfirm(""); setErr("");
+    show(s.backup.lock.setDone);
+  }
+  async function remove() {
+    await removePin();
+    show(s.backup.lock.removed, { kind: "info" });
+    setEnabled(false);
+  }
+
+  const field = "min-h-touch w-full rounded-card border-2 border-line bg-white px-4 text-center text-xl tracking-widest focus:border-teal focus:outline-none";
+
+  return (
+    <section className="card space-y-3">
+      <h2 className="flex items-center gap-2 font-heading text-xl font-bold">
+        <Lock className="size-6 text-teal-dark" aria-hidden />
+        {s.backup.lock.title}
+      </h2>
+      <p className="text-ink-soft">{s.backup.lock.hint}</p>
+      <p className={"rounded-pill inline-block px-3 py-1 text-sm " + (enabled ? "bg-teal-bg text-teal-dark" : "bg-cream text-ink-soft")}>
+        {enabled ? s.backup.lock.enabled : s.backup.lock.disabled}
+      </p>
+
+      {!editing ? (
+        <div className="flex flex-wrap gap-3">
+          <button type="button" onClick={() => setEditing(true)} className="btn-secondary">
+            {enabled ? s.backup.lock.change : s.backup.lock.set}
+          </button>
+          {enabled && (
+            <button type="button" onClick={() => void remove()} className="btn border-2 border-danger bg-white text-danger hover:bg-danger-bg">
+              {s.backup.lock.remove}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <input type="password" inputMode="numeric" autoFocus value={pin} onChange={(e) => { setPin(e.target.value.replace(/\D/g, "").slice(0, 6)); setErr(""); }} placeholder={s.backup.lock.enter} aria-label={s.backup.lock.enter} className={field} />
+          <input type="password" inputMode="numeric" value={confirm} onChange={(e) => { setConfirm(e.target.value.replace(/\D/g, "").slice(0, 6)); setErr(""); }} placeholder={s.backup.lock.confirm} aria-label={s.backup.lock.confirm} className={field} />
+          {err && <p className="font-medium text-danger">{err}</p>}
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={() => void save()} className="btn-primary">{s.common.save}</button>
+            <button type="button" onClick={() => { setEditing(false); setPin(""); setConfirm(""); setErr(""); }} className="btn border-2 border-line bg-white text-ink">{s.common.cancel}</button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

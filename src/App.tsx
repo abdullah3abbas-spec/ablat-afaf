@@ -5,6 +5,7 @@
  * عمق التنقل (§6): الرئيسية ← الفصول ← طالبات الفصل ← ملف الطالبة = ٣ نقرات.
  */
 import { createHashRouter, Navigate, RouterProvider } from "react-router-dom";
+import LockGate from "@/components/LockGate";
 import RootLayout from "@/layouts/RootLayout";
 import TodayPage from "@/pages/TodayPage";
 import LibraryPage from "@/pages/LibraryPage";
@@ -72,5 +73,9 @@ const router = createHashRouter([
 ]);
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <LockGate>
+      <RouterProvider router={router} />
+    </LockGate>
+  );
 }
