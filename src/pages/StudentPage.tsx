@@ -31,6 +31,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import EmptyState from "@/components/EmptyState";
 import StudentGrades from "@/components/StudentGrades";
 import StudentAttendancePoints from "@/components/StudentAttendancePoints";
+import StudentBadges from "@/components/StudentBadges";
 
 type Tab = "data" | "grades" | "attendancePoints" | "notes";
 
@@ -159,6 +160,9 @@ export default function StudentPage() {
       {tab === "grades" && <StudentGrades studentId={studentId} />}
       {tab === "attendancePoints" && <StudentAttendancePoints studentId={studentId} />}
       {tab === "notes" && <NotesTab studentId={studentId} notes={notes ?? []} />}
+
+      {/* الأوسمة (§ الأمر ٧) */}
+      <StudentBadges studentId={studentId} />
 
       {/* سجل النقل إن وُجد */}
       {student.classHistory && student.classHistory.length > 0 && (

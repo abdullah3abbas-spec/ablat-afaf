@@ -77,6 +77,14 @@ export const DEFAULT_REWARDS = [
   { nameAr: "قائدة التجربة القادمة", costPoints: 80 },
 ];
 
+/** الأوسمة الافتراضية — بصيغة المؤنث، تظهر في ملف الطالبة وعلى شهادتها */
+export const DEFAULT_BADGES = [
+  { key: "scientist_of_month", nameAr: "عالِمة الشهر", icon: "🔬", description: "الأعلى نقاطاً هذا الشهر" },
+  { key: "best_experiment", nameAr: "أفضل تجربة", icon: "⚗️", description: "تميّزت في تنفيذ تجربة عملية" },
+  { key: "curious_researcher", nameAr: "الباحثة الفضولية", icon: "🔍", description: "كثيرة الأسئلة العلمية الذكية" },
+  { key: "team_star", nameAr: "نجمة التعاون", icon: "🤝", description: "مساعِدة مميزة لزميلاتها" },
+];
+
 /** المستويات التحفيزية — بصيغة المؤنث، قابلة للتعديل من الإعدادات */
 export const DEFAULT_POINT_LEVELS: PointLevel[] = [
   { key: "explorer", nameAr: "مستكشفة مبتدئة", min: 0, max: 49 },

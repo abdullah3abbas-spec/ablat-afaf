@@ -24,6 +24,8 @@ import WorksheetsPage from "@/pages/WorksheetsPage";
 import ReportsPage from "@/pages/ReportsPage";
 import CurriculumPage from "@/pages/CurriculumPage";
 import SearchPage from "@/pages/SearchPage";
+import ToolsPage from "@/pages/ToolsPage";
+import AnalyticsPage from "@/pages/AnalyticsPage";
 import ExamsPage from "@/pages/ExamsPage";
 import ExamWizardPage from "@/pages/ExamWizardPage";
 import ExamResultsPage from "@/pages/ExamResultsPage";
@@ -57,6 +59,8 @@ const router = createHashRouter([
       { path: "/reports", element: <ReportsPage /> },
       { path: "/curriculum", element: <CurriculumPage /> },
       { path: "/search", element: <SearchPage /> },
+      { path: "/tools", element: <ToolsPage /> },
+      { path: "/analytics", element: <AnalyticsPage /> },
       { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/settings/policy", element: <PolicyPage /> },

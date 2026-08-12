@@ -7,6 +7,7 @@
 import { db } from "./db";
 import {
   DEFAULT_ABSENCE_ALERT,
+  DEFAULT_BADGES,
   DEFAULT_COGNITIVE,
   DEFAULT_EXAM_TYPES,
   DEFAULT_GRADE_SCALE,
@@ -115,7 +116,7 @@ async function runSeed(): Promise<void> {
 
   await db.transaction(
     "rw",
-    [db.settings, db.academicYears, db.assessmentPolicy, db.subjects, db.classes, db.students, db.units, db.lessons, db.pointRules, db.rewards],
+    [db.settings, db.academicYears, db.assessmentPolicy, db.subjects, db.classes, db.students, db.units, db.lessons, db.pointRules, db.rewards, db.badges],
     async () => {
       // ١) العام الأكاديمي
       const yearId = await db.academicYears.add({
@@ -209,6 +210,9 @@ async function runSeed(): Promise<void> {
           DEFAULT_REWARDS.map((r) => ({ ...r, active: true, isDemo: true, createdAt: now }))
         );
       }
+      if ((await db.badges.count()) === 0) {
+        await db.badges.bulkAdd(DEFAULT_BADGES.map((b) => ({ ...b, isDemo: true, createdAt: now })));
+      }
 
       // ٦) وحدتان بدروسهما
       const unitsData: { title: string; lessons: SeedLesson[] }[] = [
@@ -254,6 +258,7 @@ export async function clearDemo(): Promise<void> {
     db.pointRules,
     db.rewards,
     db.questions,
+    db.badges,
   ];
   await db.transaction("rw", [...tables, db.settings], async () => {
     for (const table of tables) {

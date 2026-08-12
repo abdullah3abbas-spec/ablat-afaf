@@ -9,6 +9,7 @@
 import Dexie, { type Table } from "dexie";
 import {
   DEFAULT_ABSENCE_ALERT,
+  DEFAULT_BADGES,
   DEFAULT_GRADE_SCALE,
   DEFAULT_MONTHLY_POINTS_CAP,
   DEFAULT_POINT_RULES,
@@ -177,6 +178,14 @@ export class ManassatDB extends Dexie {
         await tx.table("rewards").bulkAdd(
           DEFAULT_REWARDS.map((r) => ({ ...r, active: true, isDemo: true, createdAt: now }))
         );
+      }
+    });
+
+    // v6 — الأمر ٧: بذر الأوسمة في القواعد القائمة
+    this.version(6).upgrade(async (tx) => {
+      const now = Date.now();
+      if ((await tx.table("badges").count()) === 0) {
+        await tx.table("badges").bulkAdd(DEFAULT_BADGES.map((b) => ({ ...b, isDemo: true, createdAt: now })));
       }
     });
   }

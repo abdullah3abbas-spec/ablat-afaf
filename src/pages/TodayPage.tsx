@@ -14,6 +14,8 @@ import {
   CalendarCheck,
   ClipboardList,
   FileBarChart,
+  Gamepad2,
+  LineChart,
   NotebookPen,
   Search,
   Camera,
@@ -51,26 +53,11 @@ export default function TodayPage() {
     const pendingRequests = (await db.studioRequests.toArray()).filter((r) => r.status === "pending").length;
     const anyDemo = allStudents.some((st) => st.isDemo);
 
-    // تنبيه تكرار الغياب هذا الشهر (العتبة من الإعدادات — بيانات)
-    const settings = await db.settings.get(1);
-    const threshold = settings?.absenceAlertThreshold ?? 4;
-    const mk = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
-    const attendance = (await db.attendance.toArray()).filter((a) => !a.deletedAt && a.status === "absent");
-    const byStudent = new Map<number, number>();
-    for (const a of attendance) {
-      const d = new Date(a.date);
-      const amk = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      if (amk === mk) byStudent.set(a.studentId, (byStudent.get(a.studentId) ?? 0) + 1);
-    }
-    const absenceAlerts: { name: string; count: number }[] = [];
-    for (const [sid, count] of byStudent) {
-      if (count >= threshold) {
-        const st = allStudents.find((x) => x.id === sid);
-        if (st) absenceAlerts.push({ name: st.name, count });
-      }
-    }
+    // تنبيهات الإنذار المبكر الأربعة (§ الأمر ٧) — من محرّك التحليلات
+    const { earlyWarnings } = await import("@/lib/analytics");
+    const warnings = (await earlyWarnings(0, Date.now())).slice(0, 6);
 
-    return { lessons, units, studentsCount: allStudents.length, pendingRequests, anyDemo, absenceAlerts };
+    return { lessons, units, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings };
   });
 
   const upcoming = (data?.lessons ?? []).slice(0, 3).map((l) => ({
@@ -199,9 +186,11 @@ export default function TodayPage() {
             <p className="text-ink-soft">{s.common.loading}</p>
           ) : (
             <ul className="space-y-2">
-              {data.absenceAlerts.map((a) => (
-                <li key={a.name} className="rounded-card bg-danger-bg px-3 py-2 font-medium text-danger">
-                  {s.attendance.absenceAlertLine(a.name, fmtNum(a.count, numerals))}
+              {data.warnings.map((w, i) => (
+                <li key={i} className={"rounded-card px-3 py-2 font-medium " + (w.severity === 3 ? "bg-danger-bg text-danger" : w.severity === 2 ? "bg-gold-bg text-gold-dark" : "bg-cream text-ink-soft")}>
+                  {w.studentId ? (
+                    <Link to={`/students/${w.studentId}`} className="hover:underline">{w.message}</Link>
+                  ) : w.message}
                 </li>
               ))}
               {data.pendingRequests > 0 && (
@@ -212,7 +201,7 @@ export default function TodayPage() {
               {data.anyDemo && (
                 <li className="rounded-card bg-cream px-3 py-2 text-ink-soft">{s.today.demoNote}</li>
               )}
-              {data.pendingRequests === 0 && !data.anyDemo && data.absenceAlerts.length === 0 && (
+              {data.pendingRequests === 0 && !data.anyDemo && data.warnings.length === 0 && (
                 <li className="text-ink-soft">{s.today.attentionEmpty}</li>
               )}
             </ul>
@@ -261,6 +250,14 @@ export default function TodayPage() {
         <Link to="/search" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <Search className="size-5" aria-hidden />
           {s.search.title}
+        </Link>
+        <Link to="/tools" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <Gamepad2 className="size-5" aria-hidden />
+          {s.tools.title}
+        </Link>
+        <Link to="/analytics" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <LineChart className="size-5" aria-hidden />
+          {s.analytics.title}
         </Link>
         <Link to="/resources" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <FolderOpen className="size-5" aria-hidden />
