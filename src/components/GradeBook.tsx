@@ -9,6 +9,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { CheckCircle2, Table2 } from "lucide-react";
 import { db } from "@/db";
 import type { GradeComponent, Term } from "@/db/schema";
+import { DEFAULT_GRADE_SCALE } from "@/db/constants";
 import { activePolicyOf } from "@/lib/policy";
 import { gradeLabel, percentOf, termTotal } from "@/lib/grades";
 import { activeStudentsOf } from "@/lib/students";
@@ -52,7 +53,7 @@ export default function GradeBook({ classId, components, term }: GradeBookProps)
         return { student: st, cells, total: t };
       })
     );
-    return { rows, scale: policy?.gradeScale ?? [] };
+    return { rows, scale: policy?.gradeScale ?? DEFAULT_GRADE_SCALE };
   }, [classId, components.map((c) => c.id).join(","), term]);
 
   useEffect(() => {
@@ -126,7 +127,8 @@ export default function GradeBook({ classId, components, term }: GradeBookProps)
           </thead>
           <tbody>
             {data.rows.map(({ student, cells, total }) => {
-              const pct = percentOf(total.total, total.outOf);
+              // التقدير على المرصود فقط — عادل قبل اكتمال المكوّنات
+              const pct = percentOf(total.total, total.countedOutOf);
               const complete = total.counted === components.length;
               return (
                 <tr key={student.id} className="border-b border-line hover:bg-cream/60">

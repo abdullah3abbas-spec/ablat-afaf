@@ -6,6 +6,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { BarChart3, CheckCircle2, XCircle } from "lucide-react";
 import { db } from "@/db";
 import type { Term } from "@/db/schema";
+import { DEFAULT_GRADE_SCALE } from "@/db/constants";
 import { activePolicyOf } from "@/lib/policy";
 import { finalYearGrade, gradeLabel, isPassing, percentOf, termTotal } from "@/lib/grades";
 import { leafComponents } from "@/lib/gradeComponents";
@@ -41,7 +42,7 @@ export default function StudentGrades({ studentId }: { studentId: number }) {
 
   if (!data) return null;
   const { policy, terms } = data;
-  const scale = policy?.gradeScale ?? [];
+  const scale = policy?.gradeScale ?? DEFAULT_GRADE_SCALE;
 
   const anyGrades = terms.some((t) => t.total.counted > 0);
   if (!anyGrades) {

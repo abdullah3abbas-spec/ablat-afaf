@@ -7,10 +7,13 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
+  Award,
   BarChart3,
   BookOpen,
   CalendarCheck,
   ClipboardList,
+  FileBarChart,
+  NotebookPen,
   Camera,
   CheckCircle2,
   FolderOpen,
@@ -236,6 +239,18 @@ export default function TodayPage() {
         <Link to="/exams" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <ClipboardList className="size-5" aria-hidden />
           {s.exams.title}
+        </Link>
+        <Link to="/certificates" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <Award className="size-5" aria-hidden />
+          {s.certs.title}
+        </Link>
+        <Link to="/worksheets" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <NotebookPen className="size-5" aria-hidden />
+          {s.worksheets.title}
+        </Link>
+        <Link to="/reports" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <FileBarChart className="size-5" aria-hidden />
+          {s.reports.title}
         </Link>
         <Link to="/resources" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <FolderOpen className="size-5" aria-hidden />

@@ -54,9 +54,13 @@ describe("مجموع الفصل من المكوّنات", () => {
   const g = (componentId: number, mark: number, createdAt = 1, deletedAt?: number): Grade =>
     ({ gradeComponentId: componentId, mark, createdAt, deletedAt }) as Grade;
 
-  test("يجمع آخر درجة حيّة لكل مكوّن", () => {
+  test("يجمع آخر درجة حيّة لكل مكوّن ويحسب عظمى المرصود", () => {
     const r = termTotal([g(1, 20), g(2, 35), g(3, 30)], comps);
-    expect(r).toEqual({ total: 85, counted: 3, outOf: 100 });
+    expect(r).toEqual({ total: 85, counted: 3, outOf: 100, countedOutOf: 100 });
+    // رصد جزئي: عظمى المرصود = عظمى المكوّن المرصود فقط
+    const partial = termTotal([g(1, 20)], comps);
+    expect(partial.countedOutOf).toBe(25);
+    expect(partial.outOf).toBe(100);
   });
 
   test("التصحيح الأحدث يطغى على الأقدم", () => {

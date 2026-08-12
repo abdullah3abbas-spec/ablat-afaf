@@ -35,11 +35,15 @@ export function termTotal(grades: Grade[], leafComponents: GradeComponent[]): {
   total: number;
   /** كم مكوّناً رُصد من أصل الورقية */
   counted: number;
+  /** مجموع العظمى لكل المكوّنات */
   outOf: number;
+  /** مجموع العظمى للمكوّنات المرصودة فقط — أساس النسبة العادلة أثناء الفصل */
+  countedOutOf: number;
 } {
   let total = 0;
   let counted = 0;
   let outOf = 0;
+  let countedOutOf = 0;
   for (const comp of leafComponents) {
     outOf += comp.maxMark;
     const live = grades
@@ -48,9 +52,10 @@ export function termTotal(grades: Grade[], leafComponents: GradeComponent[]): {
     if (live.length > 0) {
       total += live[0].mark;
       counted++;
+      countedOutOf += comp.maxMark;
     }
   }
-  return { total, counted, outOf };
+  return { total, counted, outOf, countedOutOf };
 }
 
 /** النسبة المئوية من درجة عظمى معطاة — تُقرَّب لمنزلة واحدة */

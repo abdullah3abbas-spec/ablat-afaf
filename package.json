@@ -17,6 +17,7 @@
     "dexie-react-hooks": "^1.1.7",
     "docx": "^9.7.1",
     "exceljs": "^4.4.0",
+    "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",
     "lucide-react": "^1.31.0",
     "pdfjs-dist": "^6.2.108",
