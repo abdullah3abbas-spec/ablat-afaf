@@ -43,6 +43,7 @@ import type {
   Settings,
   Student,
   StudioRequest,
+  TeacherRequest,
   Subject,
   Unit,
   Worksheet,
@@ -79,6 +80,7 @@ export class ManassatDB extends Dexie {
   aiSendLog!: Table<AiSendLogEntry, number>;
   studioRequests!: Table<StudioRequest, number>;
   gradeBatches!: Table<GradeBatch, number>;
+  requests!: Table<TeacherRequest, number>;
 
   constructor() {
     super("manassat-abla-afaf");
@@ -187,6 +189,12 @@ export class ManassatDB extends Dexie {
       if ((await tx.table("badges").count()) === 0) {
         await tx.table("badges").bulkAdd(DEFAULT_BADGES.map((b) => ({ ...b, isDemo: true, createdAt: now })));
       }
+    });
+
+    // v7 — الأمر ٨-ب: جدول «المطلوب منّي» (صندوق الطلبات). إضافي بحت.
+    // [status+dueDate]: طلبات مفتوحة قرب موعدها للتنبيه · dueDate للفرز
+    this.version(7).stores({
+      requests: "++id, type, status, [status+dueDate], dueDate, classId, studentId, deletedAt",
     });
   }
 }

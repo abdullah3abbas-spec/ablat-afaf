@@ -11,7 +11,7 @@
 import { db } from "@/db";
 
 /** رقم إصدار المخطط الحالي — تقرؤه المهارات لتتأكد من التوافق */
-export const DATA_EXPORT_SCHEMA = 6;
+export const DATA_EXPORT_SCHEMA = 7;
 
 export interface ExportedData {
   app: "منصة-عفاف";

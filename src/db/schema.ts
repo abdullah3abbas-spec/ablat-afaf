@@ -678,6 +678,40 @@ export interface GradeBatch extends Timestamped, SoftDeletable {
   savedCount: number;
 }
 
+// ── requests — «المطلوب منّي» صندوق طلبات المعلّمة (§ الأمر ٨-ب ثالثاً) ──
+
+/** أنواع الطلبات المتكرّرة العشرة — يُتعرَّف عليها محلياً من نصّ الطلب */
+export type RequestType =
+  | "struggling" // تقرير المتعثّرات
+  | "remedial_plan" // الخطة العلاجية
+  | "activities" // تقرير الأنشطة
+  | "results_stats" // إحصائية النتائج
+  | "support_enrichment" // خطة الدعم والإثراء
+  | "parent_report" // تقرير ولي أمر
+  | "visit_file" // ملف الزيارة الصفية
+  | "weekly_message" // الرسالة الأسبوعية
+  | "experiments" // تقرير التجارب
+  | "needs_inventory" // حصر الاحتياجات
+  | "other";
+
+export interface TeacherRequest extends Timestamped, SoftDeletable, DemoFlaggable {
+  id?: number;
+  type: RequestType;
+  title: string;
+  /** ما كتبته المعلّمة أو نصّ الرسالة — يبقى على الجهاز */
+  description?: string;
+  classId?: number;
+  studentId?: number;
+  /** موعد التسليم */
+  dueDate?: number;
+  status: "new" | "ready" | "delivered";
+  /** مرفق مصوّر (رسالة واتساب/ورقة) — استثناء «مسار فقط» كصورة الطالبة */
+  attachment?: Blob;
+  attachmentName?: string;
+  /** ملاحظة عند التسليم */
+  deliveredNote?: string;
+}
+
 // ── backups — بيانات وصفية فقط، الملف نفسه يُنزَّل ────────────
 
 export interface BackupMeta extends Timestamped {

@@ -26,6 +26,7 @@ import CurriculumPage from "@/pages/CurriculumPage";
 import SearchPage from "@/pages/SearchPage";
 import ToolsPage from "@/pages/ToolsPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
+import RequestsPage from "@/pages/RequestsPage";
 import ExamsPage from "@/pages/ExamsPage";
 import ExamWizardPage from "@/pages/ExamWizardPage";
 import ExamResultsPage from "@/pages/ExamResultsPage";
@@ -61,6 +62,7 @@ const router = createHashRouter([
       { path: "/search", element: <SearchPage /> },
       { path: "/tools", element: <ToolsPage /> },
       { path: "/analytics", element: <AnalyticsPage /> },
+      { path: "/requests", element: <RequestsPage /> },
       { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/settings/policy", element: <PolicyPage /> },

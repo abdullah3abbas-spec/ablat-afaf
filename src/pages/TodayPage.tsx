@@ -29,6 +29,8 @@ import {
   Users,
 } from "lucide-react";
 import { db, reseedDemo } from "@/db";
+import CommandBox from "@/components/CommandBox";
+import VisitFileCard from "@/components/VisitFileCard";
 import { EMERGENCY_KIT, kitByLessonTitle } from "@/content/lessonKits";
 import { printEmergency, printWeekBundle } from "@/lib/kitPrint";
 import { activeStudentsOf } from "@/lib/students";
@@ -53,11 +55,17 @@ export default function TodayPage() {
     const pendingRequests = (await db.studioRequests.toArray()).filter((r) => r.status === "pending").length;
     const anyDemo = allStudents.some((st) => st.isDemo);
 
+    // طلبات «المطلوب منّي» قرب موعدها (خلال يومين) وغير المسلَّمة (§ الأمر ٨-ب)
+    const now = Date.now();
+    const dueSoonRequests = (await db.requests.toArray()).filter(
+      (r) => !r.deletedAt && r.status !== "delivered" && r.dueDate != null && r.dueDate - now <= 2 * 86400000
+    );
+
     // تنبيهات الإنذار المبكر الأربعة (§ الأمر ٧) — من محرّك التحليلات
     const { earlyWarnings } = await import("@/lib/analytics");
-    const warnings = (await earlyWarnings(0, Date.now())).slice(0, 6);
+    const warnings = (await earlyWarnings(0, now)).slice(0, 6);
 
-    return { lessons, units, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings };
+    return { lessons, units, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests };
   });
 
   const upcoming = (data?.lessons ?? []).slice(0, 3).map((l) => ({
@@ -117,6 +125,9 @@ export default function TodayPage() {
         )}
       </section>
 
+      {/* الصندوق الواحد — الباب الرئيسي (§ الأمر ٨-ب) */}
+      <CommandBox />
+
       {/* الأزرار الخمسة — التصوير الأكبر والأبرز */}
       <section aria-label={s.a11y.mainNav} className="space-y-3">
         <Link
@@ -175,6 +186,9 @@ export default function TodayPage() {
         </ul>
       </section>
 
+      {/* زر ملف الزيارة الصفية (§ الأمر ٨-ب) */}
+      <VisitFileCard />
+
       {/* تحتاج انتباهك + الطوارئ */}
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="card space-y-2">
@@ -193,6 +207,11 @@ export default function TodayPage() {
                   ) : w.message}
                 </li>
               ))}
+              {data.dueSoonRequests.map((r) => (
+                <li key={`req-${r.id}`} className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
+                  <Link to="/requests" className="hover:underline">{s.requests.dueSoon(r.title)}</Link>
+                </li>
+              ))}
               {data.pendingRequests > 0 && (
                 <li className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
                   {s.today.pendingRequests(fmtNum(data.pendingRequests, numerals))}
@@ -201,7 +220,7 @@ export default function TodayPage() {
               {data.anyDemo && (
                 <li className="rounded-card bg-cream px-3 py-2 text-ink-soft">{s.today.demoNote}</li>
               )}
-              {data.pendingRequests === 0 && !data.anyDemo && data.warnings.length === 0 && (
+              {data.pendingRequests === 0 && !data.anyDemo && data.warnings.length === 0 && data.dueSoonRequests.length === 0 && (
                 <li className="text-ink-soft">{s.today.attentionEmpty}</li>
               )}
             </ul>
@@ -258,6 +277,10 @@ export default function TodayPage() {
         <Link to="/analytics" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <LineChart className="size-5" aria-hidden />
           {s.analytics.title}
+        </Link>
+        <Link to="/requests" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <ClipboardList className="size-5" aria-hidden />
+          {s.requests.title}
         </Link>
         <Link to="/resources" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <FolderOpen className="size-5" aria-hidden />

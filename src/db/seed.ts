@@ -116,7 +116,7 @@ async function runSeed(): Promise<void> {
 
   await db.transaction(
     "rw",
-    [db.settings, db.academicYears, db.assessmentPolicy, db.subjects, db.classes, db.students, db.units, db.lessons, db.pointRules, db.rewards, db.badges],
+    [db.settings, db.academicYears, db.assessmentPolicy, db.subjects, db.classes, db.students, db.units, db.lessons, db.pointRules, db.rewards, db.badges, db.requests],
     async () => {
       // ١) العام الأكاديمي
       const yearId = await db.academicYears.add({
@@ -241,6 +241,34 @@ async function runSeed(): Promise<void> {
         }));
         await db.lessons.bulkAdd(lessons);
       }
+
+      // ٧) طلبان تجريبيان في «المطلوب منّي» (§ الأمر ٨-ب)
+      if ((await db.requests.count()) === 0) {
+        const firstClass = (await db.classes.toArray()).find((c) => c.isDemo);
+        const day = 86400000;
+        await db.requests.bulkAdd([
+          {
+            type: "struggling",
+            title: "تقرير المتعثّرات",
+            description: "طلب من المنسّقة: قائمة الطالبات المتعثّرات في العلوم مع خطة الدعم.",
+            classId: firstClass?.id,
+            dueDate: now + 2 * day,
+            status: "new",
+            isDemo: true,
+            createdAt: now,
+          },
+          {
+            type: "results_stats",
+            title: "إحصائية نتائج منتصف الفصل",
+            description: "إحصائية عامة لنتائج الفصل الأول لعرضها في اجتماع القسم.",
+            classId: firstClass?.id,
+            dueDate: now + 9 * day,
+            status: "new",
+            isDemo: true,
+            createdAt: now,
+          },
+        ]);
+      }
     }
   );
 }
@@ -259,6 +287,7 @@ export async function clearDemo(): Promise<void> {
     db.rewards,
     db.questions,
     db.badges,
+    db.requests,
   ];
   await db.transaction("rw", [...tables, db.settings], async () => {
     for (const table of tables) {
