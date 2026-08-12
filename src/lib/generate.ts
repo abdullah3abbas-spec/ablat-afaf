@@ -167,8 +167,6 @@ export async function genVisitFile(classId: number, lessonId?: number): Promise<
   const st = await settings();
   const term = (st?.currentTerm ?? 1) as Term;
   const school = st?.schoolName ?? "";
-  const numeralsCert = st?.numeralsCert ?? "eastern";
-  void numeralsCert;
 
   // الدرس: المحدَّد، وإلا أول درس غير مُدرَّس، وإلا أول درس
   const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt).sort((a, b) => a.unitId - b.unitId || a.order - b.order);

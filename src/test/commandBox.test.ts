@@ -5,6 +5,7 @@ const ctx: CmdContext = {
   units: [
     { id: 1, title: "المادة وتغيّراتها", order: 1 },
     { id: 2, title: "أجهزة جسم الإنسان", order: 2 },
+    { id: 3, title: "الطاقة والحركة", order: 3 },
   ],
   lessons: [
     { id: 1, title: "خصائص المادة", unitId: 1 },
@@ -38,13 +39,19 @@ describe("parseCommand — أمثلة الأمر ٨-ب الإلزامية", () =
     }
   });
 
-  it("«اعمل اختبار نهاية الفصل للوحدة ٢ و ٣» → اختبار نهائي يشمل الوحدة ٢", () => {
+  it("«اعمل اختبار نهاية الفصل للوحدة ٢ و ٣» → اختبار نهائي يشمل الوحدتين ٢ و ٣", () => {
     const a = parseCommand("اعمل اختبار نهاية الفصل للوحدة ٢ و ٣", ctx);
     expect(a.kind).toBe("exam");
     if (a.kind === "exam") {
-      expect(a.unitIds).toContain(2);
+      expect(a.unitIds).toEqual([2, 3]);
       expect(a.examType).toBe("final");
     }
+  });
+
+  it("لا يبتلع رقم الفصل: «اختبار على الوحدة الثانية لخامس ٣» → الوحدة ٢ فقط", () => {
+    const a = parseCommand("اعملي اختبار على الوحدة الثانية لخامس ٣", ctx);
+    expect(a.kind).toBe("exam");
+    if (a.kind === "exam") expect(a.unitIds).toEqual([2]);
   });
 
   it("«اختبار منتصف الفصل نسختين» → mid + نسختان", () => {

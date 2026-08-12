@@ -66,15 +66,21 @@ function unitNumberFrom(norm: string): number | null {
   return null;
 }
 
-/** كل أرقام الوحدات المذكورة (لـ«الوحدة ٢ و ٣») */
+/**
+ * كل أرقام الوحدات المذكورة (لـ«الوحدة ٢ و ٣»). نجمع الأعداد الترتيبية
+ * المتّصلة بكلمة «الوحدة» فقط، ونتوقّف عند أول كلمة ليست عدداً ولا رابطاً —
+ * كي لا نبتلع رقم الفصل في «الوحدة الثانية لخامس ٣».
+ */
 function allUnitNumbers(norm: string): number[] {
   const nums = new Set<number>();
-  // من موضع أول ذكر لـ«الوحدة/الوحدات» نمسح كل الأعداد الترتيبية والرقمية التالية
   const idx = norm.search(/الوحدات|الوحده|وحده/);
-  if (idx >= 0) {
-    for (const tok of norm.slice(idx).split(/\s+/)) {
-      if (ORDINALS[tok] != null) nums.add(ORDINALS[tok]);
-    }
+  if (idx < 0) return [];
+  const tokens = norm.slice(idx).split(/\s+/).slice(1); // بعد كلمة «الوحدة» نفسها
+  for (const tok of tokens) {
+    if (ORDINALS[tok] != null) nums.add(ORDINALS[tok]);
+    else if (tok.startsWith("و") && ORDINALS[tok.slice(1)] != null) nums.add(ORDINALS[tok.slice(1)]); // «والثانية»
+    else if (tok === "و" || tok === "الي") continue; // روابط
+    else break; // أول كلمة خارج العدّ → توقّف
   }
   return [...nums];
 }
@@ -188,7 +194,7 @@ export function parseCommand(text: string, ctx: CmdContext): CommandAction {
     const unitIds = units.length ? units : unit ? [unit.id] : [];
     const examType: "final" | "mid" = has(norm, "منتصف", "نصف") ? "mid" : "final";
     const variants = has(norm, "نسختين", "نسختان", "نسخه ا و ب", "نسخه ب");
-    return { kind: "exam", unitIds, examType, variants, label: `اختبار ${examType === "mid" ? "منتصف الفصل" : "نهاية الفصل"}${unitIds.length ? "" : ""}` };
+    return { kind: "exam", unitIds, examType, variants, label: `اختبار ${examType === "mid" ? "منتصف الفصل" : "نهاية الفصل"}` };
   }
 
   return { kind: "unknown", text, suggestions: defaultSuggestions() };

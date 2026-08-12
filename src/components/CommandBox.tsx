@@ -229,7 +229,7 @@ export default function CommandBox() {
                     <button
                       type="button"
                       onClick={() => navigate(`/students/${st.id}`)}
-                      className="flex items-center gap-1 rounded-pill bg-white px-3 py-1 text-ink hover:bg-cream"
+                      className="flex min-h-touch items-center gap-1 rounded-pill bg-white px-4 py-2 text-ink hover:bg-cream"
                     >
                       {st.name} <span className="text-danger">{fmtNum(st.pct, numerals)}٪</span>
                     </button>
@@ -248,7 +248,7 @@ export default function CommandBox() {
           <ul className="space-y-1">
             {suggestions.map((sug) => (
               <li key={sug}>
-                <button type="button" onClick={() => void run(sug)} className="flex w-full items-center gap-2 rounded-card px-2 py-1 text-start text-teal-dark hover:bg-teal-bg">
+                <button type="button" onClick={() => void run(sug)} className="flex min-h-touch w-full items-center gap-2 rounded-card px-3 py-2 text-start text-teal-dark hover:bg-teal-bg">
                   <ArrowLeft className="size-4 shrink-0" aria-hidden />
                   {sug}
                 </button>
