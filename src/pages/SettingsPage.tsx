@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Download, Plug, PlugZap, Scale, ShieldCheck } from "lucide-react";
 import { clearDemo, db, reseedDemo } from "@/db";
+import { downloadDataJson } from "@/lib/dataExport";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useToast } from "@/store/toast";
@@ -38,6 +39,16 @@ export default function SettingsPage() {
     await reseedDemo();
     setBusy(false);
     setMessage(s.toast.demoReseeded);
+  }
+
+  async function handleExportData() {
+    setBusy(true);
+    try {
+      const { fileName, sizeKb } = await downloadDataJson();
+      setMessage(s.settings.skillsDataDone(fileName, fmtNum(sizeKb, numerals)));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -154,6 +165,19 @@ export default function SettingsPage() {
             </button>
           </div>
         )}
+      </section>
+
+      {/* تصدير بيانات للمهارات (§10) — جسر يقرأه Claude Code لتوليد المخرجات */}
+      <section className="card space-y-3">
+        <h2 className="flex items-center gap-2 font-heading text-xl font-bold">
+          <Download className="size-6 text-teal-dark" aria-hidden />
+          {s.settings.skillsData}
+        </h2>
+        <p className="text-ink-soft">{s.settings.skillsDataHint}</p>
+        <button type="button" onClick={() => void handleExportData()} disabled={busy} className="btn-secondary">
+          <Download className="size-5" aria-hidden />
+          {busy ? s.common.loading : s.settings.skillsDataButton}
+        </button>
       </section>
 
       <AiPrivacySection />
