@@ -136,8 +136,9 @@ export function parseCommand(text: string, ctx: CmdContext): CommandAction {
   const student = matchStudent(norm, ctx.students);
   const topic = lesson?.title ?? unit?.title ?? "";
 
-  // ١) سؤال تحليلي: كم طالبة ضعيفة / المتعثّرات
-  if (has(norm, "ضعيف", "متعثر", "محتاج") && has(norm, "كام", "كم", "عدد", "مين", "من هن", "من هم")) {
+  // ١) سؤال تحليلي: كم طالبة ضعيفة / تحتاج دعماً / المتعثّرات
+  // (يشترط كلمة استفهام، فلا يلتبس بـ«خطة الدعم» مثلاً)
+  if (has(norm, "ضعيف", "متعثر", "محتاج", "دعم", "متاخر") && has(norm, "كام", "كم", "عدد", "مين", "من هن", "من هم")) {
     return {
       kind: "weakStudents",
       unitId: unit?.id,

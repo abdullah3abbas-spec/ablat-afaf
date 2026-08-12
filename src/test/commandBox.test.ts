@@ -84,6 +84,14 @@ describe("parseCommand — أمثلة الأمر ٨-ب الإلزامية", () =
     if (a.kind === "weakStudents") expect(a.unitId).toBe(2);
   });
 
+  it("«كم طالبة تحتاج دعماً؟» → سؤال تحليلي (صياغة الدليل)", () => {
+    expect(parseCommand("كم طالبة تحتاج دعماً في الوحدة الثانية؟", ctx).kind).toBe("weakStudents");
+  });
+
+  it("«خطة الدعم والإثراء» ليست سؤالاً تحليلياً (لا كلمة استفهام)", () => {
+    expect(parseCommand("جهّزي خطة الدعم والإثراء", ctx).kind).not.toBe("weakStudents");
+  });
+
   it("«إيه المطلوب منّي الأسبوع ده؟» → شاشة الطلبات", () => {
     expect(parseCommand("إيه المطلوب منّي الأسبوع ده؟", ctx).kind).toBe("requests");
   });
