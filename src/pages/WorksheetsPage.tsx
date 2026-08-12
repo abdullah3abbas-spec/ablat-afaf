@@ -4,10 +4,11 @@
  */
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { FileDown, NotebookPen, Printer, Wand2 } from "lucide-react";
+import { FileDown, Layers, NotebookPen, Printer, Users, Wand2 } from "lucide-react";
 import { db } from "@/db";
 import type { Question } from "@/db/schema";
 import { bankWorksheetHtml, printDoc } from "@/lib/reportPrint";
+import { genDifferentiatedWorksheet, genPerStudentWorksheets } from "@/lib/generate";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
@@ -130,6 +131,10 @@ export default function WorksheetsPage() {
         </button>
       </section>
 
+      {/* الفروق الفردية — ٣ نسخ + نسخة لكل طالبة (§ الأمر ٨-ج) */}
+      <DifferentiationCard unitId={unitId} lessonId={lessonId} />
+
+
       {picked.length > 0 && (
         <>
           <section className="card space-y-2">
@@ -161,5 +166,72 @@ export default function WorksheetsPage() {
         </>
       )}
     </div>
+  );
+}
+
+/** بطاقة الفروق الفردية: ٣ نسخ متمايزة + نسخة لكل طالبة باسمها بلا علامة تصنيف */
+function DifferentiationCard({ unitId, lessonId }: { unitId: number; lessonId: number }) {
+  const s = useStrings();
+  const numerals = useUi((x) => x.numeralsTable);
+  const currentClassId = useUi((x) => x.currentClassId);
+  const show = useToast((x) => x.show);
+  const [classId, setClassId] = useState<number>(currentClassId ?? 0);
+  const [busy, setBusy] = useState(false);
+
+  const classes = useLiveQuery(async () => (await db.classes.toArray()).filter((c) => !c.deletedAt));
+  const effClass = classId || currentClassId || classes?.[0]?.id || 0;
+
+  async function three() {
+    setBusy(true);
+    try {
+      const n = await genDifferentiatedWorksheet({ unitId: unitId || undefined, lessonId: lessonId || undefined });
+      show(n === 0 ? s.differentiation.noQuestions : s.differentiation.doneThree, { kind: n === 0 ? "danger" : "success" });
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function perStudent() {
+    if (!effClass) return show(s.differentiation.needClass, { kind: "danger" });
+    setBusy(true);
+    try {
+      const n = await genPerStudentWorksheets(effClass, { unitId: unitId || undefined, lessonId: lessonId || undefined });
+      show(n === 0 ? s.differentiation.noQuestions : s.differentiation.donePerStudent(fmtNum(n, numerals)), { kind: n === 0 ? "danger" : "success" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const selectCls = "min-h-touch rounded-card border-2 border-line bg-white px-3 focus:border-teal";
+
+  return (
+    <section className="card space-y-3 border-2 border-teal/30">
+      <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-teal-dark">
+        <Layers className="size-6" aria-hidden />
+        {s.differentiation.threeVersions}
+      </h2>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2 rounded-card border border-line p-3">
+          <p className="text-sm text-ink-soft">{s.differentiation.threeHint}</p>
+          <button type="button" onClick={() => void three()} disabled={busy} className="btn-primary disabled:opacity-50">
+            <Layers className="size-5" aria-hidden />
+            {s.differentiation.threeVersions}
+          </button>
+        </div>
+        <div className="space-y-2 rounded-card border border-line p-3">
+          <p className="text-sm text-ink-soft">{s.differentiation.perStudentHint}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <select value={effClass} onChange={(e) => setClassId(Number(e.target.value))} aria-label={s.grades.pickClass} className={selectCls}>
+              {classes?.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <button type="button" onClick={() => void perStudent()} disabled={busy} className="btn-secondary disabled:opacity-50">
+              <Users className="size-5" aria-hidden />
+              {s.differentiation.perStudent}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

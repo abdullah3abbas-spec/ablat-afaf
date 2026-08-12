@@ -26,13 +26,16 @@ import {
   RefreshCw,
   Settings,
   Star,
+  UserX,
   Users,
 } from "lucide-react";
 import { db, reseedDemo } from "@/db";
 import CommandBox from "@/components/CommandBox";
 import VisitFileCard from "@/components/VisitFileCard";
+import WeeklyMessageCard from "@/components/WeeklyMessageCard";
 import { EMERGENCY_KIT, kitByLessonTitle } from "@/content/lessonKits";
 import { printEmergency, printWeekBundle } from "@/lib/kitPrint";
+import { genSubstituteFile } from "@/lib/generate";
 import { activeStudentsOf } from "@/lib/students";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
@@ -87,6 +90,11 @@ export default function TodayPage() {
   async function handleEmergency() {
     printEmergency(EMERGENCY_KIT, await headerInfo());
     show(s.today.emergencyPrinted);
+  }
+
+  async function handleAbsent() {
+    await genSubstituteFile();
+    show(s.substitute.done);
   }
 
   async function handleWeekBundle() {
@@ -186,7 +194,8 @@ export default function TodayPage() {
         </ul>
       </section>
 
-      {/* زر ملف الزيارة الصفية (§ الأمر ٨-ب) */}
+      {/* الرسالة الأسبوعية (§ الأمر ٨-ج) + ملف الزيارة الصفية (§ الأمر ٨-ب) */}
+      <WeeklyMessageCard />
       <VisitFileCard />
 
       {/* تحتاج انتباهك + الطوارئ */}
@@ -236,6 +245,10 @@ export default function TodayPage() {
           <button type="button" onClick={() => void handleEmergency()} className="btn-danger w-full min-h-[56px] text-lg">
             <Printer className="size-6" aria-hidden />
             {s.common.print}
+          </button>
+          <button type="button" onClick={() => void handleAbsent()} className="btn w-full min-h-[56px] border-2 border-danger bg-white text-lg text-danger hover:bg-danger-bg">
+            <UserX className="size-6" aria-hidden />
+            {s.substitute.title}
           </button>
         </div>
       </section>

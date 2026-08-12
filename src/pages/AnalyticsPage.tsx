@@ -10,7 +10,7 @@ import { AlertTriangle, BarChart3, CalendarClock, LineChart, Printer, Trash2, Us
 import { db } from "@/db";
 import type { ParentContact, Term } from "@/db/schema";
 import { classAverages, earlyWarnings, levelDistribution, remedialGroups, yearComparison, type Alert } from "@/lib/analytics";
-import { barChartSvg, printDoc } from "@/lib/reportPrint";
+import { barChartSvg } from "@/lib/reportPrint";
 import { activeStudentsOf } from "@/lib/students";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
@@ -158,19 +158,8 @@ function RemedialTab({ classId }: { classId: number }) {
 
   async function printPlan(g: NonNullable<typeof groups>[number]) {
     const settings = await db.settings.get(1);
-    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>خطة علاجية</title>
-      <style>@page{size:A4;margin:14mm}body{font-family:Tajawal,sans-serif;font-size:12pt;line-height:1.9}
-      @font-face{font-family:Tajawal;src:url('/fonts/tajawal-arabic-400.woff2')}
-      h1{color:#8A1538;text-align:center}h2{color:#0B534C}table{width:100%;border-collapse:collapse}
-      td,th{border:.3mm solid #333;padding:2mm;text-align:right}</style></head><body>
-      <h1>${settings?.schoolName ?? ""} — خطة علاجية للمجموعة</h1>
-      <h2>نقطة الضعف المشتركة: ${g.weaknessName}</h2>
-      <p><b>${s.analytics.remedial.activity}:</b> ${g.suggestedActivity}</p>
-      <h2>الطالبات (${g.students.length})</h2>
-      <table><tr><th>الطالبة</th><th>النسبة قبل</th><th>النسبة بعد (إعادة القياس)</th></tr>
-      ${g.students.map((st) => `<tr><td>${st.name}</td><td>${st.pct}٪</td><td></td></tr>`).join("")}</table>
-      <p style="margin-top:8mm">توقيع المعلّمة: ................</p></body></html>`;
-    printDoc(html);
+    const { genRemedialPlan } = await import("@/lib/generate");
+    await genRemedialPlan(classId, (settings?.currentTerm ?? 1) as Term, g.weaknessKey);
     show(s.library.printedElement);
   }
 

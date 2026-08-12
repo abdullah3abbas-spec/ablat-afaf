@@ -14,7 +14,7 @@ import { studentReport, classAdminReport, type StudentReport } from "./reportDat
 import { parentCardHtml, adminReportHtml, bankWorksheetHtml, barChartSvg, printDoc } from "./reportPrint";
 import { exportOfficialSheet } from "./officialExport";
 import { remedialGroups, levelDistribution } from "./analytics";
-import { kitByLessonTitle } from "@/content/lessonKits";
+import { kitByLessonTitle, EMERGENCY_KIT } from "@/content/lessonKits";
 
 async function settings() {
   return db.settings.get(1);
@@ -358,4 +358,206 @@ export async function produceRequest(req: TeacherRequest): Promise<{ ok: boolean
       printSimpleDoc(req.title || "مستند", await schoolName(), `<section><h2>${esc(req.title || "")}</h2><div class="box"><p>${esc(req.description ?? "")}</p><p class="muted">يُكمَّل هذا المستند يدوياً أو يُربط بمصدر بيانات لاحقاً.</p></div></section>`);
       return { ok: true };
   }
+}
+
+// ── الأمر ٨-ج: الرسالة الأسبوعية · الفروق الفردية · الخطة العلاجية · الغياب ──
+
+export type StudentLevel = "support" | "basic" | "enrichment";
+export const LEVEL_LABEL: Record<StudentLevel, string> = { support: "دعم", basic: "أساسي", enrichment: "إثراء" };
+const DIFFICULTY_OF: Record<StudentLevel, "easy" | "medium" | "hard"> = { support: "easy", basic: "medium", enrichment: "hard" };
+
+/** مستوى الطالبة من نسبتها: دون ٦٠٪ دعم · ٦٠–٨٠ أساسي · ٨٠+ إثراء */
+export function studentLevel(pct: number | null): StudentLevel {
+  if (pct == null) return "basic";
+  if (pct < 60) return "support";
+  if (pct < 80) return "basic";
+  return "enrichment";
+}
+
+/** نسبة الطالبة في فصل دراسي (على المرصود) — أو null إن لم تُرصد */
+async function studentPct(studentId: number, term: Term, comps: Awaited<ReturnType<typeof leafComponents>>): Promise<number | null> {
+  const grades = (await db.grades.where("studentId").equals(studentId).toArray()).filter((g) => !g.deletedAt && g.term === term);
+  const tot = termTotal(grades, comps);
+  return tot.counted === 0 ? null : percentOf(tot.total, tot.countedOutOf || tot.outOf);
+}
+
+/** ثلاثة أنشطة علاجية محدّدة لنقطة ضعف بعينها (لا عامة §2-ز) */
+function threeActivitiesFor(weakness: string): string[] {
+  return [
+    `مراجعة مركّزة (١٠ دقائق) على مفاهيم «${weakness}» بأمثلة محسوسة قبل الحصة.`,
+    `ورقة عمل قصيرة (٥ أسئلة) من المستوى الأساسي على «${weakness}»، ثم تصحيح فوري.`,
+    `نشاط تعاوني: لعبة «سباق التصنيف» لترسيخ «${weakness}»، ثم كرت خروج من سؤالين.`,
+  ];
+}
+
+/** يحدّد دروس الأسبوع القادم: من أول درس غير مُدرَّس، بعدد حصص الأسبوع */
+async function nextWeekLessons(): Promise<{ title: string; unitTitle: string }[]> {
+  const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt).sort((a, b) => a.unitId - b.unitId || a.order - b.order);
+  const units = new Map((await db.units.toArray()).map((u) => [u.id!, u.title]));
+  const year = (await db.academicYears.toArray()).find((y) => y.isCurrent);
+  const perWeek = year?.weeklySessions ?? 4;
+  const startIdx = Math.max(0, lessons.findIndex((l) => !l.taughtAt));
+  return lessons.slice(startIdx, startIdx + perWeek).map((l) => ({ title: l.title, unitTitle: units.get(l.unitId) ?? "" }));
+}
+
+/**
+ * ١) الرسالة الأسبوعية — صفحة واحدة أنيقة بترويسة المدرسة، للطباعة أو
+ * الإرسال صورةً في الواتساب. تُراجعها المعلّمة وتضيف سطراً إن أرادت.
+ */
+export async function genWeeklyMessage(extraNote?: string): Promise<boolean> {
+  const st = await settings();
+  const school = st?.schoolName ?? "";
+  const lessons = await nextWeekLessons();
+  const now = Date.now();
+  const upcoming = (await db.exams.toArray())
+    .filter((e) => !e.deletedAt && e.scheduledFor != null && e.scheduledFor >= now && e.scheduledFor <= now + 10 * 86400000)
+    .sort((a, b) => (a.scheduledFor ?? 0) - (b.scheduledFor ?? 0));
+
+  const dateStr = new Date().toLocaleDateString("en-GB");
+  const lessonsHtml = lessons.length
+    ? `<ol>${lessons.map((l) => `<li>${esc(l.title)} <span class="muted">— ${esc(l.unitTitle)}</span></li>`).join("")}</ol>`
+    : '<p class="muted">تُحدَّد دروس الأسبوع القادم قريباً.</p>';
+  const examsHtml = upcoming.length
+    ? `<ul>${upcoming.map((e) => `<li>${esc(e.title)} — ${new Date(e.scheduledFor!).toLocaleDateString("en-GB")}</li>`).join("")}</ul>`
+    : '<p class="muted">لا تقييمات مجدولة هذا الأسبوع.</p>';
+  const homework = lessons[0] ? `مراجعة درس «${esc(lessons[0].title)}» وحلّ أنشطته.` : "—";
+
+  const body = `
+    <section><h2>📚 دروس الأسبوع القادم</h2><div class="box">${lessonsHtml}</div></section>
+    <section><h2>📝 الواجبات</h2><div class="box"><p>${homework}</p></div></section>
+    <section><h2>🗓️ التقييمات القادمة</h2><div class="box">${examsHtml}</div></section>
+    ${extraNote?.trim() ? `<section><h2>✍️ رسالة المعلّمة</h2><div class="box"><p>${esc(extraNote.trim())}</p></div></section>` : ""}
+    <p class="muted" style="text-align:center;margin-top:5mm">نتمنى لبناتنا أسبوعاً موفّقاً · معلّمة العلوم</p>`;
+  const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>الرسالة الأسبوعية</title><style>${VISIT_CSS}
+    .cover h1{font-size:22pt}</style></head><body>
+    <div class="cover"><h1>الرسالة الأسبوعية لأولياء الأمور</h1><div class="meta">${esc(school)} · مادة العلوم · ${dateStr}</div></div>
+    ${body}</body></html>`;
+  printDoc(html);
+  return true;
+}
+
+/**
+ * ٢-أ) ورقة عمل بثلاث نسخ متمايزة (دعم/أساسي/إثراء) في مستند واحد.
+ */
+export async function genDifferentiatedWorksheet(opts: { unitId?: number; lessonId?: number; title?: string }): Promise<number> {
+  const all = (await db.questions.toArray()).filter(
+    (q) => !q.deletedAt && (!opts.unitId || q.unitId === opts.unitId) && (!opts.lessonId || q.lessonId === opts.lessonId)
+  );
+  if (all.length === 0) return 0;
+  const lesson = opts.lessonId ? await db.lessons.get(opts.lessonId) : undefined;
+  const unit = opts.unitId ? await db.units.get(opts.unitId) : undefined;
+  const topic = opts.title ?? lesson?.title ?? unit?.title ?? "ورقة عمل";
+  const school = await schoolName();
+
+  const section = (level: StudentLevel) => {
+    const list = all.filter((q) => q.difficulty === DIFFICULTY_OF[level]).slice(0, 6);
+    const items = list.length
+      ? list.map((q, i) => `<div style="margin-bottom:4mm"><b>${i + 1})</b> ${esc(q.text)} <span class="muted">(${q.marks})</span>${q.type !== "mcq" ? '<div style="border-bottom:.3mm dotted #888;height:9mm;margin-top:1mm"></div>' : q.options ? `<div style="padding-inline-start:8mm">${q.options.map((o) => `<span style="margin-inline-end:9mm">${o.key}) ${esc(o.text)}</span>`).join("")}</div>` : ""}</div>`).join("")
+      : '<p class="muted">لا أسئلة بهذا المستوى — أضيفي أسئلة للبنك.</p>';
+    return `<section class="page-break"><h2>النسخة: ${LEVEL_LABEL[level]}</h2>
+      <div style="font-size:11pt;margin-bottom:2mm">اسم الطالبة: .............................. · التاريخ: ..........</div>
+      ${items}</section>`;
+  };
+
+  const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(topic)} — ٣ نسخ</title><style>${VISIT_CSS}
+    .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
+    <div class="cover"><h1>${esc(topic)}</h1><div class="meta">${esc(school)} · العلوم · ثلاث نسخ متمايزة</div></div>
+    ${section("support")}${section("basic")}${section("enrichment")}</body></html>`;
+  printDoc(html);
+  return all.length;
+}
+
+/**
+ * ٢-ب) الوضع الذكي: نسخة لكل طالبة باسمها بمستواها المناسب — بلا أي علامة
+ * تكشف التصنيف للطالبات (§6). صفحة لكل طالبة.
+ */
+export async function genPerStudentWorksheets(classId: number, opts: { unitId?: number; lessonId?: number }): Promise<number> {
+  const term = (await settings())?.currentTerm ?? 1;
+  const yearId = (await settings())?.currentAcademicYearId ?? 0;
+  const comps = leafComponents(await db.gradeComponents.where("[academicYearId+term]").equals([yearId, term]).toArray());
+  const students = (await db.students.where("classId").equals(classId).toArray()).filter((s) => !s.deletedAt).sort((a, b) => a.rollNumber - b.rollNumber);
+  if (students.length === 0) return 0;
+  const all = (await db.questions.toArray()).filter((q) => !q.deletedAt && (!opts.unitId || q.unitId === opts.unitId) && (!opts.lessonId || q.lessonId === opts.lessonId));
+  if (all.length === 0) return 0;
+  const lesson = opts.lessonId ? await db.lessons.get(opts.lessonId) : undefined;
+  const topic = lesson?.title ?? (opts.unitId ? (await db.units.get(opts.unitId))?.title : "") ?? "ورقة عمل";
+  const school = await schoolName();
+
+  const byDiff = (d: string) => all.filter((q) => q.difficulty === d);
+  const pages: string[] = [];
+  for (const stu of students) {
+    const level = studentLevel(await studentPct(stu.id!, term as Term, comps));
+    const pool = byDiff(DIFFICULTY_OF[level]);
+    const list = (pool.length ? pool : all).slice(0, 6);
+    const items = list.map((q, i) => `<div style="margin-bottom:4mm"><b>${i + 1})</b> ${esc(q.text)} <span class="muted">(${q.marks})</span>${q.type === "mcq" && q.options ? `<div style="padding-inline-start:8mm">${q.options.map((o) => `<span style="margin-inline-end:9mm">${o.key}) ${esc(o.text)}</span>`).join("")}</div>` : '<div style="border-bottom:.3mm dotted #888;height:9mm;margin-top:1mm"></div>'}</div>`).join("");
+    // لا علامة على المستوى إطلاقاً — فقط اسمها
+    pages.push(`<section class="page-break"><div class="cover" style="border-bottom:.6mm solid #0B534C"><h1 style="font-size:18pt">${esc(topic)}</h1><div class="meta">${esc(school)} · العلوم</div></div>
+      <div style="font-size:13pt;margin:3mm 0"><b>الطالبة:</b> ${esc(stu.name)} · التاريخ: ..........</div>${items}</section>`);
+  }
+  const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(topic)} — نسخة لكل طالبة</title><style>${VISIT_CSS}
+    .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>${pages.join("")}</body></html>`;
+  printDoc(html);
+  return students.length;
+}
+
+/**
+ * ٣) الخطة العلاجية المحدّدة: لكل نقطة ضعف — الضعف المحدّد + ٣ أنشطة +
+ * موعد إعادة القياس + سجل متابعة (قبل/بعد). onlyKey لطباعة مجموعة واحدة.
+ */
+export async function genRemedialPlan(classId: number, term: Term, onlyKey?: string): Promise<boolean> {
+  const groups = (await remedialGroups(classId, term)).filter((g) => !onlyKey || g.weaknessKey === onlyKey);
+  if (groups.length === 0) return false;
+  const school = await schoolName();
+  const klass = await db.classes.get(classId);
+  const reMeasure = new Date(Date.now() + 14 * 86400000).toLocaleDateString("en-GB");
+
+  const sections = groups
+    .map((g) => {
+      const acts = threeActivitiesFor(g.weaknessName);
+      return `<section class="page-break"><h2>نقطة الضعف المحدّدة: ${esc(g.weaknessName)}</h2>
+      <div class="box"><b>الأنشطة العلاجية الثلاثة:</b><ol>${acts.map((a) => `<li>${esc(a)}</li>`).join("")}</ol>
+        <p><b>موعد إعادة القياس:</b> ${reMeasure}</p></div>
+      <h3>سجل المتابعة (${g.students.length} طالبات)</h3>
+      <table><tr><th>الطالبة</th><th>النسبة قبل</th><th>النسبة بعد</th><th>تحسّنت؟</th></tr>
+      ${g.students.map((st) => `<tr><td>${esc(st.name)}</td><td>${st.pct}٪</td><td></td><td></td></tr>`).join("")}</table></section>`;
+    })
+    .join("");
+  const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>الخطة العلاجية</title><style>${VISIT_CSS}
+    .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
+    <div class="cover"><h1>الخطة العلاجية المحدّدة</h1><div class="meta">${esc(school)} · العلوم · ${esc(klass?.name ?? "")}</div></div>
+    ${sections}<div class="sign"><span>توقيع المعلّمة: ................</span><span>الاعتماد: ................</span></div></body></html>`;
+  printDoc(html);
+  return true;
+}
+
+/**
+ * ٤) زر «أنا غائبة اليوم»: حزمة كاملة للمعلّمة البديلة — دروس اليوم بخططها
+ * وأوراق عملها وكرت الخروج، ملاحظات كل فصل، ونشاط بديل احتياطي.
+ */
+export async function genSubstituteFile(): Promise<boolean> {
+  const school = await schoolName();
+  const lessons = await nextWeekLessons(); // الدروس القادمة = دروس اليوم للبديلة
+  const classes = (await db.classes.toArray()).filter((c) => !c.deletedAt);
+
+  const lessonSections = lessons.slice(0, 3).map((l) => {
+    const kit = kitByLessonTitle(l.title);
+    const plan = kit ? `<p><b>الأهداف:</b> ${kit.plan.objectives.map(esc).join(" · ")}</p><p><b>الأنشطة:</b> ${kit.plan.activities.map(esc).join(" · ")}</p>` : '<p class="muted">تُتبع خطة الدرس المعتادة.</p>';
+    const ws = kit ? `<p><b>ورقة العمل:</b></p><ol>${kit.worksheet.slice(0, 5).map((w) => `<li>${esc(w.text)}</li>`).join("")}</ol>` : "";
+    const exit = kit ? `<p><b>كرت الخروج:</b> ${kit.exitCard.map(esc).join(" · ")}</p>` : "";
+    return `<section class="page-break"><h2>درس: ${esc(l.title)} <span class="muted">(${esc(l.unitTitle)})</span></h2><div class="box">${plan}${ws}${exit}</div></section>`;
+  }).join("");
+
+  const notesHtml = classes.map((c) => `<li><b>${esc(c.name)}:</b> تُتبع الخطة أعلاه؛ الطالبات متعاونات، والمتعثّرات في المقاعد الأمامية.</li>`).join("");
+  const backup = `<div class="box"><p><b>${esc(EMERGENCY_KIT.game.name)}</b> (${EMERGENCY_KIT.game.minutes} دقيقة)</p><ol>${EMERGENCY_KIT.game.howTo.map(esc).map((h) => `<li>${h}</li>`).join("")}</ol></div>`;
+
+  const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>حزمة المعلّمة البديلة</title><style>${VISIT_CSS}
+    .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
+    <div class="cover"><h1>حزمة المعلّمة البديلة</h1><div class="meta">${esc(school)} · مادة العلوم · ${new Date().toLocaleDateString("en-GB")}</div></div>
+    <section><h2>تعليمات عامة</h2><div class="box"><p>شكراً لتعاونك. أدناه دروس اليوم بخططها وأوراق عملها، وملاحظات كل فصل، ونشاط بديل احتياطي إن بقي وقت.</p></div></section>
+    ${lessonSections}
+    <section class="page-break"><h2>ملاحظات الفصول</h2><ul>${notesHtml}</ul></section>
+    <section><h2>النشاط البديل الاحتياطي</h2>${backup}</section>
+    </body></html>`;
+  printDoc(html);
+  return true;
 }
