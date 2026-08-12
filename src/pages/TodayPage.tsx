@@ -9,11 +9,13 @@ import {
   AlertTriangle,
   Award,
   BarChart3,
+  BookMarked,
   BookOpen,
   CalendarCheck,
   ClipboardList,
   FileBarChart,
   NotebookPen,
+  Search,
   Camera,
   CheckCircle2,
   FolderOpen,
@@ -251,6 +253,14 @@ export default function TodayPage() {
         <Link to="/reports" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <FileBarChart className="size-5" aria-hidden />
           {s.reports.title}
+        </Link>
+        <Link to="/curriculum" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <BookMarked className="size-5" aria-hidden />
+          {s.curriculum.title}
+        </Link>
+        <Link to="/search" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
+          <Search className="size-5" aria-hidden />
+          {s.search.title}
         </Link>
         <Link to="/resources" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
           <FolderOpen className="size-5" aria-hidden />

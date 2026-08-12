@@ -110,6 +110,10 @@ export interface AcademicYear extends Timestamped, DemoFlaggable {
   /** مؤرشف = قراءة فقط للمقارنة بين الأعوام */
   isArchived: boolean;
   holidays?: { date: number; nameAr: string }[];
+  /** أيام الدراسة في الأسبوع (0=أحد … 4=خميس) للتوزيع الزمني */
+  teachingDays?: number[];
+  /** عدد حصص المادة في الأسبوع */
+  weeklySessions?: number;
 }
 
 // ── assessmentPolicy — الأرقام القطرية كبيانات، بنسخة لكل عام ──
@@ -276,6 +280,8 @@ export interface Lesson extends Timestamped, SoftDeletable, DemoFlaggable {
   learningOutcomes?: LearningOutcome[];
   /** عدد الحصص */
   sessionsCount?: number;
+  /** حالة التدريس للتوزيع الزمني: هل أُنجز الدرس؟ */
+  taughtAt?: number;
 }
 
 // ── grades — درجات رقمية فقط؛ المجاميع والتقدير تُحسب في الكود ──
@@ -528,6 +534,8 @@ export interface LessonPlan extends Timestamped, SoftDeletable, DemoFlaggable {
   unitId?: number;
   /** لإعادة الاستخدام العام القادم */
   academicYearId?: number;
+  /** تاريخ الحصة المخطط لها */
+  plannedDate?: number;
   currentVersion: number;
   versions: DocVersion[];
   /** حقول نموذج المدرسة (أهداف/تمهيد/أنشطة/تقويم/واجب/فروق فردية) */
