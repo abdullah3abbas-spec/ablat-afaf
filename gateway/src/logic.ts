@@ -351,3 +351,128 @@ export function validateSlidesPayload(raw: unknown): { ok: true; slides: GenSlid
   }
   return { ok: true, slides };
 }
+
+// ═══════════ توليد حزمة الحصة الكاملة (١٥/١٠) ═══════════
+
+export const PACK_QUESTION_TYPES = ["mcq", "truefalse", "define", "fillblank", "order"] as const;
+export type PackQuestionType = (typeof PACK_QUESTION_TYPES)[number];
+
+export interface PackQuestion {
+  type: PackQuestionType;
+  text: string;
+  options?: { key: string; text: string }[];
+  /** mcq: رمز الخيار · order: خطوات بفواصل « ← » · غيره: نص الإجابة */
+  answer: string;
+  difficulty: "easy" | "medium" | "hard";
+  cognitiveLevel: "remember" | "understand" | "apply" | "higher";
+}
+
+export interface LessonPack {
+  plan: { objectives: string[]; stages: { name: string; minutes: number; what: string }[] };
+  opener: { title: string; text: string; minutes: number };
+  discussion: string[];
+  activityIndividual: { title: string; text: string };
+  activityGroup: { title: string; text: string };
+  questions: PackQuestion[];
+  exitTicket: { questions: string[] };
+  homework: { tasks: string[] };
+  teacherNotes: { say: string; misconceptions: string[]; materials: string[] };
+  sources: string[];
+}
+
+export function packSystemPrompt(): string {
+  return [
+    "أنتِ معلّمة علوم خبيرة للصف الخامس الابتدائي (بنات)، دولة قطر.",
+    "ابني حزمة حصة كاملة لدرس واحد من «المصادر» المرفقة فقط — المصطلحات حرفياً من المصادر، ولا معرفة خارجية.",
+    "أخرجي JSON واحداً فقط بهذا الشكل الحرفي:",
+    '{"plan":{"objectives":["هدف"],"stages":[{"name":"التهيئة","minutes":5,"what":"..."}]},',
+    '"opener":{"title":"...","text":"...","minutes":5},',
+    '"discussion":["سؤال نقاش"],',
+    '"activityIndividual":{"title":"...","text":"..."},',
+    '"activityGroup":{"title":"...","text":"..."},',
+    '"questions":[{"type":"mcq","text":"...","options":[{"key":"أ","text":"..."}],"answer":"أ","difficulty":"easy","cognitiveLevel":"remember"}],',
+    '"exitTicket":{"questions":["..."]},',
+    '"homework":{"tasks":["..."]},',
+    '"teacherNotes":{"say":"...","misconceptions":["..."],"materials":["..."]},',
+    '"sources":["اسم المصدر — الموضع"]}',
+    "القواعد:",
+    "- خطة الحصة ٤٥ دقيقة: أهداف ٣–٤ بصياغة تناسب الطالبات، ومراحل ٤–٦ مجموع دقائقها ٤٥ بالضبط.",
+    "- النشاط الافتتاحي يثير الفضول (ظاهرة، سؤال محيّر، عرض قصير) في ٥ دقائق.",
+    "- أسئلة النقاش ٣–٥ مفتوحة متدرجة.",
+    "- النشاطان (فردي وجماعي) بتعليمات خطوة بخطوة قابلة للتنفيذ في الفصل بأدوات بسيطة.",
+    `- الأسئلة ١٠–١٤ سؤالاً متنوعة الأنواع (${PACK_QUESTION_TYPES.join("، ")}) والمستويات (تذكر/فهم/تطبيق/عليا) والصعوبة:`,
+    "  mcq: أربعة خيارات بمفاتيح أ، ب، ج، د والإجابة رمز الخيار الصحيح.",
+    "  truefalse: الإجابة «صواب» أو «خطأ» مع التصويب إن كانت خطأ.",
+    "  define: «عرّفي: المصطلح.» والإجابة التعريف من المصدر حرفياً.",
+    "  order: خطوات في الإجابة مفصولة بـ« ← » (ثلاث خطوات فأكثر).",
+    "  fillblank: فراغ واحد بشرطة طويلة والإجابة الكلمة الناقصة.",
+    "- كرت الخروج ٢–٣ أسئلة سريعة، والواجب ٢–٣ مهام قصيرة اختيارية.",
+    "- ملاحظات المعلّمة: ماذا تقول في اللحظات المفصلية، ٢–٣ أخطاء شائعة متوقعة، وقائمة الأدوات المطلوبة.",
+    "- خاطبي الطالبات بصيغة المؤنث، بعربية فصحى مبسطة تناسب عمر ١٠ سنوات.",
+  ].join("\n");
+}
+
+export function packUserPrompt(lessonTitle: string, sources: AskSource[]): string {
+  return userPrompt(`ابني حزمة الحصة الكاملة لدرس «${lessonTitle}»`, sources);
+}
+
+const isStr = (x: unknown): x is string => typeof x === "string" && x.trim() !== "";
+const strArr = (x: unknown): string[] => (Array.isArray(x) ? x.filter(isStr).map((s) => s.trim()) : []);
+
+/** فحص وتطبيع حزمة الحصة — رسالة عربية عند الرفض */
+export function validateLessonPack(raw: unknown): { ok: true; pack: LessonPack } | { ok: false; messageAr: string } {
+  const p = raw as Partial<LessonPack> | null;
+  if (!p || typeof p !== "object") return { ok: false, messageAr: "مخرج المولّد غير مقروء" };
+
+  const objectives = strArr(p.plan?.objectives);
+  const stages = (Array.isArray(p.plan?.stages) ? p.plan!.stages : [])
+    .filter((st) => isStr(st?.name) && isStr(st?.what) && Number.isFinite(Number(st?.minutes)))
+    .map((st) => ({ name: st.name.trim(), minutes: Math.max(1, Math.round(Number(st.minutes))), what: st.what.trim() }));
+  if (objectives.length < 2 || stages.length < 3) return { ok: false, messageAr: "خطة الحصة ناقصة الأهداف أو المراحل" };
+
+  if (!isStr(p.opener?.title) || !isStr(p.opener?.text)) return { ok: false, messageAr: "النشاط الافتتاحي ناقص" };
+  if (!isStr(p.activityIndividual?.title) || !isStr(p.activityIndividual?.text)) return { ok: false, messageAr: "النشاط الفردي ناقص" };
+  if (!isStr(p.activityGroup?.title) || !isStr(p.activityGroup?.text)) return { ok: false, messageAr: "النشاط الجماعي ناقص" };
+
+  const questions: PackQuestion[] = [];
+  for (const q of Array.isArray(p.questions) ? p.questions : []) {
+    if (!q || !PACK_QUESTION_TYPES.includes(q.type as PackQuestionType) || !isStr(q.text) || !isStr(q.answer)) continue;
+    const clean: PackQuestion = {
+      type: q.type as PackQuestionType,
+      text: q.text.trim(),
+      answer: String(q.answer).trim(),
+      difficulty: ["easy", "medium", "hard"].includes(q.difficulty as string) ? (q.difficulty as PackQuestion["difficulty"]) : "medium",
+      cognitiveLevel: ["remember", "understand", "apply", "higher"].includes(q.cognitiveLevel as string)
+        ? (q.cognitiveLevel as PackQuestion["cognitiveLevel"])
+        : "understand",
+    };
+    if (q.type === "mcq") {
+      const opts = (Array.isArray(q.options) ? q.options : []).filter((o) => isStr(o?.key) && isStr(o?.text));
+      if (opts.length < 3) continue;
+      clean.options = opts.map((o) => ({ key: o.key.trim(), text: o.text.trim() }));
+    }
+    if (q.type === "order" && clean.answer.split("←").filter((x) => x.trim()).length < 3) continue;
+    questions.push(clean);
+  }
+  if (questions.length < 8) return { ok: false, messageAr: `أسئلة صالحة قليلة (${questions.length}) — أعيدي المحاولة` };
+
+  return {
+    ok: true,
+    pack: {
+      plan: { objectives, stages },
+      opener: { title: p.opener!.title.trim(), text: p.opener!.text.trim(), minutes: Math.max(1, Math.round(Number(p.opener?.minutes) || 5)) },
+      discussion: strArr(p.discussion),
+      activityIndividual: { title: p.activityIndividual!.title.trim(), text: p.activityIndividual!.text.trim() },
+      activityGroup: { title: p.activityGroup!.title.trim(), text: p.activityGroup!.text.trim() },
+      questions,
+      exitTicket: { questions: strArr(p.exitTicket?.questions) },
+      homework: { tasks: strArr(p.homework?.tasks) },
+      teacherNotes: {
+        say: isStr(p.teacherNotes?.say) ? p.teacherNotes!.say.trim() : "",
+        misconceptions: strArr(p.teacherNotes?.misconceptions),
+        materials: strArr(p.teacherNotes?.materials),
+      },
+      sources: strArr(p.sources),
+    },
+  };
+}

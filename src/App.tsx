@@ -41,6 +41,7 @@ import ClassModePage from "@/pages/ClassModePage";
 import SlidesStudioPage from "@/pages/SlidesStudioPage";
 import SlidesPresentPage from "@/pages/SlidesPresentPage";
 import LabPage from "@/pages/LabPage";
+import LessonPackPage from "@/pages/LessonPackPage";
 
 const router = createHashRouter([
   {
@@ -77,6 +78,7 @@ const router = createHashRouter([
       { path: "/manage", element: <FollowPage /> },
       { path: "/ask", element: <AskPage /> },
       { path: "/slides", element: <SlidesStudioPage /> },
+      { path: "/pack", element: <LessonPackPage /> },
       { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/settings/policy", element: <PolicyPage /> },

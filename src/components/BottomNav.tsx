@@ -17,7 +17,7 @@ const SECTIONS: { to: string; key: "today" | "prep" | "teach" | "students" | "fo
   {
     to: "/prep",
     key: "prep",
-    prefixes: ["/prep", "/library", "/slides", "/ask", "/exams", "/worksheets", "/questions", "/curriculum", "/resources", "/studio"],
+    prefixes: ["/prep", "/library", "/pack", "/slides", "/ask", "/exams", "/worksheets", "/questions", "/curriculum", "/resources", "/studio"],
   },
   { to: "/teach", key: "teach", prefixes: ["/teach", "/class", "/lab", "/tools"] },
   { to: "/classes", key: "students", prefixes: ["/classes", "/students", "/attendance", "/points"] },

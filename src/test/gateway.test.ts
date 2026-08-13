@@ -6,6 +6,7 @@
 import { describe, expect, it } from "vitest";
 import {
   alertLevel,
+  validateLessonPack,
   dohaDayKey,
   estimateCostUsd,
   pickProviders,
@@ -107,5 +108,58 @@ describe("الموجّهات — الالتزام بالمصادر والتأن�
     const usr = userPrompt("سؤال؟", [{ name: "كتاب العلوم", text: "التبخر تحول الماء لبخار", locator: "الصفحة ١٢" }]);
     expect(usr).toContain("مصدر 1: كتاب العلوم — الصفحة ١٢");
     expect(usr).toContain("التبخر");
+  });
+});
+
+describe("validateLessonPack — حزمة الحصة (١٥/١٠)", () => {
+  const q = (type: string, extra: object = {}) => ({
+    type, text: "سؤال", answer: type === "order" ? "أ ← ب ← ج" : "إجابة",
+    difficulty: "easy", cognitiveLevel: "remember", ...extra,
+  });
+  const goodPack = {
+    plan: { objectives: ["هدف ١", "هدف ٢", "هدف ٣"], stages: [
+      { name: "التهيئة", minutes: 5, what: "نشاط" },
+      { name: "الشرح", minutes: 20, what: "شرح" },
+      { name: "التطبيق", minutes: 15, what: "تدريب" },
+      { name: "الختام", minutes: 5, what: "كرت خروج" },
+    ]},
+    opener: { title: "ظاهرة", text: "نعرض...", minutes: 5 },
+    discussion: ["لماذا؟", "كيف؟"],
+    activityIndividual: { title: "فردي", text: "خطوات" },
+    activityGroup: { title: "جماعي", text: "خطوات" },
+    questions: [
+      q("mcq", { options: [{ key: "أ", text: "١" }, { key: "ب", text: "٢" }, { key: "ج", text: "٣" }, { key: "د", text: "٤" }], answer: "ب" }),
+      q("truefalse"), q("define"), q("fillblank"), q("order"),
+      q("mcq", { options: [{ key: "أ", text: "١" }, { key: "ب", text: "٢" }, { key: "ج", text: "٣" }], answer: "أ" }),
+      q("truefalse"), q("define"),
+    ],
+    exitTicket: { questions: ["س١", "س٢"] },
+    homework: { tasks: ["مهمة"] },
+    teacherNotes: { say: "قولي", misconceptions: ["خطأ شائع"], materials: ["أدوات"] },
+    sources: ["الكتاب — ص ١"],
+  };
+
+  it("يقبل حزمة سليمة ويحافظ على أسئلتها", () => {
+    const r = validateLessonPack(goodPack);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.pack.questions).toHaveLength(8);
+      expect(r.pack.plan.stages).toHaveLength(4);
+    }
+  });
+
+  it("يسقط سؤال mcq بلا خيارات كافية وترتيباً بأقل من ٣ خطوات — ويرفض إن قلّت الصالحة عن ٨", () => {
+    const bad = { ...goodPack, questions: [
+      ...goodPack.questions.slice(0, 6),
+      q("mcq", { options: [{ key: "أ", text: "١" }] }),
+      q("order", { answer: "أ ← ب" }),
+    ]};
+    const r = validateLessonPack(bad);
+    expect(r.ok).toBe(false);
+  });
+
+  it("يرفض خطة ناقصة المراحل", () => {
+    const r = validateLessonPack({ ...goodPack, plan: { objectives: ["هدف", "هدف"], stages: [{ name: "فقط", minutes: 45, what: "..." }] } });
+    expect(r.ok).toBe(false);
   });
 });

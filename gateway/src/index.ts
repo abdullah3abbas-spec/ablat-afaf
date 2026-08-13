@@ -12,6 +12,9 @@
 import {
   GEN_LIMITS,
   LIMITS,
+  packSystemPrompt,
+  packUserPrompt,
+  validateLessonPack,
   SLIDES_OPENAI_SCHEMA,
   alertLevel,
   cacheKeyOf,
@@ -255,6 +258,104 @@ export default {
 
       return json(
         { error: "providers_failed", messageAr: "تعذّر الوصول للمزوّدين الآن — حاولي بعد قليل", detail: lastError },
+        502,
+        cors
+      );
+    }
+
+    // توليد حزمة الحصة الكاملة لأي درس (١٥/١٠)
+    if (request.method === "POST" && url.pathname === "/api/generate-lesson-pack") {
+      let body: { lessonTitle?: string; sources?: AskSource[] };
+      try {
+        body = (await request.json()) as typeof body;
+      } catch {
+        return json({ error: "bad_json", messageAr: "طلب غير مقروء" }, 400, cors);
+      }
+      if (typeof body.lessonTitle !== "string" || body.lessonTitle.trim() === "") {
+        return json({ error: "invalid", messageAr: "اسم الدرس مطلوب" }, 400, cors);
+      }
+      const invalid = validateAsk(`حزمة: ${body.lessonTitle}`, body.sources);
+      if (invalid) return json({ error: "invalid", messageAr: invalid }, 400, cors);
+      const lessonTitle = body.lessonTitle.trim();
+      const sources = body.sources as AskSource[];
+
+      const key = "c:" + (await cacheKeyOf({ kind: "pack", lessonTitle, sources }));
+      const cached = await env.USAGE.get(key);
+      if (cached) return json({ ...(JSON.parse(cached) as object), cached: true }, 200, cors);
+
+      const [gemini, openai] = await Promise.all([usageOf(env, "gemini", nowMs), usageOf(env, "openai", nowMs)]);
+      const order = pickProviders({
+        geminiReady: gemini.configured,
+        openaiReady: openai.configured,
+        geminiExhausted: gemini.exhausted,
+        openaiExhausted: openai.exhausted,
+      });
+      if (order.length === 0) {
+        const anyConfigured = gemini.configured || openai.configured;
+        return json(
+          {
+            error: anyConfigured ? "budget_exhausted" : "no_providers",
+            messageAr: anyConfigured
+              ? "وصلتِ حدّ الميزانية (اليومي أو الإجمالي) — يرتفع الحد من إعدادات البوابة"
+              : "لم تُضبط مفاتيح المزوّدين بعد — هذه خطوة ابنك",
+          },
+          anyConfigured ? 429 : 503,
+          cors
+        );
+      }
+
+      const sys = packSystemPrompt();
+      const usr = packUserPrompt(lessonTitle, sources);
+      let lastError = "";
+
+      for (const p of order) {
+        try {
+          const result: CallResult =
+            p === "gemini"
+              ? await callGeminiJson(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, sys, usr, GEN_LIMITS.maxAnswerTokens)
+              : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, sys + "\nأخرجي JSON فقط بلا أي نص آخر.", usr, GEN_LIMITS.maxAnswerTokens);
+
+          const prices =
+            p === "gemini"
+              ? { inPerM: Number(env.GEMINI_IN_PER_M) || 0, outPerM: Number(env.GEMINI_OUT_PER_M) || 0 }
+              : { inPerM: Number(env.OPENAI_IN_PER_M) || 0, outPerM: Number(env.OPENAI_OUT_PER_M) || 0 };
+          const costUsd = estimateCostUsd(result.inTokens, result.outTokens, prices);
+          ctx.waitUntil(addSpend(env, p, costUsd, nowMs));
+
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(result.text.replace(/^```json\s*/,'').replace(/```\s*$/,''));
+          } catch {
+            lastError = `${p}: مخرج غير JSON`;
+            console.warn("provider_failed", lastError);
+            continue;
+          }
+          const checked = validateLessonPack(parsed);
+          if (!checked.ok) {
+            lastError = `${p}: ${checked.messageAr}`;
+            console.warn("provider_failed", lastError);
+            continue;
+          }
+
+          const usage = p === "gemini" ? gemini : openai;
+          const payload = {
+            pack: checked.pack,
+            provider: p,
+            model: p === "gemini" ? env.GEMINI_MODEL : env.OPENAI_MODEL,
+            costUsd,
+            alert: alertLevel(usage.totalUsd + costUsd, usage.budgetUsd),
+            cached: false,
+          };
+          ctx.waitUntil(env.USAGE.put(key, JSON.stringify(payload), { expirationTtl: Number(env.CACHE_TTL_SECONDS) || 604800 }));
+          return json(payload, 200, cors);
+        } catch (e) {
+          lastError = e instanceof ProviderError ? `${e.provider} ${e.status}: ${e.message}` : String(e);
+          console.warn("provider_failed", lastError);
+        }
+      }
+
+      return json(
+        { error: "providers_failed", messageAr: "تعذّر توليد الحزمة الآن — حاولي بعد قليل", detail: lastError },
         502,
         cors
       );

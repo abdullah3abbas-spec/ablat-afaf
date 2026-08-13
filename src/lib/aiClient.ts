@@ -140,3 +140,24 @@ export async function generateSlides(lessonTitle: string, sources: AskSource[]):
   });
   return (await res.json()) as SlidesResult;
 }
+
+export interface LessonPackResult {
+  pack: import("@/db/schema").LessonPackContent;
+  provider: "gemini" | "openai";
+  model: string;
+  costUsd: number;
+  alert: 0 | 60 | 80 | 95 | 100;
+  cached: boolean;
+}
+
+/**
+ * توليد حزمة الحصة الكاملة لأي درس (١٥/١٠).
+ * يُستدعى حصراً بعد موافقة شاشة «ما سيُرسل» — والناتج مسودة حتى الاعتماد.
+ */
+export async function generateLessonPack(lessonTitle: string, sources: AskSource[]): Promise<LessonPackResult> {
+  const res = await gatewayFetch("/api/generate-lesson-pack", {
+    method: "POST",
+    body: JSON.stringify({ lessonTitle, sources }),
+  });
+  return (await res.json()) as LessonPackResult;
+}

@@ -7,6 +7,7 @@ import { Link, useParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   Award,
+  Wand2,
   ClipboardCheck,
   Download,
   Eye,
@@ -53,7 +54,19 @@ export default function LessonKitPage() {
   }, [lesson?.id, lesson?.title, setLastLesson]);
 
   if (!lesson) return <p className="card text-ink-soft">{s.common.loading}</p>;
-  if (!kit) return <EmptyState icon={Presentation} title={s.library.kitMissing} />;
+  if (!kit)
+    return (
+      <div className="space-y-4">
+        <EmptyState icon={Presentation} title={s.library.kitMissing} />
+        <div className="card space-y-3 border-2 border-teal bg-teal-bg text-center">
+          <p className="font-medium text-teal-dark">{s.pack.emptyLesson}</p>
+          <Link to={`/pack?lesson=${lessonId}`} className="btn-primary mx-auto">
+            <Sparkles className="size-6" aria-hidden />
+            {s.pack.button}
+          </Link>
+        </div>
+      </div>
+    );
 
   const info = { schoolName: schoolName || "مدرستي" };
 
@@ -153,9 +166,14 @@ export default function LessonKitPage() {
             <Presentation className="size-6" aria-hidden />
             {s.classMode.openButton}
           </Link>
+          {/* حزمة الحصة الكاملة (١٥/١٠) */}
+          <Link to={`/pack?lesson=${lessonId}`} className="btn-primary">
+            <Sparkles className="size-6" aria-hidden />
+            {s.pack.button}
+          </Link>
           {/* استوديو العرض البصري (زكريت م٣) */}
           <Link to={`/slides?lesson=${lessonId}`} className="btn-secondary">
-            <Sparkles className="size-6" aria-hidden />
+            <Wand2 className="size-6" aria-hidden />
             {s.slides.title}
           </Link>
         </div>

@@ -766,3 +766,40 @@ export interface Presentation extends Timestamped, SoftDeletable {
   /** من ولّدها (gemini/openai) — معلومة للسجل */
   generatedBy?: string;
 }
+
+// ── lessonPacks — حزمة الحصة المولّدة لأي درس (١٥/١٠) ──────────
+
+export interface PackQuestion {
+  type: "mcq" | "truefalse" | "define" | "fillblank" | "order";
+  text: string;
+  options?: { key: string; text: string }[];
+  answer: string;
+  difficulty: Difficulty;
+  cognitiveLevel: CognitiveLevel;
+}
+
+export interface LessonPackContent {
+  plan: { objectives: string[]; stages: { name: string; minutes: number; what: string }[] };
+  opener: { title: string; text: string; minutes: number };
+  discussion: string[];
+  activityIndividual: { title: string; text: string };
+  activityGroup: { title: string; text: string };
+  questions: PackQuestion[];
+  exitTicket: { questions: string[] };
+  homework: { tasks: string[] };
+  teacherNotes: { say: string; misconceptions: string[]; materials: string[] };
+  sources: string[];
+}
+
+export interface LessonPackRecord extends Timestamped, SoftDeletable {
+  id?: number;
+  lessonId: number;
+  title: string;
+  content: LessonPackContent;
+  /** مسودة AI ← اعتمدتها المعلّمة (الاعتماد يُدخل الأسئلة للبنك) */
+  status: "draft" | "approved";
+  sourceNames: string[];
+  generatedBy?: string;
+  /** أرقام أسئلة البنك التي أُدخلت عند الاعتماد — للتراجع */
+  insertedQuestionIds?: number[];
+}

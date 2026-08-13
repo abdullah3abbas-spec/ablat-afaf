@@ -45,6 +45,7 @@ import type {
   StudioRequest,
   TeacherRequest,
   Presentation,
+  LessonPackRecord,
   Subject,
   Unit,
   Worksheet,
@@ -83,6 +84,7 @@ export class ManassatDB extends Dexie {
   gradeBatches!: Table<GradeBatch, number>;
   requests!: Table<TeacherRequest, number>;
   presentations!: Table<Presentation, number>;
+  lessonPacks!: Table<LessonPackRecord, number>;
 
   constructor() {
     super("manassat-abla-afaf");
@@ -202,6 +204,11 @@ export class ManassatDB extends Dexie {
     // v8 — زكريت م٣: العروض البصرية المولّدة (مسودة ← معتمدة). إضافي بحت.
     this.version(8).stores({
       presentations: "++id, lessonId, status, deletedAt",
+    });
+
+    // v9 — ١٥/١٠: حزمة الحصة المولّدة لأي درس. إضافي بحت.
+    this.version(9).stores({
+      lessonPacks: "++id, lessonId, status, deletedAt",
     });
   }
 }
