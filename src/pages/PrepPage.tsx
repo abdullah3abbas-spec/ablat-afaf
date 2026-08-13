@@ -31,7 +31,7 @@ export default function PrepPage() {
         <p className="mt-1 text-lg text-ink-soft">{s.prep.subtitle}</p>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
           <Link
             key={card.to}

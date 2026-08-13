@@ -219,9 +219,7 @@
     line-height: 1.8;
     -webkit-tap-highlight-color: transparent;
     /* غلاف جوي: توهج دافئ أعلى الصفحة + نسيج حياكة خافت جداً — عمق بلا ضوضاء */
-    background-image:
-      radial-gradient(1100px 380px at 50% -120px, rgb(var(--c-gold) / 0.06), transparent 65%),
-      repeating-linear-gradient(45deg, rgb(var(--c-maroon) / 0.009) 0 2px, transparent 2px 19px);
+    background-image: radial-gradient(1000px 320px at 50% -100px, rgb(var(--c-gold) / 0.05), transparent 60%);
     background-attachment: fixed;
   }
   h1,
@@ -312,10 +310,24 @@
     opacity: 0.9;
   }
 
-  /* حزام السدو — توقيع الهوية أسفل الشريط العلوي وفي رؤوس المستندات */
+  /* حزام السدو — توقيع الهوية في رؤوس المستندات واللحظات الاحتفالية */
   .sadu-band {
     height: 7px;
     background: var(--sadu-tile) 0 0 / 11px 11px,
       linear-gradient(to left, rgb(var(--c-maroon-deep)), rgb(var(--c-maroon-dark)));
+  }
+
+  /* خيط السدو — همسة الهوية النحيفة (فواصل، تحت هوية الجانبي والموبايل) */
+  .sadu-line {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--sadu-tile) 0 0 / 8px 8px,
+      linear-gradient(to left, rgb(var(--c-maroon-dark)), rgb(var(--c-maroon)));
+    opacity: 0.9;
+  }
+
+  /* حاضنة أيقونة القسم — مربع دافئ خلف الأيقونة يمنح البطاقات هيكلاً */
+  .icon-chip {
+    @apply grid size-12 shrink-0 place-items-center rounded-2xl;
   }
 }
