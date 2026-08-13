@@ -34,6 +34,7 @@ import ExamResultsPage from "@/pages/ExamResultsPage";
 import DevOcrPage from "@/pages/DevOcrPage";
 import SettingsPage from "@/pages/SettingsPage";
 import PolicyPage from "@/pages/PolicyPage";
+import ManagePage from "@/pages/ManagePage";
 
 const router = createHashRouter([
   {
@@ -64,6 +65,7 @@ const router = createHashRouter([
       { path: "/tools", element: <ToolsPage /> },
       { path: "/analytics", element: <AnalyticsPage /> },
       { path: "/requests", element: <RequestsPage /> },
+      { path: "/manage", element: <ManagePage /> },
       { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/settings/policy", element: <PolicyPage /> },
