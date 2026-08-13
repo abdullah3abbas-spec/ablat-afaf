@@ -36,6 +36,7 @@ import SettingsPage from "@/pages/SettingsPage";
 import PolicyPage from "@/pages/PolicyPage";
 import ManagePage from "@/pages/ManagePage";
 import AskPage from "@/pages/AskPage";
+import ClassModePage from "@/pages/ClassModePage";
 
 const router = createHashRouter([
   {
@@ -74,6 +75,8 @@ const router = createHashRouter([
       { path: "*", element: <Navigate to="/" replace /> },
     ],
   },
+  // وضع الفصل: شاشة بروجكتور كاملة خارج التخطيط العام (بلا شريطين)
+  { path: "/class", element: <ClassModePage /> },
 ]);
 
 export default function App() {

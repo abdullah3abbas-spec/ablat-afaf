@@ -3,8 +3,9 @@
  * عادلة، مؤقّت نشاط، وتقسيم مجموعات — كلها للعرض على شاشة الصف.
  */
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Dice5, Gamepad2, Play, RotateCcw, Timer as TimerIcon, Users } from "lucide-react";
+import { Dice5, Gamepad2, Play, Presentation, RotateCcw, Timer as TimerIcon, Users } from "lucide-react";
 import { db } from "@/db";
 import type { Question } from "@/db/schema";
 import { absentTodayIds, classPickables, fairPick, makeGroups, type Pickable } from "@/lib/funTools";
@@ -42,6 +43,15 @@ export default function ToolsPage() {
         </h1>
         <p className="mt-1 text-ink-soft">{s.tools.subtitle}</p>
       </div>
+
+      {/* وضع الفصل: كل الأدوات بشاشة بروجكتور كاملة (زكريت م٤) */}
+      <Link to="/class" className="card flex min-h-[72px] items-center justify-between gap-3 border-2 border-ink bg-ink text-white transition-colors hover:bg-black">
+        <span className="flex items-center gap-3 font-heading text-xl font-bold">
+          <Presentation className="size-8 text-gold" aria-hidden />
+          {s.classMode.title}
+        </span>
+        <span className="text-white/70">{s.classMode.subtitle}</span>
+      </Link>
 
       <div className="card flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2">

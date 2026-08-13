@@ -3,7 +3,7 @@
  * بلا حوارات (§2-ج)، مع تنزيل PowerPoint/Word حقيقي حيث يلزم.
  */
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
   Award,
@@ -139,11 +139,18 @@ export default function LessonKitPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-maroon">{k.lessonTitle}</h1>
-        <p className="mt-1 text-ink-soft">
-          {k.unitTitle} · {s.library.kitReady}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-maroon">{k.lessonTitle}</h1>
+          <p className="mt-1 text-ink-soft">
+            {k.unitTitle} · {s.library.kitReady}
+          </p>
+        </div>
+        {/* وضع الفصل: تشغيل الحصة على البروجكتور (زكريت م٤) */}
+        <Link to={`/class?lesson=${lessonId}`} className="btn bg-ink text-white hover:bg-black">
+          <Presentation className="size-6" aria-hidden />
+          {s.classMode.openButton}
+        </Link>
       </div>
 
       <ul className="grid gap-4 sm:grid-cols-2">
