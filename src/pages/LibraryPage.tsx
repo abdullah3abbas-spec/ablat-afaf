@@ -9,6 +9,7 @@ import { kitByLessonTitle } from "@/content/lessonKits";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
+import LibraryTabs from "@/components/LibraryTabs";
 
 export default function LibraryPage() {
   const s = useStrings();
@@ -22,6 +23,7 @@ export default function LibraryPage() {
 
   return (
     <div className="space-y-5">
+      <LibraryTabs />
       <div>
         <h1 className="flex items-center gap-2 font-heading text-2xl font-bold text-maroon">
           <Library className="size-7" aria-hidden />

@@ -39,6 +39,7 @@ import { useToast } from "@/store/toast";
 import Modal from "@/components/Modal";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import EmptyState from "@/components/EmptyState";
+import LibraryTabs from "@/components/LibraryTabs";
 
 const CATEGORY_KEYS: ResourceCategory[] = [
   "textbook",
@@ -166,6 +167,7 @@ export default function ResourcesPage() {
 
   return (
     <div className="space-y-5">
+      <LibraryTabs />
       <div>
         <h1 className="flex items-center gap-2 font-heading text-2xl font-bold text-maroon">
           <FolderOpen className="size-7" aria-hidden />
