@@ -210,6 +210,40 @@ export class ManassatDB extends Dexie {
     this.version(9).stores({
       lessonPacks: "++id, lessonId, status, deletedAt",
     });
+
+    // v10 — المنهج الحقيقي: كتاب الوزارة (ف١ ج١) يحل محل الوحدتين المخترعتين.
+    // القديم التجريبي → سلة الاسترجاع (soft-delete، لا حذف نهائي §7)،
+    // والحقيقي يُزرع isDemo:false فينجو من «مسح البيانات التجريبية».
+    // بنك أسئلة الكتاب يُبذر عند الإقلاع (seedQuestionBankIfEmpty) لا هنا.
+    this.version(10).upgrade(async (tx) => {
+      const now = Date.now();
+      const subjects = tx.table("subjects");
+      const units = tx.table("units");
+      const lessons = tx.table("lessons");
+      const questions = tx.table("questions");
+
+      // مادة العلوم تتحول مرجعاً حقيقياً — تبقى بعد مسح البيانات التجريبية
+      await subjects.toCollection().modify((s: { nameAr?: string; grade?: number; isDemo?: boolean }) => {
+        if (s.nameAr === "العلوم" && s.grade === 5) s.isDemo = false;
+      });
+      const science = (await subjects.toArray()).find(
+        (s: { nameAr?: string; grade?: number; deletedAt?: number }) =>
+          s.nameAr === "العلوم" && s.grade === 5 && !s.deletedAt
+      );
+      if (!science?.id) return; // قاعدة لم تُزرع بعد — الزرع الأول يتكفل بالكل
+
+      // أرشفة المنهج التجريبي المخترع وأسئلته
+      const archive = (r: { isDemo?: boolean; deletedAt?: number }) => {
+        if (r.isDemo && !r.deletedAt) r.deletedAt = now;
+      };
+      await units.toCollection().modify(archive);
+      await lessons.toCollection().modify(archive);
+      await questions.toCollection().modify(archive);
+
+      // زرع وحدات الكتاب ودروسه (آمن التكرار — يضيف الناقص فقط)
+      const { ensureRealCurriculum } = await import("./realCurriculum");
+      await ensureRealCurriculum({ units, lessons }, science.id as number, now);
+    });
   }
 }
 

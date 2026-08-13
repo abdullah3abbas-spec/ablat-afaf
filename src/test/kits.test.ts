@@ -16,13 +16,18 @@ beforeAll(async () => {
 const INFO = { schoolName: "مدرسة الاختبار" };
 
 describe("سلامة محتوى المكتبة (§2-ج)", () => {
-  test("عشر حزم — حزمة لكل درس مزروع، بمطابقة العنوان حرفياً", async () => {
-    expect(ALL_KITS).toHaveLength(10);
+  test("كل درس حقيقي مزروع له إثراء مقرَّر — والمكتبة القديمة سليمة كمحتوى", async () => {
+    // بعد اعتماد منهج الكتاب الحقيقي: جاهزية الدرس = إثراء مقرَّر + حزمة ذكاء بزر واحد،
+    // وحزم المكتبة اليدوية القديمة بقيت محتوى صالحاً (حصة الطوارئ منها).
+    const { enrichmentByCode } = await import("@/content/enrichment");
     const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt);
-    expect(lessons).toHaveLength(10);
+    expect(lessons).toHaveLength(13);
     for (const lesson of lessons) {
-      expect(kitByLessonTitle(lesson.title), `لا حزمة للدرس: ${lesson.title}`).toBeDefined();
+      expect(lesson.code, `درس بلا رمز كتاب: ${lesson.title}`).toBeDefined();
+      expect(enrichmentByCode(lesson.code!), `لا إثراء للدرس: ${lesson.title}`).toBeDefined();
     }
+    expect(ALL_KITS.length).toBeGreaterThanOrEqual(10);
+    expect(kitByLessonTitle(EMERGENCY_KIT.lessonTitle)).toBeUndefined(); // الطوارئ خارج الفهرس عمداً
   });
 
   test("كل حزمة كاملة العناصر السبعة", () => {

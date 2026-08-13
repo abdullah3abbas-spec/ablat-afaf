@@ -73,6 +73,8 @@ export interface Settings extends Timestamped {
   /** أرقام الشهادات والمستندات الرسمية — شرقية افتراضياً */
   numeralsCert: Numerals;
   schoolName: string;
+  /** اسم المعلّمة كما يظهر في ترويسة خطة التحضير الوزارية */
+  teacherName?: string;
   currentAcademicYearId: number;
   /** الفصل الدراسي الحالي (١ أو ٢) — يظهر في الشريط العلوي */
   currentTerm?: Term;
@@ -278,6 +280,11 @@ export interface Lesson extends Timestamped, SoftDeletable, DemoFlaggable {
   subjectId: number;
   title: string;
   order: number;
+  /** رمز الدرس في كتاب الوزارة: «1.2» — للدروس الحقيقية */
+  code?: string;
+  /** نطاق صفحات الدرس في الكتاب المطبوع (للمصادر والاستشهاد) */
+  bookPageStart?: number;
+  bookPageEnd?: number;
   objectives?: string[];
   standards?: string[];
   learningOutcomes?: LearningOutcome[];

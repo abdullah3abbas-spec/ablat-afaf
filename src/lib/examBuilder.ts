@@ -139,8 +139,20 @@ export async function autoPick(input: BuilderInput): Promise<AutoPickResult> {
     }
   }
 
-  // ضبط أخير نحو الدرجة الكلية: أضف أسئلة صغيرة أو أزل الأخيرة الزائدة
+  // ضبط أخير نحو الدرجة الكلية.
+  // أولاً: قصّ أي تجاوز — مجموع الأسئلة لا يتخطى درجة الاختبار المعلنة أبداً
+  // (سماحية +1 في كل خلية مستوى×وحدة قد تتراكم فوق الدرجة الكلية).
   let sum = picked.reduce((s, q) => s + q.marks, 0);
+  while (sum > input.totalMarks && picked.length > 0) {
+    const overshoot = sum - input.totalMarks;
+    const byMarks = [...picked].sort((a, b) => a.marks - b.marks);
+    // أصغر سؤال يكفي حذفه وحده لإزالة التجاوز — يقلّل النقص الناتج؛
+    // وإلا أكبر الملتقطة ليتقلص التجاوز بأسرع خطوة
+    const removable = byMarks.find((q) => q.marks >= overshoot) ?? byMarks[byMarks.length - 1];
+    picked.splice(picked.indexOf(removable), 1);
+    sum -= removable.marks;
+    // يبقى في used فلا يعود كمكمّل — التعبئة أدناه تكمل بأسئلة أصغر
+  }
   if (sum < input.totalMarks) {
     const fillers = pool
       .filter((q) => !used.has(q.id!))

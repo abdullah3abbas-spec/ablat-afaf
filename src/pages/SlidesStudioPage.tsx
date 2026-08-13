@@ -14,8 +14,10 @@ import {
 import { db } from "@/db";
 import type { Presentation, VisualSlide } from "@/db/schema";
 import { ALL_KITS } from "@/content/lessonKits";
+import { bookLessonByCode } from "@/content/bookG05S1P1";
 import { generateSlides, AiClientError } from "@/lib/aiClient";
 import type { AskSource } from "@/lib/aiClient";
+import { lessonBookSources, lessonMetaSource } from "@/lib/bookRetrieval";
 import { kitToSource, resourceToSource } from "@/lib/curriculumSources";
 import { qualityCheck } from "@/lib/slides";
 import { downloadSlidesPptx } from "@/lib/slidesPptx";
@@ -76,29 +78,35 @@ export default function SlidesStudioPage() {
     });
   }
 
-  function buildSources(): AskSource[] {
+  /** مصادر العرض: صفحات الدرس من كتاب الوزارة (الأساس) + ملفاتها المختارة */
+  async function buildSources(): Promise<AskSource[]> {
     const out: AskSource[] = [];
-    // درس الحزمة المختار نفسه مصدر تلقائي إن وُجدت حزمته
-    const kit = lesson ? ALL_KITS.find((k) => k.lessonTitle === lesson.title) : undefined;
-    if (kit) out.push(kitToSource(kit));
+    if (lesson?.code) {
+      const found = bookLessonByCode(lesson.code);
+      if (found) out.push(lessonMetaSource(found.unit, found.lesson));
+      out.push(...(await lessonBookSources(lesson.code)));
+    } else {
+      const kit = lesson ? ALL_KITS.find((k) => k.lessonTitle === lesson.title) : undefined;
+      if (kit) out.push(kitToSource(kit));
+    }
     for (const key of selected) {
       if (key.startsWith("r:")) {
         const r = (fileSources ?? []).find((x) => String(x.id) === key.slice(2));
         if (r) out.push(resourceToSource(r));
       }
     }
-    return out;
+    return out.slice(0, 12);
   }
 
-  function openPreview() {
+  async function openPreview() {
     setErrorAr(null);
     if (!lesson) return;
-    const sources = buildSources();
+    const sources = await buildSources();
     if (sources.length === 0) {
       show(s.ask.noSources, { kind: "info" });
       return;
     }
-    const content = [`توليد عرض بصري لدرس: ${lesson.title}`, "", ...sources.map((src) => `— المصدر: ${src.name}\n${src.text}`)].join("\n");
+    const content = [`توليد عرض بصري لدرس: ${lesson.title}`, "", ...sources.map((src) => `— المصدر: ${src.name}${src.locator ? ` (${src.locator})` : ""}\n${src.text}`)].join("\n");
     setPreview({ content, sources });
   }
 
@@ -212,7 +220,7 @@ export default function SlidesStudioPage() {
 
         <button
           type="button"
-          onClick={openPreview}
+          onClick={() => void openPreview()}
           disabled={busy || !lesson}
           className="btn-primary w-full min-h-[56px] text-lg disabled:opacity-50"
         >

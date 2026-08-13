@@ -11,15 +11,16 @@ import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { BookOpen, FolderOpen, MessageCircleQuestion, PlugZap, Send, Sparkles } from "lucide-react";
 import { db } from "@/db";
-import { ALL_KITS } from "@/content/lessonKits";
+import { BOOK_UNITS } from "@/content/bookG05S1P1";
 import { askCurriculum, AiClientError, type AskResult, type AskSource } from "@/lib/aiClient";
+import { hitsToSources, lessonBookSources, searchBook } from "@/lib/bookRetrieval";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
 import SendPreviewDialog from "@/components/SendPreviewDialog";
 
-import { kitToSource, resourceToSource } from "@/lib/curriculumSources";
+import { resourceToSource } from "@/lib/curriculumSources";
 
 export default function AskPage() {
   const s = useStrings();
@@ -49,13 +50,14 @@ export default function AskPage() {
     });
   }
 
-  /** يبني المصادر الفعلية من الاختيارات */
-  function buildSources(): AskSource[] {
+  /** يبني المصادر الفعلية من الاختيارات — دروس الكتاب تُحمَّل كسولاً */
+  async function buildSources(q: string): Promise<AskSource[]> {
     const out: AskSource[] = [];
     for (const key of selected) {
-      if (key.startsWith("k:")) {
-        const kit = ALL_KITS.find((k) => k.lessonTitle === key.slice(2));
-        if (kit) out.push(kitToSource(kit));
+      if (key.startsWith("b:")) {
+        out.push(...(await lessonBookSources(key.slice(2))));
+      } else if (key === "auto") {
+        out.push(...hitsToSources(await searchBook(q, 6)));
       } else if (key.startsWith("r:")) {
         const r = (fileSources ?? []).find((x) => String(x.id) === key.slice(2));
         if (r) out.push(resourceToSource(r));
@@ -64,20 +66,20 @@ export default function AskPage() {
     return out;
   }
 
-  function openPreview(mode: "brief" | "detailed") {
+  async function openPreview(mode: "brief" | "detailed") {
     setErrorAr(null);
     const q = question.trim();
     if (!q) {
       show(s.ask.noQuestion, { kind: "info" });
       return;
     }
-    const sources = buildSources();
+    const sources = await buildSources(q);
     if (sources.length === 0) {
       show(s.ask.noSources, { kind: "info" });
       return;
     }
     // المحتوى المعروض في «ما سيُرسل» = الحمولة الفعلية نصاً
-    const content = [`السؤال: ${q}`, "", ...sources.map((src) => `— المصدر: ${src.name}\n${src.text}`)].join("\n");
+    const content = [`السؤال: ${q}`, "", ...sources.map((src) => `— المصدر: ${src.name}${src.locator ? ` (${src.locator})` : ""}\n${src.text}`)].join("\n");
     setPreview({ content, sources, mode });
   }
 
@@ -101,8 +103,6 @@ export default function AskPage() {
       setBusy(false);
     }
   }
-
-  const kits = ALL_KITS;
 
   return (
     <div className="space-y-5">
@@ -162,11 +162,25 @@ export default function AskPage() {
 
         <p className="flex items-center gap-2 font-bold text-teal-dark">
           <BookOpen className="size-5" aria-hidden />
-          {s.ask.lessonGroup}
+          {s.ask.bookGroup}
         </p>
         <div className="flex flex-wrap gap-2">
-          {kits.map((k) => {
-            const key = `k:${k.lessonTitle}`;
+          <button
+            type="button"
+            aria-pressed={selected.has("auto")}
+            onClick={() => toggle("auto")}
+            title={s.ask.bookAutoHint}
+            className={
+              "min-h-touch rounded-pill border-2 px-3 font-bold transition-colors " +
+              (selected.has("auto")
+                ? "border-maroon bg-maroon text-white"
+                : "border-maroon bg-white text-maroon hover:bg-maroon/10")
+            }
+          >
+            {s.ask.bookAuto}
+          </button>
+          {BOOK_UNITS.flatMap((u) => u.lessons).map((l) => {
+            const key = `b:${l.code}`;
             const on = selected.has(key);
             return (
               <button
@@ -179,7 +193,7 @@ export default function AskPage() {
                   (on ? "border-teal bg-teal text-white" : "border-line bg-white text-ink-soft hover:border-teal hover:bg-teal-bg")
                 }
               >
-                {k.lessonTitle}
+                {s.ask.bookLessonChip(l.code, l.title)}
               </button>
             );
           })}
@@ -220,7 +234,7 @@ export default function AskPage() {
       {/* التنفيذ */}
       <button
         type="button"
-        onClick={() => openPreview("brief")}
+        onClick={() => void openPreview("brief")}
         disabled={busy || !aiOn}
         className="btn-primary w-full min-h-[56px] text-lg disabled:opacity-50"
       >
@@ -256,7 +270,7 @@ export default function AskPage() {
             </p>
           )}
           <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={() => openPreview("detailed")} disabled={busy} className="btn-secondary disabled:opacity-50">
+            <button type="button" onClick={() => void openPreview("detailed")} disabled={busy} className="btn-secondary disabled:opacity-50">
               {s.ask.detailed}
             </button>
             <button

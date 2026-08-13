@@ -87,13 +87,13 @@ describe("الوحدة والدرس التالي", () => {
 
 describe("البحث الشامل", () => {
   test("يجد الدروس والأسئلة، وبتوحيد الهمزات، وبلا أسماء طالبات", async () => {
-    const byMix = await universalSearch("الهضمي");
-    expect(byMix.some((h) => h.kind === "lesson" && h.title.includes("الهضمي"))).toBe(true);
+    const byMix = await universalSearch("الغذائية");
+    expect(byMix.some((h) => h.kind === "lesson" && h.title.includes("الغذائية"))).toBe(true);
     expect(byMix.some((h) => h.kind === "question")).toBe(true);
 
-    // توحيد الهمزة: «اجهزه» تطابق «أجهزة»
-    const norm = await universalSearch("اجهزه");
-    expect(norm.some((h) => h.kind === "unit")).toBe(true);
+    // توحيد الهمزة والتاء المربوطة: «اكلات الرمم» تطابق «آكلات الرمم»
+    const norm = await universalSearch("اكلات الرمم");
+    expect(norm.some((h) => h.kind === "lesson" && h.title.includes("آكلات"))).toBe(true);
 
     // لا يبحث في الطالبات إطلاقاً: اسم طالبة مزروعة لا يظهر كنتيجة
     const student = (await db.students.toCollection().first())!;

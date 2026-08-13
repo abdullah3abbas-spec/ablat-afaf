@@ -1,10 +1,12 @@
 /**
- * البيانات التجريبية — ٣ فصول × ٢٥ طالبة + وحدتان بدروسهما.
- *
- * كل صف مزروع يحمل isDemo:true، فزر «مسح البيانات التجريبية»
- * يحذف هذه الصفوف فقط ولا يقترب من أي بيانات حقيقية.
+ * الزرع — طبقتان منفصلتان:
+ * ١) المنهج الحقيقي (المادة + وحدات كتاب الوزارة ودروسه + بنك أسئلته):
+ *    isDemo:false — دائم، لا يمسّه «مسح البيانات التجريبية».
+ * ٢) بيانات تجريبية للتجربة (٣ فصول × ٢٥ طالبة + عام وسياسة وطلبات):
+ *    isDemo:true — يحذفها الزر فقط.
  */
 import { db } from "./db";
+import { ensureRealCurriculum } from "./realCurriculum";
 import {
   DEFAULT_ABSENCE_ALERT,
   DEFAULT_BADGES,
@@ -20,7 +22,7 @@ import {
   DEFAULT_REWARDS,
   DEFAULT_TERM_WEIGHTS,
 } from "./constants";
-import type { Lesson, Student, Unit } from "./schema";
+import type { Student } from "./schema";
 
 // ── أسماء واقعية — بنات (§1: مدرسة بنات) ──────────────────────
 
@@ -58,30 +60,6 @@ function generateStudentNames(count: number): string[] {
   return names;
 }
 
-// ── وحدتا علوم المستوى الخامس (المنهج القطري) ────────────────
-
-interface SeedLesson {
-  title: string;
-  sessions: number;
-  outcomes: { code: string; text: string }[];
-}
-
-const UNIT_1_LESSONS: SeedLesson[] = [
-  { title: "خصائص المادة", sessions: 2, outcomes: [{ code: "ع.٥.١.١", text: "تصف خصائص المادة القابلة للقياس" }] },
-  { title: "حالات المادة الثلاث", sessions: 2, outcomes: [{ code: "ع.٥.١.٢", text: "تقارن بين الحالة الصلبة والسائلة والغازية" }] },
-  { title: "التغيّرات الفيزيائية", sessions: 2, outcomes: [{ code: "ع.٥.١.٣", text: "تميّز التغيّر الفيزيائي بأمثلة من بيئتها" }] },
-  { title: "التغيّرات الكيميائية", sessions: 2, outcomes: [{ code: "ع.٥.١.٤", text: "تستدل على حدوث تغيّر كيميائي" }] },
-  { title: "المخاليط والمحاليل", sessions: 3, outcomes: [{ code: "ع.٥.١.٥", text: "تفصل مكوّنات مخلوط بطرائق مناسبة" }] },
-];
-
-const UNIT_2_LESSONS: SeedLesson[] = [
-  { title: "الجهاز الهضمي", sessions: 2, outcomes: [{ code: "ع.٥.٢.١", text: "تتبع مسار الغذاء في الجهاز الهضمي" }] },
-  { title: "الجهاز التنفسي", sessions: 2, outcomes: [{ code: "ع.٥.٢.٢", text: "تشرح آلية التنفس وتبادل الغازات" }] },
-  { title: "الجهاز الدوري", sessions: 2, outcomes: [{ code: "ع.٥.٢.٣", text: "تصف دور القلب والأوعية الدموية" }] },
-  { title: "الجهاز الهيكلي والعضلي", sessions: 2, outcomes: [{ code: "ع.٥.٢.٤", text: "توضّح وظيفة العظام والعضلات في الحركة" }] },
-  { title: "الغذاء الصحي والوقاية", sessions: 2, outcomes: [{ code: "ع.٥.٢.٥", text: "تصمّم وجبة متوازنة وتبرّر اختياراتها" }] },
-];
-
 // ── الزرع ─────────────────────────────────────────────────────
 
 /** يزرع البيانات التجريبية إن كانت القاعدة فارغة (حارس التشغيل الأول) */
@@ -96,17 +74,19 @@ export async function seedIfEmpty(): Promise<void> {
 }
 
 /**
- * بذر بنك الأسئلة إن كان فارغاً — يعمل أيضاً للقواعد المزروعة سابقاً
- * (يُستدعى عند كل إقلاع، آمن التكرار).
+ * بذر بنك أسئلة الكتاب إن كان غائباً — يُستدعى عند كل إقلاع، آمن التكرار.
+ * الحارس: وجود أسئلة حية موسومة «من-الكتاب» (لا العدد الكلي، حتى لا تمنعه
+ * أسئلة الذكاء المعتمدة أو بقايا محذوفة ناعماً).
  */
 export async function seedQuestionBankIfEmpty(): Promise<void> {
-  if ((await db.questions.count()) > 0) return;
+  const existing = await db.questions
+    .filter((q) => !q.deletedAt && (q.tags ?? []).includes("من-الكتاب"))
+    .count();
+  if (existing > 0) return;
   const { buildBankQuestions } = await import("@/content/questionBank");
-  const units = (await db.units.toArray()).filter((u) => !u.deletedAt);
-  const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt);
-  const unitByTitle = new Map(units.map((u) => [u.title, u.id!]));
-  const lessonByTitle = new Map(lessons.map((l) => [l.title, { id: l.id!, unitId: l.unitId }]));
-  const rows = buildBankQuestions(unitByTitle, lessonByTitle);
+  const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt && !l.isDemo && l.code);
+  const lessonByCode = new Map(lessons.map((l) => [l.code as string, { id: l.id!, unitId: l.unitId }]));
+  const rows = buildBankQuestions(lessonByCode);
   if (rows.length > 0) await db.questions.bulkAdd(rows);
 }
 
@@ -144,14 +124,19 @@ async function runSeed(): Promise<void> {
       });
       await db.academicYears.update(yearId, { assessmentPolicyId: policyId });
 
-      // ٣) المادة
-      const subjectId = await db.subjects.add({
-        nameAr: "العلوم",
-        nameEn: "Science",
-        grade: 5,
-        isDemo: true,
-        createdAt: now,
-      });
+      // ٣) المادة — مرجع حقيقي لا تجريبي (تنجو من مسح البيانات التجريبية)
+      const existingScience = (await db.subjects.toArray()).find(
+        (s) => s.nameAr === "العلوم" && s.grade === 5
+      );
+      const subjectId =
+        existingScience?.id ??
+        ((await db.subjects.add({
+          nameAr: "العلوم",
+          nameEn: "Science",
+          grade: 5,
+          isDemo: false,
+          createdAt: now,
+        })) as number);
 
       // ٤) ٣ فصول × ٢٥ طالبة
       const names = generateStudentNames(75);
@@ -214,33 +199,8 @@ async function runSeed(): Promise<void> {
         await db.badges.bulkAdd(DEFAULT_BADGES.map((b) => ({ ...b, isDemo: true, createdAt: now })));
       }
 
-      // ٦) وحدتان بدروسهما
-      const unitsData: { title: string; lessons: SeedLesson[] }[] = [
-        { title: "المادة وتغيّراتها", lessons: UNIT_1_LESSONS },
-        { title: "أجهزة جسم الإنسان", lessons: UNIT_2_LESSONS },
-      ];
-      for (let u = 0; u < unitsData.length; u++) {
-        const unit: Unit = {
-          subjectId,
-          title: unitsData[u].title,
-          order: u + 1,
-          sessionsCount: unitsData[u].lessons.reduce((s, l) => s + l.sessions, 0),
-          isDemo: true,
-          createdAt: now,
-        };
-        const unitId = await db.units.add(unit);
-        const lessons: Lesson[] = unitsData[u].lessons.map((l, i) => ({
-          unitId,
-          subjectId,
-          title: l.title,
-          order: i + 1,
-          sessionsCount: l.sessions,
-          learningOutcomes: l.outcomes,
-          isDemo: true,
-          createdAt: now,
-        }));
-        await db.lessons.bulkAdd(lessons);
-      }
+      // ٦) المنهج الحقيقي — وحدات كتاب الوزارة ودروسه (آمن التكرار)
+      await ensureRealCurriculum({ units: db.units, lessons: db.lessons }, subjectId, now);
 
       // ٧) طلبان تجريبيان في «المطلوب منّي» (§ الأمر ٨-ب)
       if ((await db.requests.count()) === 0) {

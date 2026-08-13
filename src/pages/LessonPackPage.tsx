@@ -14,9 +14,13 @@ import {
 import { db } from "@/db";
 import type { LessonPackContent, LessonPackRecord } from "@/db/schema";
 import { ALL_KITS } from "@/content/lessonKits";
+import { bookLessonByCode } from "@/content/bookG05S1P1";
+import { enrichmentByCode } from "@/content/enrichment";
 import { AiClientError, generateLessonPack, type AskSource } from "@/lib/aiClient";
-import { kitToSource, resourceToSource } from "@/lib/curriculumSources";
+import { lessonBookSources, lessonMetaSource } from "@/lib/bookRetrieval";
+import { enrichmentToSource, kitToSource, resourceToSource } from "@/lib/curriculumSources";
 import { packToQuestions, planMinutes } from "@/lib/lessonPack";
+import { downloadMinistryPlanForLesson } from "@/lib/ministryPlan";
 import { printLessonPack } from "@/lib/packPrint";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
@@ -50,23 +54,33 @@ export default function LessonPackPage() {
   const current: LessonPackRecord | null = draft ?? (saved || null);
   const n = (v: number) => fmtNum(v, numerals);
 
-  function buildSources(): AskSource[] {
+  /** مصادر التوليد: صفحات الدرس من كتاب الوزارة + إثراؤه المقرَّر + ملفاتها */
+  async function buildSources(): Promise<AskSource[]> {
+    if (!lesson) return [];
     const out: AskSource[] = [];
-    const kit = lesson ? ALL_KITS.find((k) => k.lessonTitle === lesson.title) : undefined;
-    if (kit) out.push(kitToSource(kit));
+    if (lesson.code) {
+      const found = bookLessonByCode(lesson.code);
+      if (found) out.push(lessonMetaSource(found.unit, found.lesson));
+      out.push(...(await lessonBookSources(lesson.code)));
+      const enrichment = enrichmentByCode(lesson.code);
+      if (enrichment) out.push(enrichmentToSource(enrichment));
+    } else {
+      const kit = ALL_KITS.find((k) => k.lessonTitle === lesson.title);
+      if (kit) out.push(kitToSource(kit));
+    }
     for (const r of fileSources ?? []) out.push(resourceToSource(r));
-    return out.slice(0, 6);
+    return out.slice(0, 12);
   }
 
-  function openPreview() {
+  async function openPreview() {
     if (!lesson) return;
     setErrorAr(null);
-    const sources = buildSources();
+    const sources = await buildSources();
     if (sources.length === 0) {
       show(s.ask.noSources, { kind: "info" });
       return;
     }
-    const content = [`توليد حزمة حصة كاملة لدرس: ${lesson.title}`, "", ...sources.map((src) => `— المصدر: ${src.name}\n${src.text}`)].join("\n");
+    const content = [`توليد حزمة حصة كاملة لدرس: ${lesson.title}`, "", ...sources.map((src) => `— المصدر: ${src.name}${src.locator ? ` (${src.locator})` : ""}\n${src.text}`)].join("\n");
     setPreview({ content, sources });
   }
 
@@ -144,7 +158,7 @@ export default function LessonPackPage() {
 
       {/* التوليد */}
       <section className="card space-y-3">
-        <button type="button" onClick={openPreview} disabled={busy} className="btn-primary w-full min-h-[56px] text-lg disabled:opacity-50">
+        <button type="button" onClick={() => void openPreview()} disabled={busy} className="btn-primary w-full min-h-[56px] text-lg disabled:opacity-50">
           <Sparkles className="size-6" aria-hidden />
           {busy ? s.pack.generating : pack ? s.pack.regenerate : s.pack.generate}
         </button>
@@ -175,6 +189,14 @@ export default function LessonPackPage() {
               <button type="button" onClick={() => printLessonPack(lesson.title, pack, schoolName || "مدرستي")} className="btn-secondary">
                 <Printer className="size-5" aria-hidden />
                 {s.pack.print}
+              </button>
+              <button
+                type="button"
+                onClick={() => void downloadMinistryPlanForLesson(lesson, pack).then(() => show(s.library.downloaded))}
+                className="btn-secondary"
+              >
+                <ClipboardList className="size-5" aria-hidden />
+                {s.pack.ministryPlan}
               </button>
               <Link to={`/slides?lesson=${lessonId}`} className="btn-secondary">
                 <Wand2 className="size-5" aria-hidden />

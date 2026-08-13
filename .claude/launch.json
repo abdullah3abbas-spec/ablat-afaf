@@ -4,8 +4,21 @@
     {
       "name": "afaf",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["scripts/serve.mjs"],
+      "runtimeArgs": [
+        "scripts/serve.mjs"
+      ],
       "port": 4785
+    },
+    {
+      "name": "afaf-4786",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/serve.mjs"
+      ],
+      "env": {
+        "PORT": "4786"
+      },
+      "port": 4786
     }
   ]
 }

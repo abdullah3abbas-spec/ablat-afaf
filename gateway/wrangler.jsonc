@@ -11,7 +11,7 @@
   // إعدادات بيئة — لا نماذج ولا أسعار في الكود (قاعدة الماستر برومبت).
   // الأسعار دولار/مليون Token لتقدير التكلفة، حدّثها إن غيّر المزوّد أسعاره.
   "vars": {
-    "ALLOWED_ORIGINS": "https://ablat-afaf.pages.dev,http://localhost:4785,http://localhost:5173",
+    "ALLOWED_ORIGINS": "https://ablat-afaf.pages.dev,http://localhost:4785,http://localhost:4786,http://localhost:5173",
     // اسم متجدد يتبع أحدث flash مستقر تلقائياً — لا يتقادم مع تقاعد النماذج
     // (القائمة الفعلية المتاحة للمفتاح: GET /api/models)
     "GEMINI_MODEL": "gemini-flash-latest",

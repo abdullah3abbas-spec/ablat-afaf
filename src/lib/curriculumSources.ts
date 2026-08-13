@@ -34,3 +34,21 @@ export function resourceToSource(r: Resource): AskSource {
     : (r.searchText ?? "");
   return { name: r.title || r.fileName || "ملف مرفوع", text: clip(text) };
 }
+
+/**
+ * إثراء الحصة المقرَّر للدرس كمصدر توليد — يوجّه المولّد لنسج
+ * الوسيلة المختارة (قصة/لعبة/كروت…) في نشاط الحزمة الجماعي بدل اختراع بديل.
+ */
+export function enrichmentToSource(e: import("@/content/enrichment").LessonEnrichment): AskSource {
+  const lines = [
+    `إثراء الحصة المعتمد لهذا الدرس (التزمي به في النشاط الجماعي ولا تخترعي بديلاً):`,
+    `الوسيلة: ${e.vehicle} — «${e.title}» (${e.minutes} دقيقة)`,
+    `سبب الاختيار: ${e.why}`,
+    `الأدوات: ${e.materials.join(" · ")}`,
+    `الخطوات: ${e.steps.join(" ← ")}`,
+  ];
+  if (e.story?.length) lines.push(`القصة: ${e.story.join(" ")}`);
+  if (e.cards?.length) lines.push(`البطاقات: ${e.cards.join(" | ")}`);
+  lines.push(`أسئلة ما بعد النشاط: ${e.debrief.join(" · ")}`);
+  return { name: `إثراء الحصة — ${e.title}`, locator: "خطة الإثراء", text: clip(lines.join("\n")) };
+}

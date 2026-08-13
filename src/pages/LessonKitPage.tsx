@@ -22,8 +22,12 @@ import {
 } from "lucide-react";
 import { db } from "@/db";
 import { kitByLessonTitle } from "@/content/lessonKits";
+import { bookLessonByCode } from "@/content/bookG05S1P1";
+import { enrichmentByCode } from "@/content/enrichment";
 import type { LessonKit } from "@/content/kitTypes";
 import { elementHtml, printElement, type KitElementKind } from "@/lib/kitPrint";
+import { printEnrichmentCards, printEnrichmentSheet } from "@/lib/enrichmentPrint";
+import { downloadMinistryPlanForLesson } from "@/lib/ministryPlan";
 import { downloadPlanDocx, downloadPptx, downloadWorksheetDocx } from "@/lib/kitFiles";
 import { activeStudentsOf } from "@/lib/students";
 import { fmtNum } from "@/lib/numerals";
@@ -54,19 +58,180 @@ export default function LessonKitPage() {
   }, [lesson?.id, lesson?.title, setLastLesson]);
 
   if (!lesson) return <p className="card text-ink-soft">{s.common.loading}</p>;
-  if (!kit)
+  if (!kit) {
+    const book = lesson.code ? bookLessonByCode(lesson.code) : undefined;
+    const enrichment = lesson.code ? enrichmentByCode(lesson.code) : undefined;
+    const b = s.library.book;
+    const e = s.library.enrichment;
+    if (!book) {
+      return (
+        <div className="space-y-4">
+          <EmptyState icon={Presentation} title={s.library.kitMissing} />
+          <div className="card space-y-3 border-2 border-teal bg-teal-bg text-center">
+            <p className="font-medium text-teal-dark">{s.pack.emptyLesson}</p>
+            <Link to={`/pack?lesson=${lessonId}`} className="btn-primary mx-auto">
+              <Sparkles className="size-6" aria-hidden />
+              {s.pack.button}
+            </Link>
+          </div>
+        </div>
+      );
+    }
     return (
-      <div className="space-y-4">
-        <EmptyState icon={Presentation} title={s.library.kitMissing} />
+      <div className="space-y-5">
+        {/* بطاقة الدرس من كتاب الوزارة */}
+        <div className="card space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="me-auto font-heading text-2xl font-bold text-maroon">
+              <span className="me-2">{book.lesson.code}</span>
+              {book.lesson.title}
+            </h1>
+            <span className="rounded-pill bg-cream px-3 py-1 font-medium text-ink-soft">
+              {b.pages(fmtNum(book.lesson.pageStart, numerals), fmtNum(book.lesson.pageEnd, numerals))}
+            </span>
+            {book.lesson.isProject && (
+              <span className="rounded-pill bg-gold-bg px-3 py-1 font-medium text-gold-dark">{b.project}</span>
+            )}
+          </div>
+          <p className="text-ink-soft">
+            {book.unit.title} · {b.standardsLine(book.lesson.outcomeCodes.join(" · "))}
+          </p>
+          <div>
+            <h2 className="font-heading text-lg font-bold text-teal-dark">{b.objectives}</h2>
+            <ul className="mt-1 list-disc space-y-1 ps-6">
+              {book.lesson.objectives.map((o) => (
+                <li key={o}>{o}</li>
+              ))}
+            </ul>
+          </div>
+          {book.lesson.vocab.length > 0 && (
+            <div>
+              <h2 className="font-heading text-lg font-bold text-teal-dark">{b.vocab}</h2>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {book.lesson.vocab.map((v) => (
+                  <span key={v.term} className="rounded-pill border-2 border-line bg-white px-3 py-1">
+                    <strong>{v.term}</strong>
+                    <span className="ms-2 text-sm text-ink-soft" dir="ltr">{v.en}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* إثراء الحصة المقرَّر */}
+        {enrichment && (
+          <div className="card space-y-3 border-2 border-maroon/30">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="me-auto flex items-center gap-2 font-heading text-xl font-bold text-maroon">
+                <Gamepad2 className="size-6" aria-hidden />
+                {e.title}: {enrichment.title}
+              </h2>
+              <span className="rounded-pill bg-maroon px-3 py-1 font-medium text-white">{enrichment.vehicle}</span>
+              <span className="rounded-pill bg-cream px-3 py-1 text-sm text-ink-soft">
+                {e.minutesBadge(fmtNum(enrichment.minutes, numerals))}
+              </span>
+            </div>
+            <div className="rounded-card bg-teal-bg p-3">
+              <p className="font-bold text-teal-dark">{e.whyTitle}</p>
+              <p className="mt-1">{enrichment.why}</p>
+            </div>
+            <div>
+              <p className="font-bold text-teal-dark">{e.materialsTitle}</p>
+              <ul className="mt-1 list-disc space-y-1 ps-6">
+                {enrichment.materials.map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="font-bold text-teal-dark">{e.stepsTitle}</p>
+              <ol className="mt-1 list-decimal space-y-1 ps-6">
+                {enrichment.steps.map((st) => (
+                  <li key={st}>{st}</li>
+                ))}
+              </ol>
+            </div>
+            {enrichment.story && (
+              <div>
+                <p className="font-bold text-teal-dark">{e.storyTitle}</p>
+                <div className="mt-1 space-y-2 rounded-card bg-cream p-3 leading-relaxed">
+                  {enrichment.story.map((p) => (
+                    <p key={p.slice(0, 24)}>{p}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+            {enrichment.cards && (
+              <div>
+                <p className="font-bold text-teal-dark">{e.cardsTitle}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {enrichment.cards.map((c) => (
+                    <span key={c.slice(0, 24)} className="rounded-card border-2 border-dashed border-maroon/40 bg-white px-3 py-2 text-sm">
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <p className="font-bold text-teal-dark">{e.debriefTitle}</p>
+              <ol className="mt-1 list-decimal space-y-1 ps-6">
+                {enrichment.debrief.map((d) => (
+                  <li key={d}>{d}</li>
+                ))}
+              </ol>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  printEnrichmentSheet(enrichment, schoolName || "مدرستي", lesson.title);
+                  show(e.printed);
+                }}
+                className="btn-primary"
+              >
+                <Printer className="size-5" aria-hidden />
+                {e.printSheet}
+              </button>
+              {enrichment.cards && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    printEnrichmentCards(enrichment, schoolName || "مدرستي", lesson.title);
+                    show(e.printed);
+                  }}
+                  className="btn-secondary"
+                >
+                  <Printer className="size-5" aria-hidden />
+                  {e.printCards}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* حزمة الحصة الكاملة بالذكاء — من صفحات الكتاب نفسها */}
         <div className="card space-y-3 border-2 border-teal bg-teal-bg text-center">
           <p className="font-medium text-teal-dark">{s.pack.emptyLesson}</p>
-          <Link to={`/pack?lesson=${lessonId}`} className="btn-primary mx-auto">
-            <Sparkles className="size-6" aria-hidden />
-            {s.pack.button}
-          </Link>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link to={`/pack?lesson=${lessonId}`} className="btn-primary">
+              <Sparkles className="size-6" aria-hidden />
+              {s.pack.button}
+            </Link>
+            <button
+              type="button"
+              onClick={() => void downloadMinistryPlanForLesson(lesson).then(() => show(s.library.downloaded))}
+              className="btn-secondary"
+            >
+              <Download className="size-5" aria-hidden />
+              {s.pack.ministryPlan}
+            </button>
+          </div>
         </div>
       </div>
     );
+  }
 
   const info = { schoolName: schoolName || "مدرستي" };
 

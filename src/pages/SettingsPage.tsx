@@ -68,6 +68,9 @@ export default function SettingsPage() {
         <span className="text-sm font-normal text-ink-soft">{s.policy.subtitle}</span>
       </Link>
 
+      {/* بيانات المدرسة والمعلّمة — تظهر في ترويسات المستندات والتحضير الوزاري */}
+      <SchoolIdentitySection />
+
       {/* حجم الخط */}
       <section className="card space-y-3">
         <h2 className="font-heading text-xl font-bold">{s.settings.fontSize}</h2>
@@ -195,6 +198,47 @@ export default function SettingsPage() {
 }
 
 /** النسخ الاحتياطي والاستعادة (§7 · الأمر ٩) */
+/** اسم المدرسة واسم المعلّمة — يظهران في كل الترويسات والتحضير الوزاري */
+function SchoolIdentitySection() {
+  const s = useStrings();
+  const show = useToast((x) => x.show);
+  const settings = useLiveQuery(() => db.settings.get(1));
+
+  async function save(patch: { schoolName?: string; teacherName?: string }) {
+    await db.settings.update(1, { ...patch, updatedAt: Date.now() });
+    show(s.settings.identitySaved);
+  }
+
+  return (
+    <section className="card space-y-3">
+      <h2 className="font-heading text-xl font-bold">{s.settings.identityTitle}</h2>
+      <p className="text-ink-soft">{s.settings.identityHint}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 block font-medium">{s.settings.school}</span>
+          <input
+            type="text"
+            key={`school-${settings?.schoolName ?? ""}`}
+            defaultValue={settings?.schoolName ?? ""}
+            onBlur={(e) => void save({ schoolName: e.target.value.trim() })}
+            className="w-full rounded-card border-2 border-line p-3 focus:border-teal"
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1 block font-medium">{s.settings.teacher}</span>
+          <input
+            type="text"
+            key={`teacher-${settings?.teacherName ?? ""}`}
+            defaultValue={settings?.teacherName ?? "عفاف حسين"}
+            onBlur={(e) => void save({ teacherName: e.target.value.trim() })}
+            className="w-full rounded-card border-2 border-line p-3 focus:border-teal"
+          />
+        </label>
+      </div>
+    </section>
+  );
+}
+
 function BackupSection() {
   const s = useStrings();
   const numerals = useUi((x) => x.numeralsTable);
