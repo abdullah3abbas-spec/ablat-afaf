@@ -13,21 +13,31 @@ export default {
         amiri: ["Amiri", "serif"],
       },
       colors: {
+        // القيم الفعلية في src/index.css ‏(:root) — توكِنات قابلة للتخصيص
+        // لهوية مدرسة زكريت لاحقاً دون إعادة بناء الصفحات (المرحلة ١)
         // العنّابي القطري — لون الهوية والشريط العلوي
-        maroon: { DEFAULT: "#8A1538", dark: "#5E0E26" },
+        maroon: { DEFAULT: "rgb(var(--c-maroon) / <alpha-value>)", dark: "rgb(var(--c-maroon-dark) / <alpha-value>)" },
         // التركوازي — لون الإجراء الأساسي
-        teal: { DEFAULT: "#0F6B62", dark: "#0B534C", bg: "#E6F2F0" },
+        teal: {
+          DEFAULT: "rgb(var(--c-teal) / <alpha-value>)",
+          dark: "rgb(var(--c-teal-dark) / <alpha-value>)",
+          bg: "rgb(var(--c-teal-bg) / <alpha-value>)",
+        },
         // الذهبي — لون التنبيه والانتباه (dark للنص على الخلفية الذهبية — تباين AA)
-        gold: { DEFAULT: "#C08A2E", dark: "#7A5716", bg: "#FCF3E2" },
+        gold: {
+          DEFAULT: "rgb(var(--c-gold) / <alpha-value>)",
+          dark: "rgb(var(--c-gold-dark) / <alpha-value>)",
+          bg: "rgb(var(--c-gold-bg) / <alpha-value>)",
+        },
         // خلفية الصفحات
-        cream: "#FBF8F3",
+        cream: "rgb(var(--c-cream) / <alpha-value>)",
         // خطوط الفصل والحدود
-        line: "#E6DFD4",
+        line: "rgb(var(--c-line) / <alpha-value>)",
         // نص أساسي وثانوي
-        ink: { DEFAULT: "#1E2430", soft: "#4A5568" },
+        ink: { DEFAULT: "rgb(var(--c-ink) / <alpha-value>)", soft: "rgb(var(--c-ink-soft) / <alpha-value>)" },
         // ألوان الحالات (لا نعتمد على اللون وحده — دائماً مع نص ورمز §6)
-        ok: "#2E7D4F",
-        danger: { DEFAULT: "#B3261E", bg: "#FDECEA" },
+        ok: "rgb(var(--c-ok) / <alpha-value>)",
+        danger: { DEFAULT: "rgb(var(--c-danger) / <alpha-value>)", bg: "rgb(var(--c-danger-bg) / <alpha-value>)" },
       },
       borderRadius: { card: "16px", pill: "999px" },
       // الحد الأدنى لارتفاع الأزرار والحقول (§6)
