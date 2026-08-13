@@ -27,6 +27,23 @@ function persist(patch: UpdateSpec<Settings>): void {
   db.settings.update(1, patch).catch(() => {});
 }
 
+/** «آخر درس عملتِ عليه» — تفضيل عرض لكل جهاز، يكفي فيه التخزين المحلي */
+export interface LastLesson {
+  id: number;
+  title: string;
+}
+
+function readLastLesson(): LastLesson | undefined {
+  try {
+    const raw = localStorage.getItem("lastLesson");
+    if (!raw) return undefined;
+    const v = JSON.parse(raw) as LastLesson;
+    return typeof v?.id === "number" && typeof v?.title === "string" ? v : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 interface UiState {
   hydrated: boolean;
   fontScale: FontScale;
@@ -35,12 +52,14 @@ interface UiState {
   currentClassId?: number;
   currentAcademicYearId?: number;
   schoolName: string;
+  lastLesson?: LastLesson;
   hydrateFromDb: () => Promise<void>;
   setFontScale: (v: FontScale) => void;
   increaseFont: () => void;
   decreaseFont: () => void;
   setNumeralsTable: (m: Numerals) => void;
   setCurrentClass: (id?: number) => void;
+  setLastLesson: (v: LastLesson) => void;
 }
 
 export const useUi = create<UiState>((set, get) => ({
@@ -49,6 +68,7 @@ export const useUi = create<UiState>((set, get) => ({
   numeralsTable: "western",
   studentGender: "female",
   schoolName: "",
+  lastLesson: readLastLesson(),
 
   /** تُستدعى مرة واحدة بعد الزرع عند الإقلاع */
   hydrateFromDb: async () => {
@@ -86,5 +106,13 @@ export const useUi = create<UiState>((set, get) => ({
   setCurrentClass: (id) => {
     set({ currentClassId: id });
     persist({ lastUsedClassId: id });
+  },
+  setLastLesson: (v) => {
+    set({ lastLesson: v });
+    try {
+      localStorage.setItem("lastLesson", JSON.stringify(v));
+    } catch {
+      // التخزين المحلي قد يكون معطلاً — الجلسة الحالية تكفي
+    }
   },
 }));

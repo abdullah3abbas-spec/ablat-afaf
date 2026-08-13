@@ -13,6 +13,7 @@ import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
+import VisitFileCard from "@/components/VisitFileCard";
 
 const TYPES: RequestType[] = [
   "struggling", "remedial_plan", "activities", "results_stats", "support_enrichment",
@@ -51,6 +52,9 @@ export default function RequestsPage() {
         </h1>
         <p className="mt-1 text-ink-soft">{s.requests.subtitle}</p>
       </div>
+
+      {/* ملف الزيارة الصفية — انتقل من الرئيسية إلى موضعه بين الطلبات (زكريت م١) */}
+      <VisitFileCard />
 
       <div className="rounded-card bg-teal-bg px-4 py-2 text-teal-dark">{s.requests.reviewRule}</div>
 

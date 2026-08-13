@@ -2,7 +2,7 @@
  * صفحة حزمة الدرس — العناصر السبعة، لكل عنصر «افتحي» و«اطبعي» فوريان
  * بلا حوارات (§2-ج)، مع تنزيل PowerPoint/Word حقيقي حيث يلزم.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
@@ -44,6 +44,12 @@ export default function LessonKitPage() {
 
   const lesson = useLiveQuery(() => db.lessons.get(lessonId), [lessonId]);
   const kit = lesson ? kitByLessonTitle(lesson.title) : undefined;
+  const setLastLesson = useUi((x) => x.setLastLesson);
+
+  // «آخر درس عملتِ عليه» — يظهر في مركز اليوم بزر «متابعة»
+  useEffect(() => {
+    if (lesson?.id) setLastLesson({ id: lesson.id, title: lesson.title });
+  }, [lesson?.id, lesson?.title, setLastLesson]);
 
   if (!lesson) return <p className="card text-ink-soft">{s.common.loading}</p>;
   if (!kit) return <EmptyState icon={Presentation} title={s.library.kitMissing} />;

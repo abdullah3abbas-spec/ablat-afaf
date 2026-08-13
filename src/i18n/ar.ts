@@ -163,6 +163,7 @@ export const ar = {
     increaseFont: "تكبير الخط",
     decreaseFont: "تصغير الخط",
     mainNav: "التنقّل الرئيسي",
+    primaryActions: "الإجراءات الرئيسية",
     search: "البحث",
   },
 

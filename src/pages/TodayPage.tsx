@@ -1,38 +1,29 @@
 /**
- * شاشة اليوم — الشاشة الرئيسية (§2-ج البند ١):
- * تحية · دروس قادمة بعلامة «جاهزة» · خمسة أزرار كبيرة (التصوير الأبرز)
- * · «تحتاج انتباهك» · زر الطوارئ · حزمة الأسبوع. لا شاشة فارغة أبداً.
+ * «مركز اليوم» — الشاشة الرئيسية (تحويل زكريت، المرحلة ١):
+ * لا يزيد عن ٥–٦ قرارات أساسية فوق الطيّة — «ابدئي حصة اليوم» أولها.
+ * كل ما عداها انتقل إلى أقسامه: الإدارة، المكتبة، الأدوات (الشريط السفلي).
+ * لا شاشة فارغة أبداً (§2-د) — الحالة الفارغة تعرض زرع البيانات التجريبية.
  */
 import { useLiveQuery } from "dexie-react-hooks";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
-  Award,
-  BarChart3,
-  BookMarked,
   BookOpen,
+  Camera,
   CalendarCheck,
+  CheckCircle2,
   ClipboardList,
   FileBarChart,
-  Gamepad2,
-  LineChart,
-  NotebookPen,
-  Search,
-  Camera,
-  CheckCircle2,
-  FolderOpen,
+  History,
   LifeBuoy,
+  Play,
   Printer,
   RefreshCw,
-  Settings,
   Star,
   UserX,
-  Users,
 } from "lucide-react";
 import { db, reseedDemo } from "@/db";
 import CommandBox from "@/components/CommandBox";
-import VisitFileCard from "@/components/VisitFileCard";
-import WeeklyMessageCard from "@/components/WeeklyMessageCard";
 import { EMERGENCY_KIT, kitByLessonTitle } from "@/content/lessonKits";
 import { printEmergency, printWeekBundle } from "@/lib/kitPrint";
 import { genSubstituteFile } from "@/lib/generate";
@@ -47,6 +38,7 @@ export default function TodayPage() {
   const numerals = useUi((x) => x.numeralsTable);
   const currentClassId = useUi((x) => x.currentClassId);
   const schoolName = useUi((x) => x.schoolName);
+  const lastLesson = useUi((x) => x.lastLesson);
   const show = useToast((x) => x.show);
 
   const data = useLiveQuery(async () => {
@@ -64,9 +56,9 @@ export default function TodayPage() {
       (r) => !r.deletedAt && r.status !== "delivered" && r.dueDate != null && r.dueDate - now <= 2 * 86400000
     );
 
-    // تنبيهات الإنذار المبكر الأربعة (§ الأمر ٧) — من محرّك التحليلات
+    // تنبيهات الإنذار المبكر (§ الأمر ٧) — أهم ثلاثة فقط هنا، والبقية في التحليلات
     const { earlyWarnings } = await import("@/lib/analytics");
-    const warnings = (await earlyWarnings(0, now)).slice(0, 6);
+    const warnings = (await earlyWarnings(0, now)).slice(0, 3);
 
     // تذكير النسخ الاحتياطي كل ٧ أيام (§7)
     const { needsBackupReminder } = await import("@/lib/backup");
@@ -80,6 +72,7 @@ export default function TodayPage() {
     unitTitle: data?.units.get(l.unitId) ?? "",
     kit: kitByLessonTitle(l.title),
   }));
+  const todayLesson = upcoming[0];
 
   async function headerInfo() {
     return { schoolName: schoolName || "مدرستي" };
@@ -111,12 +104,11 @@ export default function TodayPage() {
   const greeting = new Date().getHours() < 12 ? s.today.greeting : s.today.greetingEvening;
   const empty = data !== undefined && data.studentsCount === 0;
 
-  const bigButtons = [
-    { key: "library", label: s.today.bigButtons.library, icon: BookOpen, to: "/library" },
-    { key: "motivation", label: s.today.bigButtons.motivation, icon: Star, to: "/points" },
-    { key: "assessment", label: s.today.bigButtons.assessment, icon: BarChart3, to: "/grades" },
-    { key: "students", label: s.today.bigButtons.students, icon: Users, to: "/classes" },
-  ];
+  const alertsCount =
+    (data?.warnings.length ?? 0) +
+    (data?.dueSoonRequests.length ?? 0) +
+    (data?.backupOverdue ? 1 : 0) +
+    ((data?.pendingRequests ?? 0) > 0 ? 1 : 0);
 
   return (
     <div className="space-y-6">
@@ -137,33 +129,56 @@ export default function TodayPage() {
         )}
       </section>
 
-      {/* الصندوق الواحد — الباب الرئيسي (§ الأمر ٨-ب) */}
-      <CommandBox />
-
-      {/* الأزرار الخمسة — التصوير الأكبر والأبرز */}
-      <section aria-label={s.a11y.mainNav} className="space-y-3">
+      {/* الإجراءات الرئيسية — ثلاثة قرارات لا أكثر */}
+      <section aria-label={s.a11y.primaryActions} className="space-y-3">
         <Link
-          to="/grades"
-          className="btn w-full bg-maroon text-white hover:bg-maroon-dark min-h-[76px] text-2xl font-bold shadow-bar"
+          to={todayLesson ? `/library/${todayLesson.lesson.id}` : "/library"}
+          className="btn w-full flex-col gap-1 bg-maroon text-white shadow-bar hover:bg-maroon-dark min-h-[88px]"
         >
-          <Camera className="size-9" aria-hidden />
-          {s.today.bigButtons.scan}
+          <span className="flex items-center gap-2 text-2xl font-bold">
+            <Play className="size-8" aria-hidden />
+            {s.today.startToday}
+          </span>
+          <span className="text-base font-medium text-white/85">
+            {todayLesson ? s.today.startTodayHint(todayLesson.lesson.title) : s.today.startTodayEmpty}
+          </span>
         </Link>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {bigButtons.map((b) => (
-            <Link
-              key={b.key}
-              to={b.to}
-              className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg"
-            >
-              <b.icon className="size-6 text-teal-dark" aria-hidden />
-              {b.label}
-            </Link>
-          ))}
+
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            to="/library"
+            className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg"
+          >
+            <BookOpen className="size-6 text-teal-dark" aria-hidden />
+            {s.today.prepNew}
+          </Link>
+          <Link
+            to="/grades"
+            className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg"
+          >
+            <Camera className="size-6 text-teal-dark" aria-hidden />
+            {s.today.bigButtons.scan}
+          </Link>
         </div>
+
+        {lastLesson && lastLesson.id !== todayLesson?.lesson.id && (
+          <Link
+            to={`/library/${lastLesson.id}`}
+            className="flex min-h-touch items-center gap-2 rounded-card border-2 border-line bg-white px-3 py-2 font-medium text-ink-soft transition-colors hover:border-teal hover:bg-teal-bg hover:text-teal-dark"
+          >
+            <History className="size-5 shrink-0" aria-hidden />
+            <span className="me-auto">
+              {s.today.lastLesson}: <b className="text-ink">{lastLesson.title}</b>
+            </span>
+            <span className="font-bold text-teal-dark">{s.today.resume}</span>
+          </Link>
+        )}
       </section>
 
-      {/* الدروس القادمة بعلامة جاهزة */}
+      {/* الصندوق الواحد — كتابةً أو صوتاً (§ الأمر ٨-ب) */}
+      <CommandBox />
+
+      {/* الدروس القادمة بعلامة جاهزة + حزمة الأسبوع */}
       <section className="card space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-heading text-xl font-bold">
@@ -198,121 +213,93 @@ export default function TodayPage() {
         </ul>
       </section>
 
-      {/* الرسالة الأسبوعية (§ الأمر ٨-ج) + ملف الزيارة الصفية (§ الأمر ٨-ب) */}
-      <WeeklyMessageCard />
-      <VisitFileCard />
-
-      {/* تحتاج انتباهك + الطوارئ */}
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="card space-y-2">
+      {/* تحتاج انتباهك — أهم الأشياء فقط، والبقية في التحليلات */}
+      <section className="card space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 font-heading text-xl font-bold">
             <AlertTriangle className="size-6 text-gold-dark" aria-hidden />
             {s.today.attention}
           </h2>
-          {data === undefined ? (
-            <p className="text-ink-soft">{s.common.loading}</p>
-          ) : (
-            <ul className="space-y-2">
-              {data.warnings.map((w, i) => (
-                <li key={i} className={"rounded-card px-3 py-2 font-medium " + (w.severity === 3 ? "bg-danger-bg text-danger" : w.severity === 2 ? "bg-gold-bg text-gold-dark" : "bg-cream text-ink-soft")}>
-                  {w.studentId ? (
-                    <Link to={`/students/${w.studentId}`} className="hover:underline">{w.message}</Link>
-                  ) : w.message}
-                </li>
-              ))}
-              {data.backupOverdue && (
-                <li className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
-                  <Link to="/settings" className="hover:underline">{s.backup.reminder}</Link>
-                </li>
-              )}
-              {data.dueSoonRequests.map((r) => (
-                <li key={`req-${r.id}`} className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
-                  <Link to="/requests" className="hover:underline">{s.requests.dueSoon(r.title)}</Link>
-                </li>
-              ))}
-              {data.pendingRequests > 0 && (
-                <li className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
-                  {s.today.pendingRequests(fmtNum(data.pendingRequests, numerals))}
-                </li>
-              )}
-              {data.anyDemo && (
-                <li className="rounded-card bg-cream px-3 py-2 text-ink-soft">{s.today.demoNote}</li>
-              )}
-              {data.pendingRequests === 0 && !data.anyDemo && data.warnings.length === 0 && data.dueSoonRequests.length === 0 && !data.backupOverdue && (
-                <li className="text-ink-soft">{s.today.attentionEmpty}</li>
-              )}
-            </ul>
+          {alertsCount > 0 && (
+            <Link to="/analytics" className="font-medium text-teal-dark hover:underline">
+              {s.today.allAlerts}
+            </Link>
           )}
         </div>
+        {data === undefined ? (
+          <p className="text-ink-soft">{s.common.loading}</p>
+        ) : (
+          <ul className="space-y-2">
+            {data.warnings.map((w, i) => (
+              <li key={i} className={"rounded-card px-3 py-2 font-medium " + (w.severity === 3 ? "bg-danger-bg text-danger" : w.severity === 2 ? "bg-gold-bg text-gold-dark" : "bg-cream text-ink-soft")}>
+                {w.studentId ? (
+                  <Link to={`/students/${w.studentId}`} className="hover:underline">{w.message}</Link>
+                ) : w.message}
+              </li>
+            ))}
+            {data.backupOverdue && (
+              <li className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
+                <Link to="/settings" className="hover:underline">{s.backup.reminder}</Link>
+              </li>
+            )}
+            {data.dueSoonRequests.map((r) => (
+              <li key={`req-${r.id}`} className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
+                <Link to="/requests" className="hover:underline">{s.requests.dueSoon(r.title)}</Link>
+              </li>
+            ))}
+            {data.pendingRequests > 0 && (
+              <li className="rounded-card bg-gold-bg px-3 py-2 text-gold-dark">
+                {s.today.pendingRequests(fmtNum(data.pendingRequests, numerals))}
+              </li>
+            )}
+            {data.anyDemo && (
+              <li className="rounded-card bg-cream px-3 py-2 text-ink-soft">{s.today.demoNote}</li>
+            )}
+            {alertsCount === 0 && !data.anyDemo && (
+              <li className="text-ink-soft">{s.today.attentionEmpty}</li>
+            )}
+          </ul>
+        )}
+      </section>
 
-        <div className="card space-y-3 border-2 border-danger">
-          <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-danger">
-            <LifeBuoy className="size-6" aria-hidden />
-            {s.today.emergency}
-          </h2>
-          <p className="text-ink-soft">{s.today.emergencyHint}</p>
-          <button type="button" onClick={() => void handleEmergency()} className="btn-danger w-full min-h-[56px] text-lg">
+      {/* الوصول السريع — المهام اليومية التي ليست في الشريط السفلي */}
+      <section aria-label={s.today.quickAccess} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Link to="/attendance" className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg">
+          <CalendarCheck className="size-6 text-teal-dark" aria-hidden />
+          {s.attendance.title}
+        </Link>
+        <Link to="/points" className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg">
+          <Star className="size-6 text-teal-dark" aria-hidden />
+          {s.points.title}
+        </Link>
+        <Link to="/exams" className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg">
+          <ClipboardList className="size-6 text-teal-dark" aria-hidden />
+          {s.exams.title}
+        </Link>
+        <Link to="/reports" className="card flex min-h-[64px] items-center justify-center gap-2 font-bold transition-colors hover:border-teal hover:bg-teal-bg">
+          <FileBarChart className="size-6 text-teal-dark" aria-hidden />
+          {s.reports.title}
+        </Link>
+      </section>
+
+      {/* زر الطوارئ — يبقى في متناول اليد دون أن يتصدّر */}
+      <section className="card space-y-3 border-2 border-danger">
+        <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-danger">
+          <LifeBuoy className="size-6" aria-hidden />
+          {s.today.emergency}
+        </h2>
+        <p className="text-ink-soft">{s.today.emergencyHint}</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <button type="button" onClick={() => void handleEmergency()} className="btn-danger min-h-[56px] text-lg">
             <Printer className="size-6" aria-hidden />
             {s.common.print}
           </button>
-          <button type="button" onClick={() => void handleAbsent()} className="btn w-full min-h-[56px] border-2 border-danger bg-white text-lg text-danger hover:bg-danger-bg">
+          <button type="button" onClick={() => void handleAbsent()} className="btn min-h-[56px] border-2 border-danger bg-white text-lg text-danger hover:bg-danger-bg">
             <UserX className="size-6" aria-hidden />
             {s.substitute.title}
           </button>
         </div>
       </section>
-
-      {/* وصول سريع ثانوي */}
-      <nav className="flex flex-wrap gap-3">
-        <Link to="/attendance" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <CalendarCheck className="size-5" aria-hidden />
-          {s.attendance.title}
-        </Link>
-        <Link to="/exams" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <ClipboardList className="size-5" aria-hidden />
-          {s.exams.title}
-        </Link>
-        <Link to="/certificates" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <Award className="size-5" aria-hidden />
-          {s.certs.title}
-        </Link>
-        <Link to="/worksheets" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <NotebookPen className="size-5" aria-hidden />
-          {s.worksheets.title}
-        </Link>
-        <Link to="/reports" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <FileBarChart className="size-5" aria-hidden />
-          {s.reports.title}
-        </Link>
-        <Link to="/curriculum" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <BookMarked className="size-5" aria-hidden />
-          {s.curriculum.title}
-        </Link>
-        <Link to="/search" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <Search className="size-5" aria-hidden />
-          {s.search.title}
-        </Link>
-        <Link to="/tools" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <Gamepad2 className="size-5" aria-hidden />
-          {s.tools.title}
-        </Link>
-        <Link to="/analytics" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <LineChart className="size-5" aria-hidden />
-          {s.analytics.title}
-        </Link>
-        <Link to="/requests" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <ClipboardList className="size-5" aria-hidden />
-          {s.requests.title}
-        </Link>
-        <Link to="/resources" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <FolderOpen className="size-5" aria-hidden />
-          {s.resources.title}
-        </Link>
-        <Link to="/settings" className="flex min-h-touch items-center gap-1 rounded-card px-3 text-teal-dark hover:bg-teal-bg">
-          <Settings className="size-5" aria-hidden />
-          {s.common.settings}
-        </Link>
-      </nav>
     </div>
   );
 }

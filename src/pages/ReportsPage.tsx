@@ -17,6 +17,7 @@ import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
+import WeeklyMessageCard from "@/components/WeeklyMessageCard";
 
 export default function ReportsPage() {
   const s = useStrings();
@@ -183,6 +184,9 @@ export default function ReportsPage() {
           </div>
         </div>
       </section>
+
+      {/* الرسالة الأسبوعية لأولياء الأمور — انتقلت من الرئيسية إلى موضعها (زكريت م١) */}
+      <WeeklyMessageCard />
     </div>
   );
 }
