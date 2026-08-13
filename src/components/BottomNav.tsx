@@ -46,7 +46,7 @@ export default function BottomNav() {
               to={to}
               aria-current={active ? "page" : undefined}
               className={
-                "flex min-h-touch flex-col items-center justify-center gap-0.5 py-2 text-sm transition-colors " +
+                "flex min-h-touch flex-col items-center justify-center gap-0.5 py-2 text-base transition-colors " +
                 (active
                   ? "border-t-4 border-teal-dark font-bold text-teal-dark"
                   : "border-t-4 border-transparent font-medium text-ink-soft hover:bg-teal-bg hover:text-teal-dark")
