@@ -17,7 +17,6 @@ import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
-import LibraryTabs from "@/components/LibraryTabs";
 import SendPreviewDialog from "@/components/SendPreviewDialog";
 
 import { kitToSource, resourceToSource } from "@/lib/curriculumSources";
@@ -107,7 +106,6 @@ export default function AskPage() {
 
   return (
     <div className="space-y-5">
-      <LibraryTabs />
 
       <div>
         <h1 className="flex items-center gap-2 font-heading text-2xl font-bold text-maroon">

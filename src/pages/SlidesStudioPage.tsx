@@ -24,7 +24,6 @@ import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
-import LibraryTabs from "@/components/LibraryTabs";
 import SlideVisual from "@/components/slides/SlideVisual";
 import SendPreviewDialog from "@/components/SendPreviewDialog";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -156,7 +155,6 @@ export default function SlidesStudioPage() {
 
   return (
     <div className="space-y-5">
-      <LibraryTabs />
 
       <div>
         <h1 className="flex items-center gap-2 font-heading text-2xl font-bold text-maroon">

@@ -25,7 +25,7 @@ import WorksheetsPage from "@/pages/WorksheetsPage";
 import ReportsPage from "@/pages/ReportsPage";
 import CurriculumPage from "@/pages/CurriculumPage";
 import SearchPage from "@/pages/SearchPage";
-import ToolsPage from "@/pages/ToolsPage";
+import TeachPage from "@/pages/TeachPage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import RequestsPage from "@/pages/RequestsPage";
 import ExamsPage from "@/pages/ExamsPage";
@@ -34,7 +34,8 @@ import ExamResultsPage from "@/pages/ExamResultsPage";
 import DevOcrPage from "@/pages/DevOcrPage";
 import SettingsPage from "@/pages/SettingsPage";
 import PolicyPage from "@/pages/PolicyPage";
-import ManagePage from "@/pages/ManagePage";
+import PrepPage from "@/pages/PrepPage";
+import FollowPage from "@/pages/FollowPage";
 import AskPage from "@/pages/AskPage";
 import ClassModePage from "@/pages/ClassModePage";
 import SlidesStudioPage from "@/pages/SlidesStudioPage";
@@ -67,10 +68,13 @@ const router = createHashRouter([
       { path: "/reports", element: <ReportsPage /> },
       { path: "/curriculum", element: <CurriculumPage /> },
       { path: "/search", element: <SearchPage /> },
-      { path: "/tools", element: <ToolsPage /> },
+      { path: "/teach", element: <TeachPage /> },
+      { path: "/tools", element: <TeachPage /> },
       { path: "/analytics", element: <AnalyticsPage /> },
       { path: "/requests", element: <RequestsPage /> },
-      { path: "/manage", element: <ManagePage /> },
+      { path: "/prep", element: <PrepPage /> },
+      { path: "/follow", element: <FollowPage /> },
+      { path: "/manage", element: <FollowPage /> },
       { path: "/ask", element: <AskPage /> },
       { path: "/slides", element: <SlidesStudioPage /> },
       { path: "/dev/ocr", element: <DevOcrPage /> },

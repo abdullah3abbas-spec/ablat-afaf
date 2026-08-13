@@ -4,28 +4,31 @@
  * كل أيقونة معها كلمة عربية (§6)، والقسم الحالي بارز لوناً ونصاً وسماكةً
  * — لا نعتمد على اللون وحده.
  */
-import { NavLink, useLocation } from "react-router-dom";
-import { BookOpen, Gamepad2, LayoutGrid, Sun, Users } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { BookOpen, ClipboardCheck, Presentation, Sun, Users } from "lucide-react";
 import { useStrings } from "@/hooks/useStrings";
 
-/** المسارات التابعة لكل قسم — لإبراز القسم الصحيح في الأعماق */
-const SECTIONS: { to: string; key: "today" | "library" | "classes" | "tools" | "manage"; prefixes: string[] }[] = [
+/**
+ * خمسة أفعال من يوم المعلّمة: اليوم ← حضّري ← درّسي ← طالباتي ← تابعي.
+ * كل ميزة تتبع فعلاً واحداً فقط — والقسم يُضاء في كل أعماقه.
+ */
+const SECTIONS: { to: string; key: "today" | "prep" | "teach" | "students" | "follow"; prefixes: string[] }[] = [
   { to: "/", key: "today", prefixes: [] },
-  { to: "/library", key: "library", prefixes: ["/library", "/curriculum", "/resources", "/studio", "/ask", "/slides"] },
-  { to: "/classes", key: "classes", prefixes: ["/classes", "/students"] },
-  { to: "/tools", key: "tools", prefixes: ["/tools"] },
   {
-    to: "/manage",
-    key: "manage",
-    prefixes: [
-      "/manage", "/grades", "/attendance", "/points", "/questions", "/exams",
-      "/certificates", "/worksheets", "/reports", "/analytics", "/requests",
-      "/search", "/settings",
-    ],
+    to: "/prep",
+    key: "prep",
+    prefixes: ["/prep", "/library", "/slides", "/ask", "/exams", "/worksheets", "/questions", "/curriculum", "/resources", "/studio"],
+  },
+  { to: "/teach", key: "teach", prefixes: ["/teach", "/class", "/lab", "/tools"] },
+  { to: "/classes", key: "students", prefixes: ["/classes", "/students", "/attendance", "/points"] },
+  {
+    to: "/follow",
+    key: "follow",
+    prefixes: ["/follow", "/manage", "/grades", "/reports", "/certificates", "/analytics", "/requests", "/search", "/settings"],
   },
 ];
 
-const ICONS = { today: Sun, library: BookOpen, classes: Users, tools: Gamepad2, manage: LayoutGrid } as const;
+const ICONS = { today: Sun, prep: BookOpen, teach: Presentation, students: Users, follow: ClipboardCheck } as const;
 
 export default function BottomNav() {
   const s = useStrings();
@@ -41,7 +44,7 @@ export default function BottomNav() {
           const Icon = ICONS[key];
           const active = to === "/" ? pathname === "/" : prefixes.some((p) => pathname.startsWith(p));
           return (
-            <NavLink
+            <Link
               key={key}
               to={to}
               aria-current={active ? "page" : undefined}
@@ -54,7 +57,7 @@ export default function BottomNav() {
             >
               <Icon className="size-6" aria-hidden />
               {s.nav[key]}
-            </NavLink>
+            </Link>
           );
         })}
       </div>

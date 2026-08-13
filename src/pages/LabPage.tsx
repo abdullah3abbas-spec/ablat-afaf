@@ -74,7 +74,7 @@ export default function LabPage() {
           </Link>
           <button
             type="button"
-            onClick={() => (fromClass ? navigate(-1) : navigate("/tools"))}
+            onClick={() => (fromClass ? navigate(-1) : navigate("/teach"))}
             className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white"
           >
             <LogOut className="size-5" aria-hidden />

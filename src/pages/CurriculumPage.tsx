@@ -11,7 +11,6 @@ import PacingPanel from "@/components/curriculum/PacingPanel";
 import PlanningPanel from "@/components/curriculum/PlanningPanel";
 import ExperimentsPanel from "@/components/curriculum/ExperimentsPanel";
 import AchievementPanel from "@/components/curriculum/AchievementPanel";
-import LibraryTabs from "@/components/LibraryTabs";
 
 type Tab = "tree" | "pacing" | "planning" | "experiments" | "achievement";
 
@@ -29,7 +28,6 @@ export default function CurriculumPage() {
 
   return (
     <div className="space-y-5">
-      <LibraryTabs />
       <div>
         <h1 className="flex items-center gap-2 font-heading text-2xl font-bold text-maroon">
           <BookMarked className="size-7" aria-hidden />
