@@ -226,6 +226,8 @@ export default {
           return json(payload, 200, cors);
         } catch (e) {
           lastError = e instanceof ProviderError ? `${e.provider} ${e.status}: ${e.message}` : String(e);
+          // يظهر في wrangler tail — تشخيص فشل مزوّد دون كشفه للمستخدمة
+          console.warn("provider_failed", lastError);
         }
       }
 
