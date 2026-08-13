@@ -5,7 +5,7 @@
  * المادة ← الفصل ← الوحدة ← الدرس ← نوع المورد.
  */
 import { NavLink, useLocation } from "react-router-dom";
-import { BookMarked, BookOpen, FolderOpen } from "lucide-react";
+import { BookMarked, BookOpen, FolderOpen, MessageCircleQuestion } from "lucide-react";
 import { useStrings } from "@/hooks/useStrings";
 
 export default function LibraryTabs() {
@@ -16,6 +16,7 @@ export default function LibraryTabs() {
     { to: "/library", label: s.library.tabs.lessons, icon: BookOpen, active: pathname.startsWith("/library") },
     { to: "/curriculum", label: s.library.tabs.curriculum, icon: BookMarked, active: pathname.startsWith("/curriculum") },
     { to: "/resources", label: s.library.tabs.files, icon: FolderOpen, active: pathname.startsWith("/resources") || pathname.startsWith("/studio") },
+    { to: "/ask", label: s.ask.title, icon: MessageCircleQuestion, active: pathname.startsWith("/ask") },
   ];
 
   return (

@@ -11,7 +11,7 @@ import { useStrings } from "@/hooks/useStrings";
 /** المسارات التابعة لكل قسم — لإبراز القسم الصحيح في الأعماق */
 const SECTIONS: { to: string; key: "today" | "library" | "classes" | "tools" | "manage"; prefixes: string[] }[] = [
   { to: "/", key: "today", prefixes: [] },
-  { to: "/library", key: "library", prefixes: ["/library", "/curriculum", "/resources", "/studio"] },
+  { to: "/library", key: "library", prefixes: ["/library", "/curriculum", "/resources", "/studio", "/ask"] },
   { to: "/classes", key: "classes", prefixes: ["/classes", "/students"] },
   { to: "/tools", key: "tools", prefixes: ["/tools"] },
   {

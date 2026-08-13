@@ -89,6 +89,9 @@ export interface Settings extends Timestamped {
   absenceAlertThreshold?: number;
   /** مفتاح «اقطعي الاتصال» — المنصّة تعمل كاملة بدونه */
   aiConnectionEnabled: boolean;
+  /** بوابة الذكاء الاصطناعي (زكريت م٢) — الرابط ورمز الربط، حقول غير مفهرسة */
+  aiGatewayUrl?: string;
+  aiGatewayToken?: string;
   lastBackupAt?: number;
   /** لتنبيه أغسطس: «هل تغيّرت سياسة التقييم؟» */
   lastPolicyReviewYear?: number;
@@ -636,13 +639,13 @@ export interface Certificate extends Timestamped, SoftDeletable, DemoFlaggable {
 export interface AiSendLogEntry extends Timestamped {
   id?: number;
   /** نوع الإرسال */
-  kind: "studio-edit" | "generation" | "ocr" | "other";
+  kind: "studio-edit" | "generation" | "ocr" | "ask" | "other";
   title: string;
   /** المحتوى الفعلي الذي سيُرسل — يُعرض في شاشة «ما سيُرسل» ويبقى للمراجعة */
   contentPreview: string;
   sizeBytes: number;
-  /** pending = مسجَّل والاتصال مقطوع · sent = أُرسل · cancelled = ألغته المعلّمة */
-  status: "pending" | "sent" | "cancelled";
+  /** pending = مسجَّل والاتصال مقطوع · sent = أُرسل · failed = تعذّر · cancelled = ألغته المعلّمة */
+  status: "pending" | "sent" | "failed" | "cancelled";
   note?: string;
 }
 

@@ -10,6 +10,7 @@ import { clearDemo, db, reseedDemo } from "@/db";
 import { downloadDataJson } from "@/lib/dataExport";
 import { downloadFullBackup, restoreFromBackup, silentBackup, daysSinceBackup, latestRestorePoint, restoreFromPoint, type FullBackup } from "@/lib/backup";
 import { setPin as setPinLib, removePin, isLockEnabled } from "@/lib/lock";
+import { AiClientError, DEFAULT_GATEWAY_URL, fetchHealth, type GatewayHealth } from "@/lib/aiClient";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useToast } from "@/store/toast";
@@ -387,6 +388,99 @@ function LockSection() {
   );
 }
 
+/** إعدادات البوابة (زكريت م٢): الرابط ورمز الربط واختبار مجاني للاتصال */
+function GatewayPanel() {
+  const s = useStrings();
+  const numerals = useUi((x) => x.numeralsTable);
+  const show = useToast((x) => x.show);
+  const settings = useLiveQuery(() => db.settings.get(1));
+
+  const [health, setHealth] = useState<GatewayHealth | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testError, setTestError] = useState<string | null>(null);
+
+  async function saveField(patch: { aiGatewayUrl?: string; aiGatewayToken?: string }) {
+    await db.settings.update(1, { ...patch, updatedAt: Date.now() });
+    show(s.aiGateway.saved);
+  }
+
+  async function testConnection() {
+    setTesting(true);
+    setTestError(null);
+    setHealth(null);
+    try {
+      setHealth(await fetchHealth());
+    } catch (e) {
+      setTestError(e instanceof AiClientError ? e.messageAr : s.errors.generic);
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  const money = (v: number) => fmtNum(Math.round(v * 100) / 100, numerals);
+
+  return (
+    <div className="space-y-3 rounded-card border-2 border-line p-4">
+      <p className="font-bold">{s.aiGateway.title}</p>
+      <p className="text-sm text-ink-soft">{s.aiGateway.explain}</p>
+
+      <label className="block">
+        <span className="mb-1 block font-medium">{s.aiGateway.url}</span>
+        <input
+          type="url"
+          dir="ltr"
+          defaultValue={settings?.aiGatewayUrl ?? DEFAULT_GATEWAY_URL}
+          onBlur={(e) => void saveField({ aiGatewayUrl: e.target.value.trim() })}
+          className="w-full rounded-card border-2 border-line p-3 text-start focus:border-teal"
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-1 block font-medium">{s.aiGateway.token}</span>
+        <input
+          type="password"
+          dir="ltr"
+          defaultValue={settings?.aiGatewayToken ?? ""}
+          onBlur={(e) => void saveField({ aiGatewayToken: e.target.value.trim() })}
+          className="w-full rounded-card border-2 border-line p-3 text-start focus:border-teal"
+        />
+        <span className="mt-1 block text-sm text-ink-soft">{s.aiGateway.tokenHint}</span>
+      </label>
+
+      <button type="button" onClick={() => void testConnection()} disabled={testing} className="btn-secondary disabled:opacity-50">
+        <PlugZap className="size-5" aria-hidden />
+        {testing ? s.common.loading : s.aiGateway.test}
+      </button>
+
+      {testError && (
+        <p role="alert" className="rounded-card bg-danger-bg p-3 font-medium text-danger">
+          {testError}
+        </p>
+      )}
+
+      {health && (
+        <div className="space-y-2">
+          <p className="rounded-card bg-teal-bg p-3 font-medium text-teal-dark">{s.aiGateway.ok}</p>
+          {(["gemini", "openai"] as const).map((p) => {
+            const u = health.providers[p];
+            return (
+              <div key={p} className="flex flex-wrap items-center justify-between gap-2 rounded-card border border-line p-3">
+                <span className="font-bold">{s.ask.providers[p]}</span>
+                <span className={"rounded-pill px-3 py-1 font-medium " + (u.configured ? "bg-teal-bg text-teal-dark" : "bg-gold-bg text-gold-dark")}>
+                  {u.configured ? s.aiGateway.providerReady : s.aiGateway.providerMissing}
+                </span>
+                <span className="w-full text-sm text-ink-soft">
+                  {s.aiGateway.budgetLine(money(u.totalUsd), money(u.budgetUsd))} · {s.aiGateway.todayLine(money(u.todayUsd), money(u.dailyCapUsd))}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** قسم الذكاء الاصطناعي والخصوصية — الضمانات الثلاث (§2-هـ) */
 function AiPrivacySection() {
   const s = useStrings();
@@ -458,6 +552,9 @@ function AiPrivacySection() {
           <p className="mt-1 text-ink-soft">{s.aiSend.maySendList}</p>
         </div>
       </div>
+
+      {/* إعدادات البوابة: الرابط ورمز الربط والفحص المجاني (زكريت م٢) */}
+      <GatewayPanel />
 
       {/* الضمانة ٢: سجل الإرسال */}
       <div className="space-y-2">
