@@ -148,6 +148,23 @@ export default {
       return json({ gemini, openai }, 200, cors);
     }
 
+    // النماذج المتاحة فعلاً لمفتاح Gemini — لتدوير النموذج عند تقادمه
+    // (النماذج تتغير كل فترة؛ الاسم إعداد في wrangler.jsonc لا كود)
+    if (request.method === "GET" && url.pathname === "/api/models") {
+      if (!env.GEMINI_API_KEY) return json({ error: "no_key" }, 503, cors);
+      const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=100", {
+        headers: { "x-goog-api-key": env.GEMINI_API_KEY },
+      });
+      if (!res.ok) return json({ error: "list_failed", detail: (await res.text()).slice(0, 300) }, 502, cors);
+      const data = (await res.json()) as {
+        models?: { name?: string; supportedGenerationMethods?: string[] }[];
+      };
+      const models = (data.models ?? [])
+        .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+        .map((m) => (m.name ?? "").replace(/^models\//, ""));
+      return json({ current: env.GEMINI_MODEL, models }, 200, cors);
+    }
+
     if (request.method === "POST" && url.pathname === "/api/ask") {
       let body: { question?: string; sources?: AskSource[]; mode?: "brief" | "detailed" };
       try {
