@@ -27,9 +27,10 @@ import { db } from "@/db";
 import type { Question } from "@/db/schema";
 import { kitByLessonTitle } from "@/content/lessonKits";
 import { absentTodayIds, classPickables, fairPick, makeGroups, type Pickable } from "@/lib/funTools";
-import { TEAM_NAMES, formatAnswer, pickGameQuestions } from "@/lib/classMode";
+import { TEAM_INFO, formatAnswer, pickGameQuestions } from "@/lib/classMode";
 import { MatchGame, MemoryGame, OrderGame, WhoAmIGame } from "@/components/classGames/games";
-import { FlaskConical, Link2, ListOrdered, SquareStack, UsersRound } from "lucide-react";
+import SlideVisual from "@/components/slides/SlideVisual";
+import { Home as HomeIcon, Link2, ListOrdered, SquareStack, UsersRound } from "lucide-react";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
@@ -302,14 +303,20 @@ export default function ClassModePage() {
       {/* رأس رفيع */}
       <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-2">
         <span className="truncate font-heading text-xl font-bold text-gold">{lesson?.title}</span>
-        <button
-          type="button"
-          onClick={() => navigate(lessonId ? `/library/${lessonId}` : "/library")}
-          className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white"
-        >
-          <LogOut className="size-5" aria-hidden />
-          {s.classMode.exit}
-        </button>
+        <div className="flex items-center gap-1">
+          <Link to="/" className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white">
+            <HomeIcon className="size-5" aria-hidden />
+            {s.common.home}
+          </Link>
+          <button
+            type="button"
+            onClick={() => navigate(lessonId ? `/library/${lessonId}` : "/library")}
+            className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white"
+          >
+            <LogOut className="size-5" aria-hidden />
+            {s.classMode.exit}
+          </button>
+        </div>
       </header>
 
       {/* المحتوى */}
@@ -318,26 +325,28 @@ export default function ClassModePage() {
           (slides.length === 0 ? (
             <p className="text-3xl text-white/70">{s.library.kitMissing}</p>
           ) : (
-            <div className="w-full max-w-5xl space-y-8">
-              <h2 className="font-heading text-5xl font-bold leading-snug lg:text-6xl">{slides[slideIdx].title}</h2>
-              <ul className="mx-auto max-w-4xl space-y-4 text-start">
-                {slides[slideIdx].bullets.map((b, i) => (
-                  <li key={i} className="flex items-start gap-3 text-3xl leading-relaxed lg:text-4xl">
-                    <span className="mt-3 size-3 shrink-0 rounded-full bg-gold" aria-hidden />
-                    {b}
-                  </li>
-                ))}
-              </ul>
+            <div className="w-full max-w-5xl space-y-6">
+              {/* الشريحة المصمَّمة الموحّدة — سطح فاتح على خشبة داكنة كبروجكتور حقيقي */}
+              <SlideVisual
+                slide={{
+                  layout: "bullets",
+                  title: slides[slideIdx].title,
+                  bullets: slides[slideIdx].bullets,
+                  note: { say: slides[slideIdx].note ?? "" },
+                }}
+                variant="present"
+                index={slideIdx}
+              />
               {slides[slideIdx].note && (
-                <div className="mx-auto max-w-3xl">
+                <div className="mx-auto max-w-3xl text-center">
                   <button
                     type="button"
                     onClick={() => setShowNote((v) => !v)}
-                    className="min-h-touch rounded-pill border border-white/20 px-4 text-white/60 hover:text-white"
+                    className="min-h-touch rounded-pill border border-white/25 px-4 text-white/70 hover:text-white"
                   >
                     {s.classMode.teacherNote}
                   </button>
-                  {showNote && <p className="mt-2 rounded-card bg-white/10 p-3 text-xl text-white/80">{slides[slideIdx].note}</p>}
+                  {showNote && <p className="mt-2 rounded-card bg-white/10 p-3 text-xl text-white/85">{slides[slideIdx].note}</p>}
                 </div>
               )}
               <div className="flex items-center justify-center gap-6">
@@ -359,6 +368,12 @@ export default function ClassModePage() {
                   {s.classMode.next}
                 </button>
               </div>
+              {/* نقاط التقدّم */}
+              <div className="flex flex-wrap items-center justify-center gap-1.5" aria-hidden>
+                {slides.map((_, i) => (
+                  <span key={i} className={"size-3 rounded-full " + (i === slideIdx ? "bg-gold" : i < slideIdx ? "bg-teal" : "bg-white/25")} />
+                ))}
+              </div>
             </div>
           ))}
 
@@ -369,35 +384,35 @@ export default function ClassModePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               {(
                 [
-                  { key: "team", label: s.games.team, hint: s.games.teamHint, icon: Gamepad2 },
-                  { key: "match", label: s.games.match, hint: s.games.matchHint, icon: Link2 },
-                  { key: "order", label: s.games.order, hint: s.games.orderHint, icon: ListOrdered },
-                  { key: "memory", label: s.games.memory, hint: s.games.memoryHint, icon: SquareStack },
-                  { key: "who", label: s.games.who, hint: s.games.whoHint, icon: UsersRound },
-                ] as { key: ActiveGame; label: string; hint: string; icon: typeof Gamepad2 }[]
+                  { key: "team", label: s.games.team, hint: s.games.teamHint, icon: Gamepad2, emoji: "🏆", tile: "border-gold/70 bg-gold/10" },
+                  { key: "match", label: s.games.match, hint: s.games.matchHint, icon: Link2, emoji: "🔗", tile: "border-teal/70 bg-teal/10" },
+                  { key: "order", label: s.games.order, hint: s.games.orderHint, icon: ListOrdered, emoji: "🪜", tile: "border-danger/70 bg-danger/10" },
+                  { key: "memory", label: s.games.memory, hint: s.games.memoryHint, icon: SquareStack, emoji: "🃏", tile: "border-white/50 bg-white/10" },
+                  { key: "who", label: s.games.who, hint: s.games.whoHint, icon: UsersRound, emoji: "🕵️‍♀️", tile: "border-ok/70 bg-ok/10" },
+                ] as { key: ActiveGame; label: string; hint: string; icon: typeof Gamepad2; emoji: string; tile: string }[]
               ).map((g) => (
                 <button
                   key={g.key}
                   type="button"
                   onClick={() => setActiveGame(g.key)}
-                  className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-card border-2 border-white/25 p-4 transition-colors hover:border-gold hover:bg-white/5"
+                  className={"flex min-h-[104px] flex-col items-center justify-center gap-1 rounded-card border-2 p-4 transition-all motion-safe:hover:scale-[1.03] hover:border-gold " + g.tile}
                 >
                   <span className="flex items-center gap-3 text-2xl font-bold">
-                    <g.icon className="size-8 text-gold" aria-hidden />
+                    <span aria-hidden className="text-4xl">{g.emoji}</span>
                     {g.label}
                   </span>
-                  <span className="text-white/60">{g.hint}</span>
+                  <span className="text-white/70">{g.hint}</span>
                 </button>
               ))}
               <Link
                 to="/lab?from=class"
-                className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-card border-2 border-teal bg-teal/10 p-4 transition-colors hover:border-gold hover:bg-white/5"
+                className="flex min-h-[104px] flex-col items-center justify-center gap-1 rounded-card border-2 border-teal/70 bg-gradient-to-bl from-teal/25 to-transparent p-4 transition-all motion-safe:hover:scale-[1.03] hover:border-gold"
               >
                 <span className="flex items-center gap-3 text-2xl font-bold">
-                  <FlaskConical className="size-8 text-gold" aria-hidden />
+                  <span aria-hidden className="text-4xl">🧪</span>
                   {s.games.lab}
                 </span>
-                <span className="text-white/60">{s.games.labHint}</span>
+                <span className="text-white/70">{s.games.labHint}</span>
               </Link>
             </div>
           </div>
@@ -421,7 +436,7 @@ export default function ClassModePage() {
               <div className="space-y-6">
                 <h2 className="font-heading text-6xl font-bold text-gold">{s.classMode.gameOver}</h2>
                 <p className="text-4xl">
-                  {winners.length === 1 ? s.classMode.winner(TEAM_NAMES[winners[0].i]) : s.classMode.tie}
+                  {winners.length === 1 ? s.classMode.winner(TEAM_INFO[winners[0].i].emoji + " " + TEAM_INFO[winners[0].i].name) : s.classMode.tie}
                 </p>
                 <button type="button" onClick={() => void startGame()} className="btn mx-auto min-h-[64px] bg-gold px-8 text-2xl font-bold text-ink hover:bg-gold-dark hover:text-white">
                   {s.classMode.playAgain}
@@ -453,8 +468,8 @@ export default function ClassModePage() {
                     <p className="text-xl text-white/70">{s.classMode.whichTeam}</p>
                     <div className="flex flex-wrap justify-center gap-3">
                       {scores.map((_, i) => (
-                        <button key={i} type="button" onClick={() => awardTeam(i)} className="btn min-h-[64px] bg-teal px-6 text-2xl font-bold text-white hover:bg-teal-dark">
-                          {TEAM_NAMES[i]} ‏+{n(1)}
+                        <button key={i} type="button" onClick={() => awardTeam(i)} className={"btn min-h-[64px] px-6 text-2xl font-bold " + TEAM_INFO[i].btn}>
+                          <span aria-hidden>{TEAM_INFO[i].emoji}</span> {TEAM_INFO[i].name} ‏+{n(1)}
                         </button>
                       ))}
                       <button type="button" onClick={skipQuestion} className="btn min-h-[64px] border-2 border-white/30 bg-transparent px-6 text-2xl text-white hover:bg-white/10">
@@ -469,8 +484,8 @@ export default function ClassModePage() {
             {gameQuestions !== null && gameQuestions.length > 0 && (
               <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-4 border-t border-white/10 pt-5">
                 {scores.map((v, i) => (
-                  <span key={i} className="rounded-card bg-white/10 px-5 py-2 text-2xl font-bold">
-                    {TEAM_NAMES[i]}: <b className="text-gold">{n(v)}</b>
+                  <span key={i} className={"rounded-card border-2 px-5 py-2 text-2xl font-bold " + TEAM_INFO[i].chip}>
+                    <span aria-hidden>{TEAM_INFO[i].emoji}</span> {TEAM_INFO[i].name}: <b className="text-gold">{n(v)}</b>
                   </span>
                 ))}
                 <button type="button" onClick={undoLastPoint} className="flex min-h-touch items-center gap-1 rounded-card px-3 text-white/60 hover:bg-white/10 hover:text-white">
@@ -565,7 +580,7 @@ export default function ClassModePage() {
                   {groups.map((g, i) => (
                     <div key={i} className="rounded-card bg-white/10 p-4 text-start">
                       <p className="mb-2 border-b border-white/20 pb-2 font-heading text-2xl font-bold text-gold">
-                        {TEAM_NAMES[i] ?? `مجموعة ${n(i + 1)}`}
+                        {TEAM_INFO[i] ? TEAM_INFO[i].emoji + " " + TEAM_INFO[i].name : `مجموعة ${n(i + 1)}`}
                         <span className="ms-2 text-base font-normal text-white/60">{s.classMode.membersCount(n(g.length))}</span>
                       </p>
                       <ul className="space-y-1 text-xl">

@@ -3,8 +3,8 @@
  * زر رجوع، وزرا تكبير/تصغير الخط (§6 — كل أيقونة معها كلمة عربية).
  */
 import { useLiveQuery } from "dexie-react-hooks";
-import { useLocation, useNavigate } from "react-router-dom";
-import { AArrowDown, AArrowUp, ArrowRight } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AArrowDown, AArrowUp, ArrowRight, Home } from "lucide-react";
 import { db } from "@/db";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
@@ -28,14 +28,20 @@ export default function TopBar() {
     <header className="sticky top-0 z-10 bg-gradient-to-l from-maroon to-maroon-dark text-white shadow-bar">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 px-4 py-3">
         {!isHome && (
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex min-h-touch items-center gap-1 rounded-card px-3 font-medium hover:bg-white/10"
-          >
-            <ArrowRight className="size-5" aria-hidden />
-            {s.common.back}
-          </button>
+          <>
+            <Link to="/" className="flex min-h-touch items-center gap-1 rounded-card px-3 font-medium hover:bg-white/10">
+              <Home className="size-5" aria-hidden />
+              {s.common.home}
+            </Link>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="flex min-h-touch items-center gap-1 rounded-card px-3 font-medium hover:bg-white/10"
+            >
+              <ArrowRight className="size-5" aria-hidden />
+              {s.common.back}
+            </button>
+          </>
         )}
 
         <div className="me-auto">

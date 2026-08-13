@@ -1,12 +1,12 @@
 /**
- * عرض البروجكتور للعرض البصري المعتمد (زكريت م٣) — شاشة داكنة كاملة
- * كوضع الفصل: أسهم لوحة المفاتيح، إجابة التفاعل خلف ضغطة المعلّمة،
- * وملاحظة المعلّمة مخفية عن الطالبات حتى تطلبها.
+ * منصّة عرض العروض البصرية (صقل زكريت) — خشبة فاتحة أنيقة:
+ * الشريحة المصمَّمة في المنتصف، نقاط تقدّم، أسهم لوحة المفاتيح،
+ * إجابة التفاعل خلف ضغطة المعلّمة، وملاحظتها الخاصة عند الطلب.
  */
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Eye, LogOut } from "lucide-react";
+import { Eye, Home, LogOut } from "lucide-react";
 import { db } from "@/db";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
@@ -18,6 +18,7 @@ export default function SlidesPresentPage() {
   const navigate = useNavigate();
   const { presentationId } = useParams();
   const numerals = useUi((x) => x.numeralsTable);
+  const schoolName = useUi((x) => x.schoolName);
 
   const pres = useLiveQuery(() => db.presentations.get(Number(presentationId)), [presentationId]);
 
@@ -46,65 +47,89 @@ export default function SlidesPresentPage() {
   const n = (v: number) => fmtNum(v, numerals);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-ink text-white">
-      <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-2">
-        <span className="truncate font-heading text-xl font-bold text-gold">{pres.title}</span>
-        <button
-          type="button"
-          onClick={() => navigate(pres.lessonId ? `/slides?lesson=${pres.lessonId}` : "/slides")}
-          className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white"
-        >
-          <LogOut className="size-5" aria-hidden />
-          {s.classMode.exit}
-        </button>
+    <div className="flex min-h-dvh flex-col bg-cream text-ink">
+      {/* رأس رفيع */}
+      <header className="flex items-center justify-between gap-3 border-b-2 border-line bg-white px-5 py-2">
+        <span className="truncate font-heading text-xl font-bold text-maroon">{pres.title}</span>
+        <div className="flex items-center gap-1">
+          <Link to="/" className="flex min-h-touch items-center gap-2 rounded-card px-3 text-ink-soft hover:bg-cream hover:text-ink">
+            <Home className="size-5" aria-hidden />
+            {s.common.home}
+          </Link>
+          <button
+            type="button"
+            onClick={() => navigate(pres.lessonId ? `/slides?lesson=${pres.lessonId}` : "/slides")}
+            className="flex min-h-touch items-center gap-2 rounded-card px-3 text-ink-soft hover:bg-cream hover:text-ink"
+          >
+            <LogOut className="size-5" aria-hidden />
+            {s.classMode.exit}
+          </button>
+        </div>
       </header>
 
-      <main className="flex flex-1 flex-col justify-center overflow-y-auto p-8">
-        <div className="mx-auto w-full max-w-5xl text-center">
-          <SlideVisual slide={sl} variant="present" answerRevealed={revealed} />
+      {/* الشريحة */}
+      <main className="flex flex-1 flex-col justify-center overflow-y-auto p-6">
+        <div className="mx-auto w-full max-w-5xl">
+          <SlideVisual slide={sl} variant="present" index={idx} answerRevealed={revealed} schoolName={schoolName || "مدرستي"} />
 
-          {sl.interaction && !revealed && (
-            <button
-              type="button"
-              onClick={() => setRevealed(true)}
-              className="btn mx-auto mt-6 min-h-[64px] bg-gold px-10 text-2xl font-bold text-ink hover:bg-gold-dark hover:text-white"
-            >
-              <Eye className="size-8" aria-hidden />
-              {s.classMode.reveal}
-            </button>
-          )}
-
-          <div className="mt-6">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            {sl.interaction && !revealed && (
+              <button
+                type="button"
+                onClick={() => setRevealed(true)}
+                className="btn min-h-[60px] bg-gold px-8 text-xl font-bold text-ink hover:bg-gold-dark hover:text-white"
+              >
+                <Eye className="size-7" aria-hidden />
+                {s.classMode.reveal}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setShowNote((v) => !v)}
-              className="min-h-touch rounded-pill border border-white/20 px-4 text-white/50 hover:text-white"
+              className="min-h-touch rounded-pill border-2 border-line bg-white px-4 text-ink-soft hover:border-teal hover:text-teal-dark"
             >
               {s.classMode.teacherNote}
             </button>
-            {showNote && <p className="mx-auto mt-2 max-w-3xl rounded-card bg-white/10 p-3 text-xl text-white/80">{sl.note.say}</p>}
           </div>
+          {showNote && (
+            <p className="mx-auto mt-3 max-w-3xl rounded-card border-2 border-line bg-white p-3 text-lg text-ink-soft">{sl.note.say}</p>
+          )}
         </div>
       </main>
 
-      <footer className="flex items-center justify-center gap-6 border-t-2 border-white/10 bg-black/30 py-3">
-        <button
-          type="button"
-          onClick={() => setIdx((i) => Math.max(i - 1, 0))}
-          disabled={idx === 0}
-          className="btn min-h-[56px] border-2 border-white/30 bg-transparent px-8 text-xl text-white hover:bg-white/10 disabled:opacity-30"
-        >
-          {s.classMode.prev}
-        </button>
-        <span className="text-lg text-white/60">{s.classMode.slideOf(n(idx + 1), n(count))}</span>
-        <button
-          type="button"
-          onClick={() => setIdx((i) => Math.min(i + 1, count - 1))}
-          disabled={idx >= count - 1}
-          className="btn min-h-[56px] bg-gold px-8 text-xl font-bold text-ink hover:bg-gold-dark hover:text-white disabled:opacity-30"
-        >
-          {s.classMode.next}
-        </button>
+      {/* شريط التنقّل والتقدّم */}
+      <footer className="border-t-2 border-line bg-white py-3">
+        <div className="flex items-center justify-center gap-6">
+          <button
+            type="button"
+            onClick={() => setIdx((i) => Math.max(i - 1, 0))}
+            disabled={idx === 0}
+            className="btn min-h-[56px] border-2 border-line bg-white px-8 text-xl text-ink hover:border-teal hover:bg-teal-bg disabled:opacity-30"
+          >
+            {s.classMode.prev}
+          </button>
+          <span className="text-lg text-ink-soft">{s.classMode.slideOf(n(idx + 1), n(count))}</span>
+          <button
+            type="button"
+            onClick={() => setIdx((i) => Math.min(i + 1, count - 1))}
+            disabled={idx >= count - 1}
+            className="btn min-h-[56px] bg-teal px-8 text-xl font-bold text-white hover:bg-teal-dark disabled:opacity-30"
+          >
+            {s.classMode.next}
+          </button>
+        </div>
+        {/* نقاط التقدّم */}
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5" aria-hidden>
+          {pres.slides.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              tabIndex={-1}
+              onClick={() => setIdx(i)}
+              className={"size-3 rounded-full transition-colors " + (i === idx ? "bg-teal" : i < idx ? "bg-gold" : "bg-line hover:bg-teal-bg")}
+            />
+          ))}
+        </div>
       </footer>
     </div>
   );

@@ -5,8 +5,8 @@
  * (درجة الحرارة) وزر إعادة، وبديل منزلي آمن وتذكير سلامة.
  */
 import { useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { FlaskConical, LogOut, RotateCcw, Snowflake, Sun, Flame, Eye } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { FlaskConical, Home, LogOut, RotateCcw, Snowflake, Sun, Flame, Eye } from "lucide-react";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
@@ -67,14 +67,20 @@ export default function LabPage() {
           <FlaskConical className="size-6" aria-hidden />
           {s.lab.waterTitle}
         </span>
-        <button
-          type="button"
-          onClick={() => (fromClass ? navigate(-1) : navigate("/tools"))}
-          className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white"
-        >
-          <LogOut className="size-5" aria-hidden />
-          {s.classMode.exit}
-        </button>
+        <div className="flex items-center gap-1">
+          <Link to="/" className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white">
+            <Home className="size-5" aria-hidden />
+            {s.common.home}
+          </Link>
+          <button
+            type="button"
+            onClick={() => (fromClass ? navigate(-1) : navigate("/tools"))}
+            className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white"
+          >
+            <LogOut className="size-5" aria-hidden />
+            {s.classMode.exit}
+          </button>
+        </div>
       </header>
 
       <main className="mx-auto grid w-full max-w-6xl flex-1 gap-6 overflow-y-auto p-6 lg:grid-cols-2">
@@ -95,12 +101,34 @@ export default function LabPage() {
                 <rect x="190" y="212" width="42" height="38" rx="6" />
               </g>
             )}
-            {/* الجزيئات */}
+            {/* الجزيئات — تهتز حسب الحالة: الصلبة ساكنة، السائلة بطيئة، الغازية سريعة */}
             <g fill={state === "ice" ? "#D6F0FF" : state === "liquid" ? "#9FD4CC" : "#FCF3E2"}>
               {molecules.map((m, i) => (
-                <circle key={i} cx={m.x} cy={m.y} r={state === "steam" ? 5 : 6} opacity={state === "steam" ? 0.85 : 1} />
+                <circle
+                  key={i}
+                  cx={m.x}
+                  cy={m.y}
+                  r={state === "steam" ? 5 : 6}
+                  opacity={state === "steam" ? 0.85 : 1}
+                  className={
+                    state === "steam"
+                      ? "motion-safe:animate-[wiggle_.7s_ease-in-out_infinite]"
+                      : state === "liquid"
+                        ? "motion-safe:animate-[wiggle_1.8s_ease-in-out_infinite]"
+                        : ""
+                  }
+                  style={{ animationDelay: `${(i % 5) * 0.15}s` }}
+                />
               ))}
             </g>
+            {/* أبخرة تصعد عند الغليان */}
+            {state === "steam" && (
+              <g fill="#FFFFFF" opacity="0.5">
+                {[90, 150, 210].map((x, i) => (
+                  <circle key={i} cx={x} cy={120} r={9 - i} className="motion-safe:animate-[rise_2.4s_linear_infinite]" style={{ animationDelay: `${i * 0.8}s` }} />
+                ))}
+              </g>
+            )}
             {/* لهب/ثلج تحت الكأس */}
             {temp >= 100 && <path d="M 130 322 Q 138 306 150 322 Q 162 306 170 322" fill="none" stroke="#C08A2E" strokeWidth="4" strokeLinecap="round" />}
             {temp <= 0 && <g stroke="#D6F0FF" strokeWidth="3"><line x1="140" y1="320" x2="160" y2="328" /><line x1="160" y1="320" x2="140" y2="328" /></g>}

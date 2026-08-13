@@ -4,8 +4,15 @@
  */
 import type { AnswerKey, Question } from "@/db/schema";
 
-/** أسماء الفرق — لآلئ الخليج، تكفي حتى أربعة فرق */
-export const TEAM_NAMES = ["فريق اللؤلؤ", "فريق المرجان", "فريق الياقوت", "فريق الزمرد"] as const;
+/** هوية الفرق — لآلئ الخليج: اسم ورمز ولون لكل فريق (صقل زكريت) */
+export const TEAM_INFO = [
+  { name: "فريق اللؤلؤ", emoji: "🤍", btn: "bg-white text-ink hover:bg-cream", chip: "bg-white/15 border-white/40" },
+  { name: "فريق المرجان", emoji: "🪸", btn: "bg-danger text-white hover:bg-[#8f1e18]", chip: "bg-danger/25 border-danger" },
+  { name: "فريق الياقوت", emoji: "💎", btn: "bg-teal text-white hover:bg-teal-dark", chip: "bg-teal/25 border-teal" },
+  { name: "فريق الزمرد", emoji: "💚", btn: "bg-ok text-white hover:bg-teal-dark", chip: "bg-ok/25 border-ok" },
+] as const;
+
+export const TEAM_NAMES = TEAM_INFO.map((t) => t.name);
 
 /**
  * اختيار أسئلة اللعبة: أسئلة الدرس أولاً، وإن قلّت كمّلنا من وحدته،

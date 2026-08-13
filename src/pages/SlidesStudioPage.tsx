@@ -306,9 +306,7 @@ export default function SlidesStudioPage() {
                   </div>
                 </div>
 
-                <div className="rounded-card border-2 border-line bg-cream/60 p-4">
-                  <SlideVisual slide={sl} variant="preview" />
-                </div>
+                <SlideVisual slide={sl} variant="preview" index={i} />
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block space-y-1 text-sm">

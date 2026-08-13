@@ -33,6 +33,14 @@ function BackRow({ onExit, label }: { onExit: () => void; label: string }) {
 function Celebrate({ text, onAgain, againLabel }: { text: string; onAgain: () => void; againLabel: string }) {
   return (
     <div className="space-y-6 text-center">
+      {/* لحظة احتفال حقيقية: هالة شعاعية ورموز تقفز بلطف */}
+      <div className="relative mx-auto flex size-64 items-center justify-center">
+        <span aria-hidden className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,rgba(192,138,46,.35),transparent_25%,rgba(15,107,98,.35)_50%,transparent_75%,rgba(192,138,46,.35))]" />
+        <span aria-hidden className="absolute inset-6 rounded-full bg-ink" />
+        <span aria-hidden className="relative text-8xl motion-safe:animate-[bounce-soft_1.4s_ease-in-out_infinite]">🎉</span>
+        <span aria-hidden className="absolute right-4 top-8 text-4xl motion-safe:animate-[bounce-soft_1.8s_ease-in-out_infinite]">⭐</span>
+        <span aria-hidden className="absolute bottom-8 left-4 text-4xl motion-safe:animate-[bounce-soft_1.6s_ease-in-out_infinite]">🏅</span>
+      </div>
       <p className="font-heading text-6xl font-bold text-gold">{text}</p>
       <button type="button" onClick={onAgain} className="btn mx-auto min-h-[56px] bg-gold px-8 text-xl font-bold text-ink hover:bg-gold-dark hover:text-white">
         <Shuffle className="size-6" aria-hidden />
@@ -238,14 +246,13 @@ export function MemoryGame({ questions, onExit }: { questions: Question[]; onExi
                   aria-label={isOpen ? c.text : "بطاقة مقلوبة — اضغطي لقلبها"}
                   onClick={() => { setOpen((o) => [...o, c.id]); setFlips((f) => f + 1); }}
                   className={
-                    "min-h-[96px] rounded-card border-2 p-2 text-lg font-medium transition-colors " +
+                    "min-h-[96px] rounded-card border-2 p-2 text-lg font-medium transition-all " +
                     (matched.has(c.pairIndex)
                       ? "border-ok bg-ok/15 text-white/60"
                       : isOpen
-                        ? c.face === "term"
-                          ? "border-gold bg-gold/15 text-white"
-                          : "border-teal bg-teal/20 text-white"
-                        : "border-white/25 bg-white/10 text-transparent hover:border-gold")
+                        ? "motion-safe:animate-[pop_.3s_ease] " +
+                          (c.face === "term" ? "border-gold bg-gold/15 text-white" : "border-teal bg-teal/20 text-white")
+                        : "border-white/25 bg-white/10 text-transparent motion-safe:hover:scale-105 hover:border-gold")
                   }
                 >
                   {isOpen ? c.text : <span className="block text-4xl text-white/40">؟</span>}

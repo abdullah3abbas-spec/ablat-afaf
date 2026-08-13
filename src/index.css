@@ -225,6 +225,27 @@
   }
 }
 
+/* حركات لطيفة — تعمل فقط مع motion-safe (احترام تقليل الحركة §6) */
+@keyframes pop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes rise {
+  0% { transform: translateY(0); opacity: 0.9; }
+  100% { transform: translateY(-130px); opacity: 0; }
+}
+@keyframes wiggle {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(2px, -2px); }
+  50% { transform: translate(-2px, 1px); }
+  75% { transform: translate(1px, 2px); }
+}
+
 @layer components {
   /* زر أساسي — ارتفاع ٤٨px على الأقل (§6) */
   .btn {
