@@ -4,6 +4,7 @@
  * البنية «لا تُمَس»: الحقول والصياغة كما في نموذج أبلة عفاف المرجعي.
  */
 import { db } from "@/db";
+import { DEFAULT_SCHOOL_NAME } from "@/db/constants";
 import type { Lesson, LessonPackContent } from "@/db/schema";
 import { bookLessonByCode } from "@/content/bookG05S1P1";
 import { enrichmentByCode } from "@/content/enrichment";
@@ -128,7 +129,7 @@ export async function downloadMinistryPlanForLesson(lesson: Lesson, pack?: Lesso
     lesson,
     unitTitle: unit?.title ?? "",
     pack,
-    schoolName: settings?.schoolName || "مدرستي",
+    schoolName: settings?.schoolName || DEFAULT_SCHOOL_NAME,
     teacherName: settings?.teacherName || "عفاف حسين",
     yearName: year?.name ?? "",
     term: settings?.currentTerm === 2 ? 2 : 1,

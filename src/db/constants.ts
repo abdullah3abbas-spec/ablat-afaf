@@ -93,3 +93,9 @@ export const DEFAULT_POINT_LEVELS: PointLevel[] = [
   { key: "distinguished", nameAr: "عالِمة متميّزة", min: 300, max: 499 },
   { key: "ambassador", nameAr: "سفيرة العلوم", min: 500, max: null },
 ];
+
+/** الاسم الرسمي للمدرسة — وصل من المالك (أغسطس ٢٠٢٦) */
+export const DEFAULT_SCHOOL_NAME = "مدرسة زكريت الابتدائية للبنات";
+
+/** العنصر النائب القديم لاسم المدرسة — يُستبدل بالاسم الرسمي في ترحيل v11 */
+export const LEGACY_SCHOOL_PLACEHOLDER = "مدرستي (غيّري الاسم من الإعدادات)";

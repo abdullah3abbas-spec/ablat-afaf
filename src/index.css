@@ -183,21 +183,31 @@
      وتتغيّر المنصّة كلها دون إعادة بناء أي صفحة.
      ============================================================ */
   :root {
+    /* هوية مدرسة زكريت الابتدائية للبنات — «سجلّ مدرسي قطري»:
+       كروم عنّابي بحياكة سدو، ورق دافئ، ذهب للتكريم، تركوازي للأفعال */
     --c-maroon: 138 21 56; /* #8A1538 عنّابي قطري — الهوية والشريط */
-    --c-maroon-dark: 94 14 38; /* #5E0E26 */
+    --c-maroon-dark: 105 14 41; /* #690E29 */
+    --c-maroon-deep: 74 9 29; /* #4A091D عمق التدرجات والظلال الدافئة */
     --c-teal: 15 107 98; /* #0F6B62 لون الإجراء الأساسي */
     --c-teal-dark: 11 83 76; /* #0B534C */
-    --c-teal-bg: 230 242 240; /* #E6F2F0 */
-    --c-gold: 192 138 46; /* #C08A2E تنبيه وانتباه */
+    --c-teal-bg: 228 241 238; /* #E4F1EE */
+    --c-gold: 192 138 46; /* #C08A2E ذهب السدو والتكريم */
     --c-gold-dark: 122 87 22; /* #7A5716 */
     --c-gold-bg: 252 243 226; /* #FCF3E2 */
-    --c-cream: 251 248 243; /* #FBF8F3 خلفية الصفحات */
-    --c-line: 230 223 212; /* #E6DFD4 حدود وفواصل */
+    --c-cream: 250 246 239; /* #FAF6EF ورق دافئ — خلفية الصفحات */
+    --c-line: 233 224 210; /* #E9E0D2 حدود وفواصل */
     --c-ink: 30 36 48; /* #1E2430 نص أساسي */
     --c-ink-soft: 74 85 104; /* #4A5568 نص ثانوي */
     --c-ok: 46 125 79; /* #2E7D4F نجاح */
     --c-danger: 179 38 30; /* #B3261E خطر */
     --c-danger-bg: 253 236 234; /* #FDECEA */
+
+    /* حياكة السدو — شريط النسيج المميِّز للهوية (يُستخدم عبر .sadu-band) */
+    --sadu-tile: repeating-conic-gradient(
+      from 45deg at 50% 50%,
+      rgb(var(--c-gold)) 0 25%,
+      transparent 0 50%
+    );
   }
 
   /* الخط الأساسي 18px (§6) — يرفعه المتجر إلى 20/22/24 من الإعدادات */
@@ -208,6 +218,11 @@
     @apply bg-cream font-sans text-ink;
     line-height: 1.8;
     -webkit-tap-highlight-color: transparent;
+    /* غلاف جوي: توهج دافئ أعلى الصفحة + نسيج حياكة خافت جداً — عمق بلا ضوضاء */
+    background-image:
+      radial-gradient(1100px 380px at 50% -120px, rgb(var(--c-gold) / 0.06), transparent 65%),
+      repeating-linear-gradient(45deg, rgb(var(--c-maroon) / 0.009) 0 2px, transparent 2px 19px);
+    background-attachment: fixed;
   }
   h1,
   h2,
@@ -249,18 +264,58 @@
 @layer components {
   /* زر أساسي — ارتفاع ٤٨px على الأقل (§6) */
   .btn {
-    @apply inline-flex min-h-touch items-center justify-center gap-2 rounded-card px-5 font-medium transition-colors;
+    @apply inline-flex min-h-touch items-center justify-center gap-2 rounded-card px-5 font-semibold;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background-color 0.15s ease;
   }
   .btn-primary {
-    @apply btn bg-teal text-white hover:bg-teal-dark;
+    @apply btn text-white;
+    background-image: linear-gradient(to bottom, rgb(var(--c-teal)), rgb(var(--c-teal-dark)));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.14),
+      0 1px 2px rgb(var(--c-teal-dark) / 0.3),
+      0 4px 12px rgb(var(--c-teal-dark) / 0.22);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.06);
   }
   .btn-secondary {
-    @apply btn border-2 border-teal bg-white text-teal hover:bg-teal-bg;
+    @apply btn border-2 border-teal bg-white text-teal-dark hover:bg-teal-bg;
+    box-shadow: 0 1px 2px rgb(var(--c-maroon-deep) / 0.06);
   }
   .btn-danger {
     @apply btn bg-danger text-white hover:opacity-90;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
   }
+  @media (prefers-reduced-motion: no-preference) {
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 2px 4px rgb(var(--c-teal-dark) / 0.3), 0 7px 18px rgb(var(--c-teal-dark) / 0.26); }
+    .btn:active { transform: translateY(0) scale(0.985); }
+  }
+
   .card {
     @apply rounded-card border border-line bg-white p-5 shadow-card;
+  }
+
+  /* البطاقة البطلة — لحظة الهوية: عنّابي عميق متدرج بحافة سدو منسوجة */
+  .card-hero {
+    @apply relative overflow-hidden rounded-card p-5 text-white shadow-lift;
+    background-image:
+      radial-gradient(640px 220px at 85% -60px, rgb(var(--c-gold) / 0.2), transparent 60%),
+      linear-gradient(135deg, rgb(var(--c-maroon)), rgb(var(--c-maroon-deep)));
+  }
+  .card-hero::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 7px;
+    background: var(--sadu-tile) 0 0 / 11px 11px, rgb(var(--c-maroon-deep));
+    opacity: 0.9;
+  }
+
+  /* حزام السدو — توقيع الهوية أسفل الشريط العلوي وفي رؤوس المستندات */
+  .sadu-band {
+    height: 7px;
+    background: var(--sadu-tile) 0 0 / 11px 11px,
+      linear-gradient(to left, rgb(var(--c-maroon-deep)), rgb(var(--c-maroon-dark)));
   }
 }

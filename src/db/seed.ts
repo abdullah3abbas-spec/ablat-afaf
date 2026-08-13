@@ -9,6 +9,7 @@ import { db } from "./db";
 import { ensureRealCurriculum } from "./realCurriculum";
 import {
   DEFAULT_ABSENCE_ALERT,
+  DEFAULT_SCHOOL_NAME,
   DEFAULT_BADGES,
   DEFAULT_COGNITIVE,
   DEFAULT_EXAM_TYPES,
@@ -183,7 +184,7 @@ async function runSeed(): Promise<void> {
             fontScale: prev?.fontScale ?? 18,
             numeralsTable: prev?.numeralsTable ?? "western",
             numeralsCert: prev?.numeralsCert ?? "eastern",
-            schoolName: prev?.schoolName ?? "مدرستي (غيّري الاسم من الإعدادات)",
+            schoolName: prev?.schoolName ?? DEFAULT_SCHOOL_NAME,
             currentAcademicYearId: yearId,
             lastUsedClassId: classId,
             pointLevels: prev?.pointLevels ?? DEFAULT_POINT_LEVELS,

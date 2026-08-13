@@ -15,8 +15,12 @@ export default {
       colors: {
         // القيم الفعلية في src/index.css ‏(:root) — توكِنات قابلة للتخصيص
         // لهوية مدرسة زكريت لاحقاً دون إعادة بناء الصفحات (المرحلة ١)
-        // العنّابي القطري — لون الهوية والشريط العلوي
-        maroon: { DEFAULT: "rgb(var(--c-maroon) / <alpha-value>)", dark: "rgb(var(--c-maroon-dark) / <alpha-value>)" },
+        // العنّابي القطري — لون الهوية والشريط العلوي (deep لعمق التدرجات)
+        maroon: {
+          DEFAULT: "rgb(var(--c-maroon) / <alpha-value>)",
+          dark: "rgb(var(--c-maroon-dark) / <alpha-value>)",
+          deep: "rgb(var(--c-maroon-deep) / <alpha-value>)",
+        },
         // التركوازي — لون الإجراء الأساسي
         teal: {
           DEFAULT: "rgb(var(--c-teal) / <alpha-value>)",
@@ -44,8 +48,11 @@ export default {
       minHeight: { touch: "48px" },
       minWidth: { touch: "48px" },
       boxShadow: {
-        card: "0 1px 3px rgba(0,0,0,.05)",
-        bar: "0 2px 10px rgba(0,0,0,.18)",
+        // ظلال دافئة بصبغة العنّابي — عمق ورقي لا رمادي
+        card: "0 1px 2px rgba(74,9,29,.05), 0 4px 14px rgba(74,9,29,.07)",
+        lift: "0 2px 4px rgba(74,9,29,.1), 0 10px 28px rgba(74,9,29,.16)",
+        bar: "0 2px 14px rgba(74,9,29,.22)",
+        nav: "0 -3px 18px rgba(74,9,29,.12)",
       },
     },
   },

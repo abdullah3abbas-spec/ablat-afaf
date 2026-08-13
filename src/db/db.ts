@@ -244,6 +244,18 @@ export class ManassatDB extends Dexie {
       const { ensureRealCurriculum } = await import("./realCurriculum");
       await ensureRealCurriculum({ units, lessons }, science.id as number, now);
     });
+
+    // v11 — هوية زكريت: الاسم الرسمي للمدرسة يحل محل العنصر النائب القديم،
+    // واسم المعلّمة الافتراضي — دون المساس بأي اسم كتبته المستخدمة بنفسها.
+    this.version(11).upgrade(async (tx) => {
+      const { DEFAULT_SCHOOL_NAME, LEGACY_SCHOOL_PLACEHOLDER } = await import("./constants");
+      await tx.table("settings").toCollection().modify((st: { schoolName?: string; teacherName?: string }) => {
+        if (!st.schoolName?.trim() || st.schoolName === LEGACY_SCHOOL_PLACEHOLDER) {
+          st.schoolName = DEFAULT_SCHOOL_NAME;
+        }
+        if (!st.teacherName?.trim()) st.teacherName = "عفاف حسين";
+      });
+    });
   }
 }
 

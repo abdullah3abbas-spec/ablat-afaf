@@ -112,16 +112,16 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-6">
-      {/* التحية */}
-      <section className="card bg-gradient-to-l from-teal to-teal-dark text-white">
-        <h1 className="font-heading text-3xl font-bold">{greeting}</h1>
+      {/* التحية — لحظة الهوية العنّابية */}
+      <section className="card-hero">
+        <h1 className="font-heading text-3xl font-extrabold">{greeting}</h1>
         {empty ? (
-          <button type="button" onClick={() => void reseedDemo()} className="btn mt-3 bg-white text-teal-dark hover:bg-teal-bg">
+          <button type="button" onClick={() => void reseedDemo()} className="btn mt-3 bg-white text-maroon-dark hover:bg-cream">
             <RefreshCw className="size-5" aria-hidden />
             {s.home.emptyAction}
           </button>
         ) : (
-          <p className="mt-1 text-white/90">
+          <p className="mt-1 pb-2 text-white/90">
             {data
               ? s.home.summaryLine(fmtNum(3, numerals), fmtNum(data.studentsCount, numerals))
               : s.common.loading}
@@ -133,7 +133,7 @@ export default function TodayPage() {
       <section aria-label={s.a11y.primaryActions} className="space-y-3">
         <Link
           to={todayLesson ? `/library/${todayLesson.lesson.id}` : "/library"}
-          className="btn w-full flex-col gap-1 bg-maroon text-white shadow-bar hover:bg-maroon-dark min-h-[88px]"
+          className="btn-primary w-full flex-col gap-1 min-h-[88px]"
         >
           <span className="flex items-center gap-2 text-2xl font-bold">
             <Play className="size-8" aria-hidden />

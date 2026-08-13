@@ -49,7 +49,7 @@ export default function LibraryPage() {
               </span>
               <span className="text-sm font-normal text-ink-soft">
                 {s.library.lessonsCount(fmtNum(lessons.length, numerals))}
-                {unit.standards?.length ? ` · ${unit.standards.join(" · ")}` : ""}
+                {unit.standards?.length ? <span className="hidden sm:inline">{` · ${unit.standards.join(" · ")}`}</span> : null}
               </span>
             </h2>
             <ul className="divide-y divide-line">
