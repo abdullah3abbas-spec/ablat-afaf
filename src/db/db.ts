@@ -44,6 +44,7 @@ import type {
   Student,
   StudioRequest,
   TeacherRequest,
+  Presentation,
   Subject,
   Unit,
   Worksheet,
@@ -81,6 +82,7 @@ export class ManassatDB extends Dexie {
   studioRequests!: Table<StudioRequest, number>;
   gradeBatches!: Table<GradeBatch, number>;
   requests!: Table<TeacherRequest, number>;
+  presentations!: Table<Presentation, number>;
 
   constructor() {
     super("manassat-abla-afaf");
@@ -195,6 +197,11 @@ export class ManassatDB extends Dexie {
     // [status+dueDate]: طلبات مفتوحة قرب موعدها للتنبيه · dueDate للفرز
     this.version(7).stores({
       requests: "++id, type, status, [status+dueDate], dueDate, classId, studentId, deletedAt",
+    });
+
+    // v8 — زكريت م٣: العروض البصرية المولّدة (مسودة ← معتمدة). إضافي بحت.
+    this.version(8).stores({
+      presentations: "++id, lessonId, status, deletedAt",
     });
   }
 }

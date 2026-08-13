@@ -37,6 +37,8 @@ import PolicyPage from "@/pages/PolicyPage";
 import ManagePage from "@/pages/ManagePage";
 import AskPage from "@/pages/AskPage";
 import ClassModePage from "@/pages/ClassModePage";
+import SlidesStudioPage from "@/pages/SlidesStudioPage";
+import SlidesPresentPage from "@/pages/SlidesPresentPage";
 
 const router = createHashRouter([
   {
@@ -69,6 +71,7 @@ const router = createHashRouter([
       { path: "/requests", element: <RequestsPage /> },
       { path: "/manage", element: <ManagePage /> },
       { path: "/ask", element: <AskPage /> },
+      { path: "/slides", element: <SlidesStudioPage /> },
       { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/settings/policy", element: <PolicyPage /> },
@@ -77,6 +80,8 @@ const router = createHashRouter([
   },
   // وضع الفصل: شاشة بروجكتور كاملة خارج التخطيط العام (بلا شريطين)
   { path: "/class", element: <ClassModePage /> },
+  // عرض البروجكتور للعرض البصري المعتمد (زكريت م٣)
+  { path: "/slides/:presentationId/present", element: <SlidesPresentPage /> },
 ]);
 
 export default function App() {

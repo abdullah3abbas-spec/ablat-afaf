@@ -20,23 +20,7 @@ import { useToast } from "@/store/toast";
 import LibraryTabs from "@/components/LibraryTabs";
 import SendPreviewDialog from "@/components/SendPreviewDialog";
 
-/** نص درس جاهز من المكتبة — الشرائح مرقّمة ليستشهد النموذج بها */
-function kitSourceText(kit: (typeof ALL_KITS)[number]): string {
-  const lines: string[] = [];
-  kit.slides.forEach((sl, i) => {
-    lines.push(`شريحة ${i + 1}: ${sl.title} — ${sl.bullets.join(" · ")}`);
-  });
-  kit.worksheet.forEach((q, i) => {
-    lines.push(`سؤال ورقة العمل ${i + 1}: ${q.text} (الإجابة: ${q.answer})`);
-  });
-  return lines.join("\n");
-}
-
-/** قصّ نص طويل بحد آمن — حدود البوابة أكبر، هذا حدّ لطف بالميزانية */
-const MAX_SOURCE_CHARS = 20_000;
-function clip(text: string): string {
-  return text.length > MAX_SOURCE_CHARS ? text.slice(0, MAX_SOURCE_CHARS) + "\n…(اقتُطع الباقي)" : text;
-}
+import { kitToSource, resourceToSource } from "@/lib/curriculumSources";
 
 export default function AskPage() {
   const s = useStrings();
@@ -72,15 +56,10 @@ export default function AskPage() {
     for (const key of selected) {
       if (key.startsWith("k:")) {
         const kit = ALL_KITS.find((k) => k.lessonTitle === key.slice(2));
-        if (kit) out.push({ name: `درس «${kit.lessonTitle}»`, text: clip(kitSourceText(kit)), locator: "حزمة الدرس" });
+        if (kit) out.push(kitToSource(kit));
       } else if (key.startsWith("r:")) {
         const r = (fileSources ?? []).find((x) => String(x.id) === key.slice(2));
-        if (r) {
-          const text = r.extractedSlides?.length
-            ? r.extractedSlides.map((t, i) => `شريحة/صفحة ${i + 1}: ${t}`).join("\n")
-            : (r.searchText ?? "");
-          out.push({ name: r.title || r.fileName || "ملف مرفوع", text: clip(text) });
-        }
+        if (r) out.push(resourceToSource(r));
       }
     }
     return out;

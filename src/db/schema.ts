@@ -729,3 +729,40 @@ export interface BackupMeta extends Timestamped {
   /** لقطة البيانات المضمّنة — للنسخ الصامتة قبل الحذف الجماعي (نقطة استرجاع) */
   snapshot?: string;
 }
+
+// ── presentations — العروض البصرية المولّدة (زكريت م٣) ─────────
+
+/** شكل الشريحة مطابق لعقد البوابة (gateway/src/logic.ts GenSlide) */
+export interface VisualSlideNote {
+  say: string;
+  ask?: string;
+  expected?: string;
+  misconception?: string;
+}
+
+export interface VisualSlide {
+  layout: "cover" | "objectives" | "bullets" | "comparison" | "cycle" | "steps" | "labeled" | "icons" | "interaction";
+  title: string;
+  bullets?: string[];
+  comparison?: { headers: string[]; rows: string[][] };
+  cycle?: { steps: string[] };
+  steps?: { steps: string[] };
+  labeled?: { center: string; labels: string[] };
+  icons?: { items: { icon: string; text: string }[] };
+  interaction?: { kind: "question" | "predict" | "challenge"; prompt: string; answer: string };
+  note: VisualSlideNote;
+  source?: string;
+}
+
+export interface Presentation extends Timestamped, SoftDeletable {
+  id?: number;
+  lessonId?: number;
+  title: string;
+  slides: VisualSlide[];
+  /** مسودة AI ← اعتمدتها المعلّمة (لا تُعرض للفصل قبل الاعتماد) */
+  status: "draft" | "approved";
+  /** أسماء المصادر التي بُني منها — للمصداقية */
+  sourceNames: string[];
+  /** من ولّدها (gemini/openai) — معلومة للسجل */
+  generatedBy?: string;
+}

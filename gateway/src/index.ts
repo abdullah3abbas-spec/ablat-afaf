@@ -10,19 +10,24 @@
  * 60/80/95% (Budget Guardian) وكاش للنواتج المتطابقة.
  */
 import {
+  GEN_LIMITS,
   LIMITS,
+  SLIDES_OPENAI_SCHEMA,
   alertLevel,
   cacheKeyOf,
   dohaDayKey,
   estimateCostUsd,
   pickProviders,
+  slidesSystemPrompt,
+  slidesUserPrompt,
   systemPrompt,
   userPrompt,
   validateAsk,
+  validateSlidesPayload,
   type AskSource,
   type Provider,
 } from "./logic";
-import { ProviderError, callGemini, callOpenAI, type CallResult } from "./providers";
+import { ProviderError, callGemini, callGeminiJson, callOpenAI, callOpenAIJson, type CallResult } from "./providers";
 
 interface Env {
   USAGE: KVNamespace;
@@ -250,6 +255,104 @@ export default {
 
       return json(
         { error: "providers_failed", messageAr: "تعذّر الوصول للمزوّدين الآن — حاولي بعد قليل", detail: lastError },
+        502,
+        cors
+      );
+    }
+
+    // توليد عرض بصري كامل بمخرج JSON صارم (زكريت م٣)
+    if (request.method === "POST" && url.pathname === "/api/generate-slides") {
+      let body: { lessonTitle?: string; sources?: AskSource[] };
+      try {
+        body = (await request.json()) as typeof body;
+      } catch {
+        return json({ error: "bad_json", messageAr: "طلب غير مقروء" }, 400, cors);
+      }
+      if (typeof body.lessonTitle !== "string" || body.lessonTitle.trim() === "") {
+        return json({ error: "invalid", messageAr: "اسم الدرس مطلوب" }, 400, cors);
+      }
+      const invalid = validateAsk(`عرض: ${body.lessonTitle}`, body.sources);
+      if (invalid) return json({ error: "invalid", messageAr: invalid }, 400, cors);
+      const lessonTitle = body.lessonTitle.trim();
+      const sources = body.sources as AskSource[];
+
+      const key = "c:" + (await cacheKeyOf({ kind: "slides", lessonTitle, sources }));
+      const cached = await env.USAGE.get(key);
+      if (cached) return json({ ...(JSON.parse(cached) as object), cached: true }, 200, cors);
+
+      const [gemini, openai] = await Promise.all([usageOf(env, "gemini", nowMs), usageOf(env, "openai", nowMs)]);
+      const order = pickProviders({
+        geminiReady: gemini.configured,
+        openaiReady: openai.configured,
+        geminiExhausted: gemini.exhausted,
+        openaiExhausted: openai.exhausted,
+      });
+      if (order.length === 0) {
+        const anyConfigured = gemini.configured || openai.configured;
+        return json(
+          {
+            error: anyConfigured ? "budget_exhausted" : "no_providers",
+            messageAr: anyConfigured
+              ? "وصلتِ حدّ الميزانية (اليومي أو الإجمالي) — يرتفع الحد من إعدادات البوابة"
+              : "لم تُضبط مفاتيح المزوّدين بعد — هذه خطوة ابنك",
+          },
+          anyConfigured ? 429 : 503,
+          cors
+        );
+      }
+
+      const sys = slidesSystemPrompt();
+      const usr = slidesUserPrompt(lessonTitle, sources);
+      let lastError = "";
+
+      for (const p of order) {
+        try {
+          const result: CallResult =
+            p === "gemini"
+              ? await callGeminiJson(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, sys, usr, GEN_LIMITS.maxAnswerTokens)
+              : await callOpenAIJson(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, sys, usr, GEN_LIMITS.maxAnswerTokens, SLIDES_OPENAI_SCHEMA);
+
+          const prices =
+            p === "gemini"
+              ? { inPerM: Number(env.GEMINI_IN_PER_M) || 0, outPerM: Number(env.GEMINI_OUT_PER_M) || 0 }
+              : { inPerM: Number(env.OPENAI_IN_PER_M) || 0, outPerM: Number(env.OPENAI_OUT_PER_M) || 0 };
+          const costUsd = estimateCostUsd(result.inTokens, result.outTokens, prices);
+          ctx.waitUntil(addSpend(env, p, costUsd, nowMs));
+
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(result.text);
+          } catch {
+            lastError = `${p}: مخرج غير JSON`;
+            console.warn("provider_failed", lastError);
+            continue; // جرّبي المزوّد التالي — التكلفة سُجّلت بأمانة
+          }
+          const checked = validateSlidesPayload(parsed);
+          if (!checked.ok) {
+            lastError = `${p}: ${checked.messageAr}`;
+            console.warn("provider_failed", lastError);
+            continue;
+          }
+
+          const usage = p === "gemini" ? gemini : openai;
+          const payload = {
+            slides: checked.slides,
+            provider: p,
+            model: p === "gemini" ? env.GEMINI_MODEL : env.OPENAI_MODEL,
+            costUsd,
+            alert: alertLevel(usage.totalUsd + costUsd, usage.budgetUsd),
+            cached: false,
+          };
+          ctx.waitUntil(env.USAGE.put(key, JSON.stringify(payload), { expirationTtl: Number(env.CACHE_TTL_SECONDS) || 604800 }));
+          return json(payload, 200, cors);
+        } catch (e) {
+          lastError = e instanceof ProviderError ? `${e.provider} ${e.status}: ${e.message}` : String(e);
+          console.warn("provider_failed", lastError);
+        }
+      }
+
+      return json(
+        { error: "providers_failed", messageAr: "تعذّر توليد العرض الآن — حاولي بعد قليل", detail: lastError },
         502,
         cors
       );

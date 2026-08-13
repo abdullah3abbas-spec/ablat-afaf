@@ -17,6 +17,7 @@ import {
   Presentation,
   Printer,
   ScrollText,
+  Sparkles,
 } from "lucide-react";
 import { db } from "@/db";
 import { kitByLessonTitle } from "@/content/lessonKits";
@@ -146,11 +147,18 @@ export default function LessonKitPage() {
             {k.unitTitle} · {s.library.kitReady}
           </p>
         </div>
-        {/* وضع الفصل: تشغيل الحصة على البروجكتور (زكريت م٤) */}
-        <Link to={`/class?lesson=${lessonId}`} className="btn bg-ink text-white hover:bg-black">
-          <Presentation className="size-6" aria-hidden />
-          {s.classMode.openButton}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {/* وضع الفصل: تشغيل الحصة على البروجكتور (زكريت م٤) */}
+          <Link to={`/class?lesson=${lessonId}`} className="btn bg-ink text-white hover:bg-black">
+            <Presentation className="size-6" aria-hidden />
+            {s.classMode.openButton}
+          </Link>
+          {/* استوديو العرض البصري (زكريت م٣) */}
+          <Link to={`/slides?lesson=${lessonId}`} className="btn-secondary">
+            <Sparkles className="size-6" aria-hidden />
+            {s.slides.title}
+          </Link>
+        </div>
       </div>
 
       <ul className="grid gap-4 sm:grid-cols-2">

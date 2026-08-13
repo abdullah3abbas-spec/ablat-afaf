@@ -119,3 +119,24 @@ export async function askCurriculum(
   });
   return (await res.json()) as AskResult;
 }
+
+export interface SlidesResult {
+  slides: import("@/db/schema").VisualSlide[];
+  provider: "gemini" | "openai";
+  model: string;
+  costUsd: number;
+  alert: 0 | 60 | 80 | 95 | 100;
+  cached: boolean;
+}
+
+/**
+ * توليد عرض بصري كامل من المصادر (زكريت م٣).
+ * يُستدعى حصراً بعد موافقة شاشة «ما سيُرسل» — والناتج مسودة حتى الاعتماد.
+ */
+export async function generateSlides(lessonTitle: string, sources: AskSource[]): Promise<SlidesResult> {
+  const res = await gatewayFetch("/api/generate-slides", {
+    method: "POST",
+    body: JSON.stringify({ lessonTitle, sources }),
+  });
+  return (await res.json()) as SlidesResult;
+}
