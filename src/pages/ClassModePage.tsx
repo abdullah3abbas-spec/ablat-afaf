@@ -22,11 +22,14 @@ import {
   Timer as TimerIcon,
   Users,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { db } from "@/db";
 import type { Question } from "@/db/schema";
 import { kitByLessonTitle } from "@/content/lessonKits";
 import { absentTodayIds, classPickables, fairPick, makeGroups, type Pickable } from "@/lib/funTools";
 import { TEAM_NAMES, formatAnswer, pickGameQuestions } from "@/lib/classMode";
+import { MatchGame, MemoryGame, OrderGame, WhoAmIGame } from "@/components/classGames/games";
+import { FlaskConical, Link2, ListOrdered, SquareStack, UsersRound } from "lucide-react";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
@@ -71,6 +74,22 @@ export default function ClassModePage() {
   const [slideIdx, setSlideIdx] = useState(0);
   const [showNote, setShowNote] = useState(false);
   const slides = kit?.slides ?? [];
+
+  // ── الألعاب: قائمة القوالب + مخزون أسئلة الدرس/الوحدة ─────
+  type ActiveGame = "menu" | "team" | "match" | "order" | "memory" | "who";
+  const [activeGame, setActiveGame] = useState<ActiveGame>("menu");
+  const [bankPool, setBankPool] = useState<Question[]>([]);
+
+  useEffect(() => {
+    if (!running) return;
+    void (async () => {
+      const all = (await db.questions.toArray()).filter((q) => !q.deletedAt);
+      const ofLesson = all.filter((q) => q.lessonId === lessonId);
+      const defineCount = ofLesson.filter((q) => q.type === "define").length;
+      // الدرس أولاً؛ وإن قلّت أسئلته وسّعنا للوحدة (مراجعة ضمن نفس الهدف)
+      setBankPool(defineCount >= 3 ? ofLesson : all.filter((q) => q.unitId === lesson?.unitId));
+    })();
+  }, [running, lessonId, lesson?.unitId]);
 
   // ── لعبة الفرق ───────────────────────────────────────────
   const [gameQuestions, setGameQuestions] = useState<Question[] | null>(null);
@@ -343,7 +362,53 @@ export default function ClassModePage() {
             </div>
           ))}
 
-        {mode === "game" && (
+        {mode === "game" && activeGame === "menu" && (
+          <div className="w-full max-w-4xl space-y-6">
+            <h2 className="font-heading text-4xl font-bold text-gold">{s.games.menuTitle}</h2>
+            <p className="text-xl text-white/60">{s.games.fromBank}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {(
+                [
+                  { key: "team", label: s.games.team, hint: s.games.teamHint, icon: Gamepad2 },
+                  { key: "match", label: s.games.match, hint: s.games.matchHint, icon: Link2 },
+                  { key: "order", label: s.games.order, hint: s.games.orderHint, icon: ListOrdered },
+                  { key: "memory", label: s.games.memory, hint: s.games.memoryHint, icon: SquareStack },
+                  { key: "who", label: s.games.who, hint: s.games.whoHint, icon: UsersRound },
+                ] as { key: ActiveGame; label: string; hint: string; icon: typeof Gamepad2 }[]
+              ).map((g) => (
+                <button
+                  key={g.key}
+                  type="button"
+                  onClick={() => setActiveGame(g.key)}
+                  className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-card border-2 border-white/25 p-4 transition-colors hover:border-gold hover:bg-white/5"
+                >
+                  <span className="flex items-center gap-3 text-2xl font-bold">
+                    <g.icon className="size-8 text-gold" aria-hidden />
+                    {g.label}
+                  </span>
+                  <span className="text-white/60">{g.hint}</span>
+                </button>
+              ))}
+              <Link
+                to="/lab?from=class"
+                className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-card border-2 border-teal bg-teal/10 p-4 transition-colors hover:border-gold hover:bg-white/5"
+              >
+                <span className="flex items-center gap-3 text-2xl font-bold">
+                  <FlaskConical className="size-8 text-gold" aria-hidden />
+                  {s.games.lab}
+                </span>
+                <span className="text-white/60">{s.games.labHint}</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {mode === "game" && activeGame === "match" && <MatchGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
+        {mode === "game" && activeGame === "order" && <OrderGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
+        {mode === "game" && activeGame === "memory" && <MemoryGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
+        {mode === "game" && activeGame === "who" && <WhoAmIGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
+
+        {mode === "game" && activeGame === "team" && (
           <div className="w-full max-w-5xl space-y-8">
             {gameQuestions === null ? (
               <button type="button" onClick={() => void startGame()} className="btn mx-auto min-h-[72px] bg-gold px-10 text-3xl font-bold text-ink hover:bg-gold-dark hover:text-white">
@@ -414,6 +479,14 @@ export default function ClassModePage() {
                 </button>
               </div>
             )}
+            <button
+              type="button"
+              onClick={() => { setActiveGame("menu"); setGameQuestions(null); }}
+              className="mx-auto flex min-h-touch items-center gap-2 rounded-card px-4 text-white/60 hover:bg-white/10 hover:text-white"
+            >
+              <RotateCcw className="size-5" aria-hidden />
+              {s.games.back}
+            </button>
           </div>
         )}
 

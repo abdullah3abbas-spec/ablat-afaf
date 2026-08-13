@@ -39,6 +39,7 @@ import AskPage from "@/pages/AskPage";
 import ClassModePage from "@/pages/ClassModePage";
 import SlidesStudioPage from "@/pages/SlidesStudioPage";
 import SlidesPresentPage from "@/pages/SlidesPresentPage";
+import LabPage from "@/pages/LabPage";
 
 const router = createHashRouter([
   {
@@ -82,6 +83,8 @@ const router = createHashRouter([
   { path: "/class", element: <ClassModePage /> },
   // عرض البروجكتور للعرض البصري المعتمد (زكريت م٣)
   { path: "/slides/:presentationId/present", element: <SlidesPresentPage /> },
+  // المختبر التفاعلي — شاشة كاملة داكنة (زكريت م٤-ب)
+  { path: "/lab", element: <LabPage /> },
 ]);
 
 export default function App() {

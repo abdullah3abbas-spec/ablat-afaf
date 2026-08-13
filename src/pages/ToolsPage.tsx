@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Dice5, Gamepad2, Play, Presentation, RotateCcw, Timer as TimerIcon, Users } from "lucide-react";
+import { Dice5, FlaskConical, Gamepad2, Play, Presentation, RotateCcw, Timer as TimerIcon, Users } from "lucide-react";
 import { db } from "@/db";
 import type { Question } from "@/db/schema";
 import { absentTodayIds, classPickables, fairPick, makeGroups, type Pickable } from "@/lib/funTools";
@@ -51,6 +51,15 @@ export default function ToolsPage() {
           {s.classMode.title}
         </span>
         <span className="text-white/70">{s.classMode.subtitle}</span>
+      </Link>
+
+      {/* المختبر التفاعلي (زكريت م٤-ب) */}
+      <Link to="/lab" className="card flex min-h-[72px] items-center justify-between gap-3 border-2 border-teal transition-colors hover:bg-teal-bg">
+        <span className="flex items-center gap-3 font-heading text-xl font-bold text-teal-dark">
+          <FlaskConical className="size-8" aria-hidden />
+          {s.lab.title}: {s.lab.waterTitle}
+        </span>
+        <span className="text-ink-soft">{s.lab.subtitle}</span>
       </Link>
 
       <div className="card flex flex-wrap items-center gap-3">
