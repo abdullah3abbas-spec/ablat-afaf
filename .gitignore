@@ -30,3 +30,8 @@ backup-*.json
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# بوابة الذكاء الاصطناعي — الرمز سرّي لا يدخل git
+gateway/رمز-الربط.txt
+gateway/.wrangler/
+.wrangler/
