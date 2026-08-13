@@ -235,6 +235,7 @@ export function MemoryGame({ questions, onExit }: { questions: Question[]; onExi
                   key={c.id}
                   type="button"
                   disabled={isOpen || open.length === 2}
+                  aria-label={isOpen ? c.text : "بطاقة مقلوبة — اضغطي لقلبها"}
                   onClick={() => { setOpen((o) => [...o, c.id]); setFlips((f) => f + 1); }}
                   className={
                     "min-h-[96px] rounded-card border-2 p-2 text-lg font-medium transition-colors " +

@@ -197,8 +197,9 @@ export default function LabPage() {
             </button>
           </div>
 
-          <p className="text-sm text-white/50">{s.lab.homeAlt}</p>
-          <p className="text-sm text-gold/80">{s.lab.safety}</p>
+          {/* تباين AA: بلا شفافية على النصوص الصغيرة فوق الخلفية الداكنة */}
+          <p className="text-sm text-white/70">{s.lab.homeAlt}</p>
+          <p className="text-sm font-medium text-gold">{s.lab.safety}</p>
         </section>
       </main>
     </div>
