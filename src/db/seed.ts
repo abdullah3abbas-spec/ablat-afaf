@@ -62,10 +62,15 @@ function generateStudentNames(count: number): string[] {
 
 // ── الزرع ─────────────────────────────────────────────────────
 
-/** يزرع البيانات التجريبية إن كانت القاعدة فارغة (حارس التشغيل الأول) */
+/**
+ * حارس الإقلاع: زرع أول مرة، وفي كل إقلاع لاحق «مزامنة المنهج» —
+ * ensureRealCurriculum آمنة التكرار فتزرع وحدات أجزاء الكتاب الجديدة
+ * تلقائياً بعد أي تحديث للتطبيق، وبذر البنك تزايدي لكل درس جديد.
+ */
 export async function seedIfEmpty(): Promise<void> {
   const existing = await db.settings.get(1);
   if (existing?.seeded) {
+    await ensureCurriculumUpToDate();
     await seedQuestionBankIfEmpty();
     return;
   }
@@ -73,19 +78,27 @@ export async function seedIfEmpty(): Promise<void> {
   await seedQuestionBankIfEmpty();
 }
 
+/** مزامنة شجرة المنهج مع أحدث فهرسة للكتاب — تُضاف الوحدات والدروس الناقصة فقط */
+async function ensureCurriculumUpToDate(): Promise<void> {
+  const science = (await db.subjects.toArray()).find((s) => s.nameAr === "العلوم" && s.grade === 5);
+  if (!science?.id) return;
+  await ensureRealCurriculum({ units: db.units, lessons: db.lessons }, science.id, Date.now());
+}
+
 /**
- * بذر بنك أسئلة الكتاب إن كان غائباً — يُستدعى عند كل إقلاع، آمن التكرار.
- * الحارس: وجود أسئلة حية موسومة «من-الكتاب» (لا العدد الكلي، حتى لا تمنعه
- * أسئلة الذكاء المعتمدة أو بقايا محذوفة ناعماً).
+ * بذر بنك أسئلة الكتاب تزايدياً — يُستدعى عند كل إقلاع، آمن التكرار:
+ * يُبذر البنك للدروس التي لا تحمل أي سؤال «من-الكتاب» بعد (فتُغطى دروس
+ * أجزاء الكتاب الجديدة تلقائياً). المحذوف ناعماً يُحتسب موجوداً —
+ * فحذف المعلّمة لأسئلة درس لا يعيد بذرها خلف ظهرها.
  */
 export async function seedQuestionBankIfEmpty(): Promise<void> {
-  const existing = await db.questions
-    .filter((q) => !q.deletedAt && (q.tags ?? []).includes("من-الكتاب"))
-    .count();
-  if (existing > 0) return;
-  const { buildBankQuestions } = await import("@/content/questionBank");
+  const bookTagged = await db.questions.filter((q) => (q.tags ?? []).includes("من-الكتاب")).toArray();
+  const coveredLessonIds = new Set(bookTagged.map((q) => q.lessonId));
   const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt && !l.isDemo && l.code);
-  const lessonByCode = new Map(lessons.map((l) => [l.code as string, { id: l.id!, unitId: l.unitId }]));
+  const missing = lessons.filter((l) => !coveredLessonIds.has(l.id!));
+  if (missing.length === 0) return;
+  const { buildBankQuestions } = await import("@/content/questionBank");
+  const lessonByCode = new Map(missing.map((l) => [l.code as string, { id: l.id!, unitId: l.unitId }]));
   const rows = buildBankQuestions(lessonByCode);
   if (rows.length > 0) await db.questions.bulkAdd(rows);
 }

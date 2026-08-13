@@ -88,6 +88,41 @@ describe("البيانات التجريبية", () => {
     expect(check.weightsSum).toBe(100);
   });
 
+  test("الإقلاع المتكرر يزامن المنهج بلا أي تكرار", async () => {
+    const before = {
+      units: (await db.units.toArray()).filter((u) => !u.deletedAt).length,
+      lessons: (await db.lessons.toArray()).filter((l) => !l.deletedAt).length,
+      bank: await db.questions.filter((q) => (q.tags ?? []).includes("من-الكتاب")).count(),
+    };
+    await seedIfEmpty();
+    await seedIfEmpty();
+    expect((await db.units.toArray()).filter((u) => !u.deletedAt).length).toBe(before.units);
+    expect((await db.lessons.toArray()).filter((l) => !l.deletedAt).length).toBe(before.lessons);
+    expect(await db.questions.filter((q) => (q.tags ?? []).includes("من-الكتاب")).count()).toBe(before.bank);
+  });
+
+  test("شفاء ذاتي: درس مفقود يعود مع أسئلته عند الإقلاع التالي", async () => {
+    const lesson = (await db.lessons.toArray()).find((l) => l.code === "1.5")!;
+    await db.questions.where("lessonId").equals(lesson.id!).delete();
+    await db.lessons.delete(lesson.id!);
+    await seedIfEmpty();
+    const healed = (await db.lessons.toArray()).find((l) => l.code === "1.5" && !l.deletedAt);
+    expect(healed).toBeDefined();
+    const healedBank = await db.questions
+      .filter((q) => q.lessonId === healed!.id && (q.tags ?? []).includes("من-الكتاب"))
+      .count();
+    expect(healedBank).toBeGreaterThan(0);
+  });
+
+  test("حذف المعلّمة لأسئلة درس لا يُنقض خلف ظهرها", async () => {
+    const lesson = (await db.lessons.toArray()).find((l) => l.code === "2.4" && !l.deletedAt)!;
+    const now = Date.now();
+    await db.questions.where("lessonId").equals(lesson.id!).modify({ deletedAt: now });
+    await seedIfEmpty();
+    const active = await db.questions.filter((q) => q.lessonId === lesson.id && !q.deletedAt).count();
+    expect(active).toBe(0); // بقيت محذوفة — تعود من سلة الاسترجاع فقط بقرارها
+  });
+
   test("المسح يحذف التجريبي فقط — والمنهج الحقيقي وبنك الكتاب يبقيان", async () => {
     await clearDemo();
     expect(await db.students.count()).toBe(0);
