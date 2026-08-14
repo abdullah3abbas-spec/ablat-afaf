@@ -138,7 +138,7 @@ export default function TodayPage() {
           {/* الإجراءات الرئيسية — ثلاثة قرارات لا أكثر */}
           <section aria-label={s.a11y.primaryActions} className="space-y-3">
             <Link
-              to={todayLesson ? `/library/${todayLesson.lesson.id}` : "/library"}
+              to={todayLesson ? `/show?lesson=${todayLesson.lesson.id}` : "/library"}
               className="btn-primary w-full flex-col gap-1 min-h-[92px]"
             >
               <span className="flex items-center gap-2 text-2xl font-bold">

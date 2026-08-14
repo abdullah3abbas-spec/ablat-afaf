@@ -759,6 +759,8 @@ export interface VisualSlide {
   interaction?: { kind: "question" | "predict" | "challenge"; prompt: string; answer: string };
   note: VisualSlideNote;
   source?: string;
+  /** زر إجراء داخل العرض (العرض المساعد): «العبنها في وضع الفصل» مثلاً */
+  action?: { label: string; to: string };
 }
 
 export interface Presentation extends Timestamped, SoftDeletable {

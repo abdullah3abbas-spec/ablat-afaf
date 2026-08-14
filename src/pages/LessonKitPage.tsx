@@ -119,6 +119,19 @@ export default function LessonKitPage() {
           )}
         </div>
 
+        {/* العرض المساعد — الفعل الرئيسي: برزنتيشن الحصة الكامل فوراً */}
+        <div className="card-hero text-center">
+          <h2 className="font-heading text-2xl font-extrabold">{s.lessonShow.button}</h2>
+          <p className="mx-auto mt-1 max-w-xl pb-3 text-white/90">{s.lessonShow.hint}</p>
+          <Link
+            to={`/show?lesson=${lessonId}`}
+            className="btn mx-auto mb-2 min-h-[60px] bg-white px-8 text-xl font-bold text-maroon-dark hover:bg-cream"
+          >
+            <Presentation className="size-7" aria-hidden />
+            {s.lessonShow.button}
+          </Link>
+        </div>
+
         {/* إثراء الحصة المقرَّر */}
         {enrichment && (
           <div className="card space-y-3 border-2 border-maroon/30">
