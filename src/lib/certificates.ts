@@ -107,18 +107,18 @@ interface MasterCal {
   marksTop: number; marksH: number;
 }
 const MASTER_CAL_DEFAULT: MasterCal = {
-  nameTop: 44.5, nameH: 13,
-  dateTop: 66,
-  teacherTop: 76.5, teacherRight: 13, teacherW: 22,
-  serialTop: 92,
-  marksTop: 10.5, marksH: 7,
+  nameTop: 40, nameH: 11.5,
+  dateTop: 65,
+  teacherTop: 78, teacherRight: 9, teacherW: 22,
+  serialTop: 91.5,
+  marksTop: 5.5, marksH: 5.5,
 };
 const MASTER_CAL: Record<string, Partial<MasterCal>> = {
-  excellence: { nameTop: 45, nameH: 13, dateTop: 69.5, teacherTop: 80.5, teacherRight: 9, teacherW: 22, serialTop: 91.5, marksTop: 6.5, marksH: 6 },
-  star_of_month: { nameTop: 49.5, nameH: 11, dateTop: 71.5, teacherTop: 80, teacherRight: 9, teacherW: 22, serialTop: 94, marksTop: 7.5, marksH: 6 },
-  most_improved: { nameTop: 45, nameH: 13.5, dateTop: 66.5, teacherTop: 81, teacherRight: 7, teacherW: 22, serialTop: 91.5, marksTop: 6.5, marksH: 6 },
-  best_experiment: { nameTop: 45, nameH: 12, dateTop: 66.5, teacherTop: 81, teacherRight: 9, teacherW: 22, serialTop: 91, marksTop: 8, marksH: 6 },
-  guardian_thanks: { nameTop: 44, dateTop: 67.5, teacherTop: 76.5, teacherRight: 10, teacherW: 22, serialTop: 90, marksTop: 8, marksH: 6 },
+  excellence: {},
+  star_of_month: { nameTop: 43.5, dateTop: 66 },
+  most_improved: {},
+  best_experiment: { nameTop: 41.5, dateTop: 68, teacherTop: 81 },
+  guardian_thanks: {},
 };
 
 const escC = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
@@ -263,18 +263,14 @@ const CERT_CSS = `
   .serial { font-family: "Tajawal", sans-serif; font-size: 8.5pt; color: #6B5B4A; direction: ltr; }
 
   /* ═══ نموذج «لوحة المصمم»: الماستر المرسوم + تركيب مدموج (§ قواعد عبد الله) ═══ */
-  /* اللوجو على رقعة بلون الورق بحواف مموّهة — يبدو مطبوعاً في اللوحة لا ملصقاً */
-  .d-designer .m-markwrap { position: absolute; display: flex; align-items: center; justify-content: center;
-    background: #FAF4E6; border-radius: 3mm; padding: 1mm 2.5mm;
-    box-shadow: 0 0 3.5mm 2.5mm #FAF4E6; }
-  .d-designer .m-mark { height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+  /* اللوجو مطبوع في الورق مباشرة — دمج ضربي بلا أي رقعة */
+  .d-designer .m-markwrap { position: absolute; display: flex; align-items: center; justify-content: center; }
+  .d-designer .m-mark { height: 100%; object-fit: contain; mix-blend-mode: multiply; opacity: 0.92; }
   /* اسم الطالبة بحروف ذهبية متدرجة كأنها مرسومة مع حروف اللوحة */
-  .d-designer .m-name { position: absolute; left: 16%; right: 16%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: "Baloo", "Cairo", sans-serif; font-weight: 800; font-size: 30pt; line-height: 1.3;
-    background: linear-gradient(178deg, #E9C468 8%, #C89A38 48%, #A2771F 92%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    filter: drop-shadow(0 0.35mm 0.3mm rgba(97,66,12,.4)); }
+  .d-designer .m-name { position: absolute; left: 18%; right: 18%;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 1mm;
+    font-family: "Baloo", "Cairo", sans-serif; font-weight: 800; font-size: 27pt; line-height: 1.3;
+    color: #97782B; }
   .d-designer .m-date { position: absolute; left: 0; right: 0; text-align: center;
     font-family: "Tajawal", sans-serif; font-size: 10.5pt; font-weight: 500; color: #7A6A55; }
   /* توقيع المعلّمة بخط الرقعة — إمضاءة حقيقية مائلة فوق السطر */
