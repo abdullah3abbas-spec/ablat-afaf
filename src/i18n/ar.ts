@@ -1086,6 +1086,7 @@ export const ar = {
     savedPrefs: "تم الحفظ ✓",
     freeEdit: "✏️ عدّلي النصوص مباشرة",
     freeEditOn: "✔ انتهيتُ — التعديل مفتوح على الشهادة",
+    designLabel: "نموذج الشهادة",
     bgLabel: "خلفية الشهادة",
     grantLine: "سطر الإهداء",
     dateLabel: "التاريخ المكتوب على الشهادة",

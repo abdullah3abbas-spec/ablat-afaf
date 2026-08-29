@@ -7,7 +7,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Award, Image as ImageIcon, Printer } from "lucide-react";
 import { db } from "@/db";
 import type { CertificateTemplate } from "@/db/schema";
-import { CERT_BACKGROUNDS, CERT_TEMPLATES, GRANT_LINE_DEFAULT, certificatesHtml, exportCertificatePng, issueCertificates, type CertData, type CertStyleOpts } from "@/lib/certificates";
+import { CERT_BACKGROUNDS, CERT_DESIGNS, CERT_TEMPLATES, GRANT_LINE_DEFAULT, certificatesHtml, exportCertificatePng, issueCertificates, type CertData, type CertStyleOpts } from "@/lib/certificates";
 import { activeStudentsOf } from "@/lib/students";
 import { computeMonthAwards, monthKeyOf } from "@/lib/points";
 import { fmtNum } from "@/lib/numerals";
@@ -94,6 +94,7 @@ export default function CertificatesPage() {
   const [edNameSize, setEdNameSize] = useState(46);
   const [edSeal, setEdSeal] = useState(true);
   const [edBg, setEdBg] = useState("kid1");
+  const [edDesign, setEdDesign] = useState("merha");
   const [freeEdit, setFreeEdit] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -109,7 +110,9 @@ export default function CertificatesPage() {
       setEdAccent(prefs?.accent ?? "");
       setEdNameSize(prefs?.nameSizePt ?? 46);
       setEdSeal(prefs?.showSeal ?? true);
-      setEdBg(prefs?.bgKey ?? "kid1");
+      const dKey = prefs?.designKey ?? "merha";
+      setEdDesign(dKey);
+      setEdBg(prefs?.bgKey ?? CERT_DESIGNS.find((d) => d.key === dKey)?.defaultBg ?? "kid1");
       setFreeEdit(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,7 +125,7 @@ export default function CertificatesPage() {
       void (async () => {
         const settings = await db.settings.get(1);
         const certPrefs = { ...(settings?.certPrefs ?? {}) };
-        certPrefs[templateKey] = { reason: edReason, grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg };
+        certPrefs[templateKey] = { reason: edReason, grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg, designKey: edDesign };
         await db.settings.update(1, { certPrefs });
         setSavedTick(true);
         setTimeout(() => setSavedTick(false), 1800);
@@ -130,11 +133,11 @@ export default function CertificatesPage() {
     }, 700);
     return () => clearTimeout(h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [edReason, edGrant, edAccent, edNameSize, edSeal, edBg]);
+  }, [edReason, edGrant, edAccent, edNameSize, edSeal, edBg, edDesign]);
 
   const editorOpts: CertStyleOpts = useMemo(
-    () => ({ grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg }),
-    [edGrant, edAccent, edNameSize, edSeal, edBg]
+    () => ({ grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg, designKey: edDesign }),
+    [edGrant, edAccent, edNameSize, edSeal, edBg, edDesign]
   );
   const shownCerts = useMemo(
     () => (previewCerts ?? []).map((c) => ({ ...c, reason: edReason || c.reason, dateStr: edDate || c.dateStr })),
@@ -325,6 +328,18 @@ export default function CertificatesPage() {
             <div className="flex min-h-0 flex-1 flex-col md:flex-row">
               {/* لوحة التخصيص — كل تغيير يظهر فوراً ويُحفظ تلقائياً */}
               <aside className="w-full shrink-0 space-y-3 overflow-y-auto border-b border-line p-4 md:w-80 md:border-b-0 md:border-e">
+                <div className="space-y-1">
+                  <span className="font-medium">{s.certs.designLabel}</span>
+                  <div className="grid grid-cols-2 gap-2" role="group" aria-label={s.certs.designLabel}>
+                    {CERT_DESIGNS.map((d) => (
+                      <button key={d.key} type="button" aria-pressed={edDesign === d.key}
+                        onClick={() => { setEdDesign(d.key); setEdBg(d.defaultBg); }}
+                        className={"min-h-touch rounded-card border-2 px-2 font-bold " + (edDesign === d.key ? "border-gold bg-gold-bg text-gold-dark" : "border-line bg-white text-ink")}>
+                        {d.nameAr}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-1">
                   <span className="font-medium">{s.certs.bgLabel}</span>
                   <div className="grid grid-cols-2 gap-2" role="group" aria-label={s.certs.bgLabel}>

@@ -69,6 +69,19 @@ export const CERT_BACKGROUNDS = [
   { key: "plain", nameAr: "بسيطة", url: "" },
 ] as const;
 
+/** نماذج الشهادة — تصاميم كاملة مختلفة قابلة للتبديل من المحرّر */
+export interface CertDesignDef {
+  key: string;
+  nameAr: string;
+  defaultBg: string;
+}
+export const CERT_DESIGNS: CertDesignDef[] = [
+  { key: "merha", nameAr: "مرحة", defaultBg: "kid1" },
+  { key: "wisam", nameAr: "وسام النجمة", defaultBg: "kid2" },
+  { key: "fakhera", nameAr: "فاخرة", defaultBg: "sadu" },
+  { key: "sharit", nameAr: "الشريط الذهبي", defaultBg: "gold" },
+];
+
 /** تخصيصات المعلّمة على مستوى الدفعة — تُحفظ في الإعدادات لكل قالب */
 export interface CertStyleOpts {
   grantLine?: string;
@@ -80,39 +93,78 @@ export interface CertStyleOpts {
   showSeal?: boolean;
   /** مفتاح الخلفية من CERT_BACKGROUNDS (الافتراضي sadu) */
   bgKey?: string;
+  /** مفتاح النموذج من CERT_DESIGNS (الافتراضي «مرحة») */
+  designKey?: string;
 }
 
-/** صفحة شهادة — خلفية مرسومة + ترويسة منقسمة (الوزارة يمين، المدرسة شمال) بروح ٦–١٢ سنة */
+const escC = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
+
+const tinyStar = (color: string, mm = 6.5) =>
+  `<svg viewBox="0 0 24 24" style="width:${mm}mm;height:${mm}mm" aria-hidden="true"><path d="M12 1 14.2 6.4 19.8 4.2 17.6 9.8 23 12 17.6 14.2 19.8 19.8 14.2 17.6 12 23 9.8 17.6 4.2 19.8 6.4 14.2 1 12 6.4 9.8 4.2 4.2 9.8 6.4Z" fill="${color}"/></svg>`;
+
+/** الترويسة المنقسمة: الوزارة يمين · المدرسة شمال — قصّتان حقيقيتان من البانر الرسمي */
+const splitHeader = () => `
+  <img class="mark ministry" src="/cert-art/mark-ministry.png" alt="وزارة التربية والتعليم والتعليم العالي — دولة قطر" />
+  <img class="mark school" src="/cert-art/mark-school.png" alt="مدرسة زكريت الابتدائية للبنات" />`;
+
+const footerHtml = (c: CertData, o: CertStyleOpts) => `
+  <div class="cert-footer">
+    <span class="sig">توقيع المعلّمة<br/><b>${escC(c.teacherName ?? "")}</b></span>
+    ${o.showSeal === false ? "<span></span>" : `<div class="seal">
+      ${c.qrDataUrl ? `<img class="qr" src="${c.qrDataUrl}" alt="${escC(c.serial)}" />` : starSvg("seal-star")}
+      <span class="serial">${escC(c.serial)}</span>
+    </div>`}
+    <span class="sig">توقيع مديرة المدرسة<br/><b>&nbsp;</b></span>
+  </div>`;
+
+const middleHtml = (c: CertData, o: CertStyleOpts) => `
+  <div class="middle"><div class="panel">
+    <p class="grant-line">${escC(o.grantLine ?? GRANT_LINE_DEFAULT)}</p>
+    <p class="recipient"${o.nameSizePt ? ` style="font-size:${o.nameSizePt}pt"` : ""}>${escC(c.recipientName)}</p>
+    <p class="reason">${escC(c.reason)}</p>
+    <p class="date-line">حُررت بتاريخ ${escC(toEastern(c.dateStr))}</p>
+  </div></div>`;
+
+/** صفحة شهادة — أربعة نماذج كاملة قابلة للتبديل، فوق خلفيات مرسومة */
 function certPage(c: CertData, o: CertStyleOpts = {}): string {
-  const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
-  const bg = CERT_BACKGROUNDS.find((b) => b.key === (o.bgKey ?? "kid1")) ?? CERT_BACKGROUNDS[0];
-  const tinyStar = (color: string) => `<svg viewBox="0 0 24 24" style="width:6.5mm;height:6.5mm" aria-hidden="true"><path d="M12 1 14.2 6.4 19.8 4.2 17.6 9.8 23 12 17.6 14.2 19.8 19.8 14.2 17.6 12 23 9.8 17.6 4.2 19.8 6.4 14.2 1 12 6.4 9.8 4.2 4.2 9.8 6.4Z" fill="${color}"/></svg>`;
-  return `<div class="cert${bg.url ? "" : " plain"}" style="--accent:${o.accent ?? c.template.accent}">
+  const design = CERT_DESIGNS.find((d) => d.key === (o.designKey ?? "merha")) ?? CERT_DESIGNS[0];
+  const bg = CERT_BACKGROUNDS.find((b) => b.key === (o.bgKey ?? design.defaultBg)) ?? CERT_BACKGROUNDS[0];
+  const kindTitle = `شهادة ${escC(c.template.nameAr)}`;
+
+  let body = "";
+  if (design.key === "fakhera") {
+    body = `
+      <img class="letterhead" src="/letterhead.png" alt="مدرسة زكريت الابتدائية للبنات — وزارة التربية والتعليم والتعليم العالي، دولة قطر" />
+      <div class="cert-kind">${kindTitle}</div>
+      <svg class="flourish" viewBox="0 0 300 14" aria-hidden="true"><path d="M8 7 H118 M182 7 H292" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M150 1 l6 6 -6 6 -6 -6 Z" fill="currentColor"/><circle cx="132" cy="7" r="2" fill="currentColor"/><circle cx="168" cy="7" r="2" fill="currentColor"/></svg>
+      ${middleHtml(c, o)}${footerHtml(c, o)}`;
+  } else if (design.key === "wisam") {
+    body = `
+      <div class="hdr">${splitHeader()}</div>
+      <div class="medal">
+        <span class="ribbon r1"></span><span class="ribbon r2"></span>
+        <span class="medal-stars">${tinyStar("#C08A2E", 32)}<span class="inner">${tinyStar("#FBF7EC", 17)}</span></span>
+      </div>
+      <div class="cert-kind">${kindTitle}</div>
+      ${middleHtml(c, o)}${footerHtml(c, o)}`;
+  } else if (design.key === "sharit") {
+    body = `
+      <div class="hdr">${splitHeader()}</div>
+      <div class="band"><span class="band-star">${tinyStar("#FBF7EC", 9)}</span>${kindTitle}<span class="band-star">${tinyStar("#FBF7EC", 9)}</span></div>
+      ${middleHtml(c, o)}${footerHtml(c, o)}`;
+  } else {
+    body = `
+      <div class="hdr">${splitHeader()}</div>
+      <div class="kind-wrap">
+        <div class="cert-kind">${kindTitle}</div>
+        <div class="star-row">${tinyStar("#0F6B62")}${tinyStar("#C08A2E")}${tinyStar("#C2456B")}</div>
+      </div>
+      ${middleHtml(c, o)}${footerHtml(c, o)}`;
+  }
+
+  return `<div class="cert d-${design.key}${bg.url ? "" : " plain"}" style="--accent:${o.accent ?? c.template.accent}">
     ${bg.url ? `<img class="bg" src="${bg.url}" alt="" />` : ""}
-    <div class="content">
-      <div class="hdr">
-        <div class="mark ministry" role="img" aria-label="وزارة التربية والتعليم والتعليم العالي — دولة قطر"></div>
-        <div class="kind-wrap">
-          <div class="cert-kind">شهادة ${esc(c.template.nameAr)}</div>
-          <div class="star-row">${tinyStar("#0F6B62")}${tinyStar("#C08A2E")}${tinyStar("#C2456B")}</div>
-        </div>
-        <div class="mark school" role="img" aria-label="${esc(c.schoolName)}"></div>
-      </div>
-      <div class="middle">
-        <p class="grant-line">${esc(o.grantLine ?? GRANT_LINE_DEFAULT)}</p>
-        <p class="recipient"${o.nameSizePt ? ` style="font-size:${o.nameSizePt}pt"` : ""}>${esc(c.recipientName)}</p>
-        <p class="reason">${esc(c.reason)}</p>
-        <p class="date-line">حُررت بتاريخ ${esc(toEastern(c.dateStr))}</p>
-      </div>
-      <div class="cert-footer">
-        <span class="sig">توقيع المعلّمة<br/><b>${esc(c.teacherName ?? "")}</b></span>
-        ${o.showSeal === false ? "<span></span>" : `<div class="seal">
-          ${c.qrDataUrl ? `<img class="qr" src="${c.qrDataUrl}" alt="${esc(c.serial)}" />` : starSvg("seal-star")}
-          <span class="serial">${esc(c.serial)}</span>
-        </div>`}
-        <span class="sig">توقيع مديرة المدرسة<br/><b>&nbsp;</b></span>
-      </div>
-    </div>
+    <div class="content">${body}</div>
   </div>`;
 }
 
@@ -120,7 +172,9 @@ const CERT_CSS = `
   @page { size: A4 landscape; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   @font-face { font-family: "Amiri"; src: url("/fonts/amiri-arabic-700.woff2") format("woff2"); font-weight: 700; }
+  @font-face { font-family: "Amiri"; src: url("/fonts/amiri-arabic-400.woff2") format("woff2"); font-weight: 400; }
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-400.woff2") format("woff2"); font-weight: 400; }
+  @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-500.woff2") format("woff2"); font-weight: 500; }
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-700.woff2") format("woff2"); font-weight: 700; }
   @font-face { font-family: "Baloo"; src: url("/fonts/baloo-arabic-700.woff2") format("woff2"); font-weight: 700; }
   @font-face { font-family: "Baloo"; src: url("/fonts/baloo-arabic-800.woff2") format("woff2"); font-weight: 800; }
@@ -132,42 +186,74 @@ const CERT_CSS = `
   .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
   .cert.plain::before { content: ""; position: absolute; inset: 8mm; border-radius: 6mm;
     border: 0.8mm solid var(--gold); outline: 1.6mm solid var(--accent); outline-offset: 1.8mm; }
+  .content { position: absolute; inset: 18mm 32mm 22mm; display: flex; flex-direction: column; text-align: center; }
 
-  .content { position: absolute; inset: 21mm 34mm 24mm; display: flex; flex-direction: column; text-align: center; }
+  /* ── الترويسة المنقسمة: كل شعار بحجمه الكامل على وسادة قراءة ── */
+  .hdr { display: flex; align-items: center; justify-content: space-between; gap: 6mm; }
+  .mark { flex: none; height: 19mm; object-fit: contain;
+          background: rgba(255,255,255,.88); border-radius: 3mm; padding: 2mm 4mm; }
+  .mark.ministry { order: -1; width: 88mm; }
+  .mark.school { width: 62mm; }
 
-  /* الترويسة المنقسمة: الوزارة يمين · العنوان وسط · المدرسة شمال */
-  .hdr { display: flex; align-items: center; justify-content: space-between; gap: 4mm; }
-  .mark { height: 17mm; flex: none; background-image: url("/letterhead.png"); background-repeat: no-repeat;
-          background-size: auto 100%; mix-blend-mode: multiply; }
-  /* البانر المدمج: المدرسة في طرفه الأيسر والوزارة في طرفه الأيمن — نقتصّ كل جهة */
-  .mark.ministry { width: 72mm; background-position: right center; }
-  .mark.school { width: 55mm; background-position: left center; }
-  .kind-wrap { flex: 1; min-width: 0; }
-  .cert-kind { font-family: "Baloo", "Tajawal", sans-serif; font-weight: 800; font-size: 28pt;
-               color: var(--accent); line-height: 1.35;
-               text-shadow: 0 0.3mm 0.7mm rgba(255,255,255,.95); }
-  .star-row { display: flex; justify-content: center; gap: 3mm; margin-top: 1mm; }
+  /* ── العنوان: حاضر وواضح فوق أي خلفية ── */
+  .kind-wrap { margin-top: 4mm; }
+  .cert-kind { font-family: "Baloo", "Tajawal", sans-serif; font-weight: 800; font-size: 34pt;
+               color: var(--accent); line-height: 1.35; display: inline-block;
+               background: rgba(255,255,255,.72); border-radius: 5mm; padding: 0.5mm 9mm; }
+  .star-row { display: flex; justify-content: center; gap: 3.5mm; margin-top: 1.5mm; }
 
-  /* الوسط موزون: يتمدد بالتساوي بين الترويسة والتذييل */
-  .middle { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 4.5mm; }
-  .grant-line { font-family: "Tajawal", sans-serif; font-size: 14pt; color: #4A4238; }
-  .recipient { font-family: "Baloo", "Tajawal", sans-serif; font-weight: 800; font-size: 44pt;
-               color: var(--gold-deep); line-height: 1.4;
-               text-shadow: 0 0.3mm 0.9mm rgba(255,255,255,.95); }
-  .reason { font-family: "Tajawal", sans-serif; font-size: 15.5pt; font-weight: 500;
-            max-width: 168mm; margin: 0 auto; line-height: 1.8; color: #33291F; }
-  .date-line { font-family: "Tajawal", sans-serif; font-size: 11.5pt; color: #6B5B4A; }
+  /* ── الوسط: لوحة قراءة ناعمة تعطي كل سطر حقه ── */
+  .middle { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .panel { background: rgba(255,255,255,.6); border-radius: 6mm; padding: 5mm 12mm 6mm;
+           max-width: 205mm; display: flex; flex-direction: column; gap: 3.5mm; }
+  .grant-line { font-family: "Tajawal", sans-serif; font-weight: 500; font-size: 15pt; color: #40372E; }
+  .recipient { font-family: "Baloo", "Tajawal", sans-serif; font-weight: 800; font-size: 46pt;
+               color: var(--gold-deep); line-height: 1.4; }
+  .reason { font-family: "Tajawal", sans-serif; font-size: 16.5pt; font-weight: 500;
+            max-width: 175mm; margin: 0 auto; line-height: 1.8; color: #33291F; }
+  .date-line { font-family: "Tajawal", sans-serif; font-size: 12.5pt; font-weight: 500; color: #5C4E3D; }
 
+  /* ── التذييل ── */
   .cert-footer { display: flex; justify-content: space-between; align-items: flex-end; }
-  .sig { font-family: "Tajawal", sans-serif; font-size: 11.5pt; line-height: 2; color: #4A4238; min-width: 48mm;
-    background: rgba(255,255,255,.82); border-radius: 3.5mm; padding: 1.5mm 4mm 2.5mm; }
-  .sig b { display: inline-block; min-width: 42mm; border-top: 0.3mm solid var(--gold); padding-top: 1.2mm; font-weight: 700; color: #33291F; }
+  .sig { font-family: "Tajawal", sans-serif; font-size: 12pt; line-height: 2; color: #40372E; min-width: 50mm;
+    background: rgba(255,255,255,.85); border-radius: 3.5mm; padding: 1.5mm 4mm 2.5mm; }
+  .sig b { display: inline-block; min-width: 44mm; border-top: 0.3mm solid var(--gold); padding-top: 1.2mm; font-weight: 700; color: #33291F; font-size: 12.5pt; }
   .seal { display: flex; flex-direction: column; align-items: center; gap: 1mm;
-    background: rgba(255,255,255,.82); border-radius: 3.5mm; padding: 2mm 4mm; }
-  .seal-star, .qr { width: 15mm; height: 15mm; padding: 1.6mm; border-radius: 50%;
+    background: rgba(255,255,255,.85); border-radius: 3.5mm; padding: 2mm 4mm; }
+  .seal-star, .qr { width: 17mm; height: 17mm; padding: 1.8mm; border-radius: 50%;
                     background: #fff; border: 0.5mm solid var(--gold); fill: var(--accent); }
   .seal-star .star-eye { fill: #fff; }
-  .serial { font-family: "Tajawal", sans-serif; font-size: 8pt; color: #8A7B66; direction: ltr; }
+  .serial { font-family: "Tajawal", sans-serif; font-size: 8.5pt; color: #6B5B4A; direction: ltr; }
+
+  /* ═══ نموذج «فاخرة»: البانر كاملاً في الوسط وخط أميري احتفالي ═══ */
+  .d-fakhera .letterhead { width: 150mm; max-height: 19mm; object-fit: contain; display: block;
+    margin: 0 auto; mix-blend-mode: multiply; }
+  .d-fakhera .cert-kind { font-family: "Amiri", serif; font-weight: 700; font-size: 32pt;
+    background: none; padding: 0; margin-top: 3mm; }
+  .d-fakhera .flourish { width: 82mm; height: 4mm; margin: 1mm auto 0; color: var(--gold); }
+  .d-fakhera .recipient { font-family: "Amiri", serif; font-size: 44pt; }
+  .d-fakhera .grant-line, .d-fakhera .reason { font-family: "Amiri", serif; }
+  .d-fakhera .panel { background: none; padding: 0; }
+
+  /* ═══ نموذج «وسام النجمة»: ميدالية كبيرة بشريطين ═══ */
+  .d-wisam .medal { position: relative; height: 36mm; margin-top: 2mm; display: flex;
+    align-items: center; justify-content: center; }
+  .d-wisam .medal-stars { position: relative; display: inline-flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 1mm 1.5mm rgba(43,33,24,.28)); }
+  .d-wisam .medal-stars .inner { position: absolute; display: inline-flex; }
+  .d-wisam .ribbon { position: absolute; top: 3mm; width: 7mm; height: 27mm; border-radius: 1mm; }
+  .d-wisam .ribbon.r1 { background: var(--accent); transform: translateX(7mm) rotate(15deg); }
+  .d-wisam .ribbon.r2 { background: #0F6B62; transform: translateX(-7mm) rotate(-15deg); }
+  .d-wisam .cert-kind { font-size: 30pt; margin-top: 2mm; }
+  .d-wisam .panel { padding-top: 3mm; }
+
+  /* ═══ نموذج «الشريط الذهبي»: عنوان على شريط ملوّن عريض ═══ */
+  .d-sharit .band { margin: 5mm auto 0; display: flex; align-items: center; justify-content: center; gap: 6mm;
+    width: 190mm; padding: 3mm 6mm; border-radius: 5mm;
+    background: linear-gradient(to left, var(--accent), color-mix(in srgb, var(--accent) 72%, #000));
+    font-family: "Baloo", "Tajawal", sans-serif; font-weight: 800; font-size: 31pt; color: #FBF7EC;
+    box-shadow: 0 1mm 2.5mm rgba(43,33,24,.22); }
+  .d-sharit .band-star { display: inline-flex; }
 `;
 
 /** بناء مستند شهادات كامل (صفحة لكل شهادة) */

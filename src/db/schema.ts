@@ -66,6 +66,7 @@ export interface PointLevel {
 export interface CertPrefs {
   reason?: string;
   bgKey?: string;
+  designKey?: string;
   grantLine?: string;
   accent?: string;
   nameSizePt?: number;
