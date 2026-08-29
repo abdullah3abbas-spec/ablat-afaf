@@ -8,7 +8,7 @@ import QRCode from "qrcode";
 import { db } from "@/db";
 import type { CertificateTemplate } from "@/db/schema";
 import { toEastern } from "./numerals";
-import { printHtml } from "./sheetPrint";
+import { printHtmlNow } from "./sheetPrint";
 
 export interface CertTemplateDef {
   key: CertificateTemplate;
@@ -186,7 +186,8 @@ export async function issueCertificates(input: IssueInput): Promise<CertData[]> 
 
 /** طباعة دفعة شهادات */
 export function printCertificates(certs: CertData[]): void {
-  printHtml(certificatesHtml(certs));
+  // صفحة الشهادات تعرض معاينتها الخاصة (مع PNG لكل شهادة) — الطباعة هنا مباشرة
+  printHtmlNow(certificatesHtml(certs));
 }
 
 /**

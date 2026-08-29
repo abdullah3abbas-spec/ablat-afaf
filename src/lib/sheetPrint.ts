@@ -99,8 +99,8 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 }
 
-/** طباعة عبر iframe مخفي — «حفظ كـ PDF» من حوار المتصفح (§5) */
-export function printHtml(html: string): void {
+/** طباعة مباشرة عبر iframe مخفي — «حفظ كـ PDF» من حوار المتصفح (§5) */
+export function printHtmlNow(html: string): void {
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
   iframe.style.width = "0";
@@ -117,4 +117,102 @@ export function printHtml(html: string): void {
     // نزيله بعد مهلة كافية لحوار الطباعة
     setTimeout(() => iframe.remove(), 60_000);
   };
+}
+
+/** نافذة المعاينة المفتوحة حالياً — واحدة فقط في كل وقت */
+let currentPreviewCleanup: (() => void) | null = null;
+
+/**
+ * معاينة قبل الطباعة — القاعدة العامة لكل أوامر «اطبعي» في المنصّة:
+ * تُعرض الورقة كما ستُطبع في نافذة كاملة، ومنها زر «اطبعي / احفظي PDF»
+ * (يطبع إطار المعاينة نفسه — §5 طباعة المتصفح حصراً) وزر إغلاق.
+ * لا حوار طباعة مفاجئاً بعد اليوم.
+ */
+export function printHtml(html: string): void {
+  currentPreviewCleanup?.();
+  const title = /<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() || "معاينة قبل الطباعة";
+  const prevFocus = document.activeElement as HTMLElement | null;
+
+  const overlay = document.createElement("div");
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", `معاينة: ${title}`);
+  overlay.setAttribute("dir", "rtl");
+  overlay.style.cssText =
+    "position:fixed;inset:0;z-index:9999;background:rgba(30,24,26,.6);display:flex;flex-direction:column;font-family:Tajawal,sans-serif;";
+
+  // الشريط العلوي: العنوان + زرا الطباعة والإغلاق (٤٨px فأكثر — §6)
+  const bar = document.createElement("div");
+  bar.style.cssText =
+    "flex:none;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:#fff;border-bottom:2px solid #E6DFD4;";
+  const heading = document.createElement("div");
+  heading.style.cssText = "margin-inline-end:auto;min-width:0;";
+  heading.innerHTML =
+    `<div style="font-family:Cairo,Tajawal,sans-serif;font-weight:700;font-size:18px;color:#8A1538;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">معاينة: ${escapeHtml(title)}</div>` +
+    `<div style="font-size:14px;color:#6B5E58;">راجعيها ثم اضغطي «اطبعي» — ومن حوار المتصفح يمكنك «حفظ كـ PDF»</div>`;
+  const printBtn = document.createElement("button");
+  printBtn.type = "button";
+  printBtn.textContent = "🖨 اطبعي / احفظي PDF";
+  printBtn.style.cssText =
+    "min-height:48px;padding:0 22px;border:0;border-radius:12px;background:#0F6B62;color:#fff;font-family:inherit;font-size:18px;font-weight:700;cursor:pointer;";
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.textContent = "أغلقي";
+  closeBtn.setAttribute("aria-label", "أغلقي المعاينة");
+  closeBtn.style.cssText =
+    "min-height:48px;padding:0 22px;border:2px solid #C9BFB4;border-radius:12px;background:#fff;color:#2B2118;font-family:inherit;font-size:18px;font-weight:700;cursor:pointer;";
+  bar.append(heading, printBtn, closeBtn);
+
+  // منطقة الورقة: إطار أبيض بظل، يتقلّص ليلائم الشاشة (موبايل §6)
+  const stage = document.createElement("div");
+  stage.style.cssText = "flex:1;overflow:auto;padding:16px 8px 32px;";
+  const holder = document.createElement("div");
+  holder.style.cssText = "margin:0 auto;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.35);overflow:hidden;";
+  const frame = document.createElement("iframe");
+  frame.setAttribute("title", `معاينة: ${title}`);
+  frame.style.cssText = "display:block;border:0;background:#fff;transform-origin:top right;";
+  frame.srcdoc = html;
+  holder.appendChild(frame);
+  stage.appendChild(holder);
+  overlay.append(bar, stage);
+
+  // ملاءمة المقاس: عرض المستند الحقيقي (A4 عمودي/أفقي) مصغّراً ليدخل الشاشة
+  const fit = () => {
+    const doc = frame.contentDocument;
+    const base = Math.min(1400, Math.max(660, doc?.documentElement?.scrollWidth || 794));
+    const h = Math.max(300, doc?.documentElement?.scrollHeight || 1123);
+    const avail = stage.clientWidth - 16;
+    const scale = Math.min(1, avail / base);
+    frame.style.width = `${base}px`;
+    frame.style.height = `${h}px`;
+    frame.style.transform = `scale(${scale})`;
+    holder.style.width = `${Math.round(base * scale)}px`;
+    holder.style.height = `${Math.round(h * scale)}px`;
+  };
+  frame.addEventListener("load", () => setTimeout(fit, 60));
+  window.addEventListener("resize", fit);
+
+  const cleanup = () => {
+    window.removeEventListener("resize", fit);
+    document.removeEventListener("keydown", onKey);
+    overlay.remove();
+    currentPreviewCleanup = null;
+    prevFocus?.focus?.();
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") cleanup();
+  };
+  document.addEventListener("keydown", onKey);
+  closeBtn.addEventListener("click", cleanup);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay || e.target === stage) cleanup();
+  });
+  printBtn.addEventListener("click", () => {
+    frame.contentWindow?.focus();
+    frame.contentWindow?.print();
+  });
+
+  currentPreviewCleanup = cleanup;
+  document.body.appendChild(overlay);
+  printBtn.focus();
 }
