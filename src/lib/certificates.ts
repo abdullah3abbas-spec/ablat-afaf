@@ -114,11 +114,11 @@ const MASTER_CAL_DEFAULT: MasterCal = {
   marksTop: 10.5, marksH: 7,
 };
 const MASTER_CAL: Record<string, Partial<MasterCal>> = {
-  excellence: { nameTop: 45, nameH: 13, dateTop: 69.5, teacherTop: 79.5, teacherRight: 11, serialTop: 91.5, marksTop: 6.5, marksH: 6.5 },
-  star_of_month: { nameTop: 49.5, nameH: 11, dateTop: 71.5, teacherTop: 78.5, serialTop: 94, marksTop: 7.5, marksH: 6.5 },
-  most_improved: { nameTop: 45, nameH: 13.5, dateTop: 66.5, teacherTop: 79, serialTop: 91.5, marksTop: 6.5, marksH: 6.5 },
-  best_experiment: { nameTop: 45, nameH: 12, dateTop: 66.5, teacherTop: 77.5, serialTop: 91, marksTop: 8, marksH: 6.5 },
-  guardian_thanks: { nameTop: 44, dateTop: 67.5, teacherTop: 76, serialTop: 90 },
+  excellence: { nameTop: 45, nameH: 13, dateTop: 69.5, teacherTop: 80.5, teacherRight: 9, teacherW: 22, serialTop: 91.5, marksTop: 6.5, marksH: 6 },
+  star_of_month: { nameTop: 49.5, nameH: 11, dateTop: 71.5, teacherTop: 80, teacherRight: 9, teacherW: 22, serialTop: 94, marksTop: 7.5, marksH: 6 },
+  most_improved: { nameTop: 45, nameH: 13.5, dateTop: 66.5, teacherTop: 81, teacherRight: 7, teacherW: 22, serialTop: 91.5, marksTop: 6.5, marksH: 6 },
+  best_experiment: { nameTop: 45, nameH: 12, dateTop: 66.5, teacherTop: 81, teacherRight: 9, teacherW: 22, serialTop: 91, marksTop: 8, marksH: 6 },
+  guardian_thanks: { nameTop: 44, dateTop: 67.5, teacherTop: 76.5, teacherRight: 10, teacherW: 22, serialTop: 90, marksTop: 8, marksH: 6 },
 };
 
 const escC = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
@@ -160,10 +160,8 @@ function certPage(c: CertData, o: CertStyleOpts = {}): string {
     const cal = { ...MASTER_CAL_DEFAULT, ...(MASTER_CAL[c.template.key] ?? {}) };
     return `<div class="cert d-designer" style="--accent:${o.accent ?? c.template.accent}">
       <img class="bg" src="/cert-art/master-${c.template.key}.jpg" alt="شهادة ${escC(c.template.nameAr)}" />
-      <img class="m-mark ministry" src="/cert-art/mark-ministry.png" alt="وزارة التربية والتعليم والتعليم العالي"
-        style="top:${cal.marksTop}%;height:${cal.marksH}%;right:8%" />
-      <img class="m-mark school" src="/cert-art/mark-school.png" alt="مدرسة زكريت الابتدائية للبنات"
-        style="top:${cal.marksTop}%;height:${cal.marksH}%;left:8%" />
+      <span class="m-markwrap" style="top:${cal.marksTop}%;height:${cal.marksH}%;right:8%"><img class="m-mark" src="/cert-art/mark-ministry.png" alt="وزارة التربية والتعليم والتعليم العالي" /></span>
+      <span class="m-markwrap" style="top:${cal.marksTop}%;height:${cal.marksH}%;left:8%"><img class="m-mark" src="/cert-art/mark-school.png" alt="مدرسة زكريت الابتدائية للبنات" /></span>
       <div class="m-name" style="top:${cal.nameTop}%;height:${cal.nameH}%${o.nameSizePt ? `;font-size:${o.nameSizePt}pt` : ""}">${escC(c.recipientName)}</div>
       <div class="m-date" style="top:${cal.dateTop}%">حُررت بتاريخ ${escC(toEastern(c.dateStr))}</div>
       <div class="m-teacher" style="top:${cal.teacherTop}%;right:${cal.teacherRight}%;width:${cal.teacherW}%">${escC(c.teacherName ?? "")}</div>
@@ -214,6 +212,7 @@ const CERT_CSS = `
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-400.woff2") format("woff2"); font-weight: 400; }
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-500.woff2") format("woff2"); font-weight: 500; }
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-700.woff2") format("woff2"); font-weight: 700; }
+  @font-face { font-family: "Ruqaa"; src: url("/fonts/ruqaa-arabic-700.woff2") format("woff2"); font-weight: 700; }
   @font-face { font-family: "Baloo"; src: url("/fonts/baloo-arabic-700.woff2") format("woff2"); font-weight: 700; }
   @font-face { font-family: "Baloo"; src: url("/fonts/baloo-arabic-800.woff2") format("woff2"); font-weight: 800; }
   :root { --gold: #C08A2E; --gold-deep: #8A6A1F; --ivory: #FBF7EC; }
@@ -263,17 +262,25 @@ const CERT_CSS = `
   .seal-star .star-eye { fill: #fff; }
   .serial { font-family: "Tajawal", sans-serif; font-size: 8.5pt; color: #6B5B4A; direction: ltr; }
 
-  /* ═══ نموذج «لوحة المصمم»: الماستر المرسوم + الاسم والتاريخ فقط محلياً ═══ */
-  .d-designer .m-mark { position: absolute; object-fit: contain;
-    background: rgba(255,253,246,.92); border-radius: 2.5mm; padding: 1.2mm 2.5mm; }
+  /* ═══ نموذج «لوحة المصمم»: الماستر المرسوم + تركيب مدموج (§ قواعد عبد الله) ═══ */
+  /* اللوجو على رقعة بلون الورق بحواف مموّهة — يبدو مطبوعاً في اللوحة لا ملصقاً */
+  .d-designer .m-markwrap { position: absolute; display: flex; align-items: center; justify-content: center;
+    background: #FAF4E6; border-radius: 3mm; padding: 1mm 2.5mm;
+    box-shadow: 0 0 3.5mm 2.5mm #FAF4E6; }
+  .d-designer .m-mark { height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+  /* اسم الطالبة بحروف ذهبية متدرجة كأنها مرسومة مع حروف اللوحة */
   .d-designer .m-name { position: absolute; left: 16%; right: 16%;
     display: flex; align-items: center; justify-content: center;
-    font-family: "Amiri", serif; font-weight: 700; font-size: 34pt; color: #6E521B; line-height: 1.3; }
+    font-family: "Baloo", "Cairo", sans-serif; font-weight: 800; font-size: 30pt; line-height: 1.3;
+    background: linear-gradient(178deg, #E9C468 8%, #C89A38 48%, #A2771F 92%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0.35mm 0.3mm rgba(97,66,12,.4)); }
   .d-designer .m-date { position: absolute; left: 0; right: 0; text-align: center;
-    font-family: "Tajawal", sans-serif; font-size: 11pt; font-weight: 500; color: #6B5B4A; }
+    font-family: "Tajawal", sans-serif; font-size: 10.5pt; font-weight: 500; color: #7A6A55; }
+  /* توقيع المعلّمة بخط الرقعة — إمضاءة حقيقية مائلة فوق السطر */
   .d-designer .m-teacher { position: absolute; text-align: center;
-    font-family: "Tajawal", sans-serif; font-size: 13pt; font-weight: 700; color: #33291F;
-    background: rgba(251,247,236,.96); border-radius: 2.5mm; padding: 1mm 2mm 3mm; }
+    font-family: "Ruqaa", "Amiri", serif; font-weight: 700; font-size: 17pt; color: #4A3520;
+    transform: rotate(-2.5deg); }
   .d-designer .m-serial { position: absolute; left: 0; right: 0; text-align: center;
     font-family: "Tajawal", sans-serif; font-size: 8pt; color: #8A7B66; direction: ltr; }
 
