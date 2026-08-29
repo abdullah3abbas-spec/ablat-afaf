@@ -76,6 +76,7 @@ export interface CertDesignDef {
   defaultBg: string;
 }
 export const CERT_DESIGNS: CertDesignDef[] = [
+  { key: "designer", nameAr: "لوحة المصمم", defaultBg: "" },
   { key: "merha", nameAr: "مرحة", defaultBg: "kid1" },
   { key: "wisam", nameAr: "وسام النجمة", defaultBg: "kid2" },
   { key: "fakhera", nameAr: "فاخرة", defaultBg: "sadu" },
@@ -96,6 +97,29 @@ export interface CertStyleOpts {
   /** مفتاح النموذج من CERT_DESIGNS (الافتراضي «مرحة») */
   designKey?: string;
 }
+
+/** معايرة مواضع التركيب فوق لوحات «المصمم» — نسب مئوية، تُضبط لكل ماستر */
+interface MasterCal {
+  nameTop: number; nameH: number;
+  dateTop: number;
+  teacherTop: number; teacherRight: number; teacherW: number;
+  serialTop: number;
+  marksTop: number; marksH: number;
+}
+const MASTER_CAL_DEFAULT: MasterCal = {
+  nameTop: 44.5, nameH: 13,
+  dateTop: 66,
+  teacherTop: 76.5, teacherRight: 13, teacherW: 22,
+  serialTop: 92,
+  marksTop: 10.5, marksH: 7,
+};
+const MASTER_CAL: Record<string, Partial<MasterCal>> = {
+  excellence: { dateTop: 70, teacherTop: 78.5, teacherRight: 12, serialTop: 89 },
+  star_of_month: { nameTop: 44, dateTop: 67.5, teacherTop: 76, serialTop: 89 },
+  most_improved: { nameTop: 45, dateTop: 67, teacherTop: 75.5, teacherRight: 9, teacherW: 27, serialTop: 90 },
+  best_experiment: { nameTop: 43.5, nameH: 14, dateTop: 70, teacherTop: 79, serialTop: 91 },
+  guardian_thanks: { nameTop: 44, dateTop: 67.5, teacherTop: 76, serialTop: 90 },
+};
 
 const escC = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
 
@@ -132,6 +156,20 @@ function certPage(c: CertData, o: CertStyleOpts = {}): string {
   const kindTitle = `شهادة ${escC(c.template.nameAr)}`;
 
   let body = "";
+  if (design.key === "designer") {
+    const cal = { ...MASTER_CAL_DEFAULT, ...(MASTER_CAL[c.template.key] ?? {}) };
+    return `<div class="cert d-designer" style="--accent:${o.accent ?? c.template.accent}">
+      <img class="bg" src="/cert-art/master-${c.template.key}.jpg" alt="شهادة ${escC(c.template.nameAr)}" />
+      <img class="m-mark ministry" src="/cert-art/mark-ministry.png" alt="وزارة التربية والتعليم والتعليم العالي"
+        style="top:${cal.marksTop}%;height:${cal.marksH}%;right:8%" />
+      <img class="m-mark school" src="/cert-art/mark-school.png" alt="مدرسة زكريت الابتدائية للبنات"
+        style="top:${cal.marksTop}%;height:${cal.marksH}%;left:8%" />
+      <div class="m-name" style="top:${cal.nameTop}%;height:${cal.nameH}%${o.nameSizePt ? `;font-size:${o.nameSizePt}pt` : ""}">${escC(c.recipientName)}</div>
+      <div class="m-date" style="top:${cal.dateTop}%">حُررت بتاريخ ${escC(toEastern(c.dateStr))}</div>
+      <div class="m-teacher" style="top:${cal.teacherTop}%;right:${cal.teacherRight}%;width:${cal.teacherW}%">${escC(c.teacherName ?? "")}</div>
+      ${o.showSeal === false ? "" : `<div class="m-serial" style="top:${cal.serialTop}%">${escC(c.serial)}</div>`}
+    </div>`;
+  }
   if (design.key === "fakhera") {
     body = `
       <img class="letterhead" src="/letterhead.png" alt="مدرسة زكريت الابتدائية للبنات — وزارة التربية والتعليم والتعليم العالي، دولة قطر" />
@@ -224,6 +262,20 @@ const CERT_CSS = `
                     background: #fff; border: 0.5mm solid var(--gold); fill: var(--accent); }
   .seal-star .star-eye { fill: #fff; }
   .serial { font-family: "Tajawal", sans-serif; font-size: 8.5pt; color: #6B5B4A; direction: ltr; }
+
+  /* ═══ نموذج «لوحة المصمم»: الماستر المرسوم + الاسم والتاريخ فقط محلياً ═══ */
+  .d-designer .m-mark { position: absolute; object-fit: contain;
+    background: rgba(255,253,246,.92); border-radius: 2.5mm; padding: 1.2mm 2.5mm; }
+  .d-designer .m-name { position: absolute; left: 16%; right: 16%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Amiri", serif; font-weight: 700; font-size: 34pt; color: #6E521B; line-height: 1.3; }
+  .d-designer .m-date { position: absolute; left: 0; right: 0; text-align: center;
+    font-family: "Tajawal", sans-serif; font-size: 11pt; font-weight: 500; color: #6B5B4A; }
+  .d-designer .m-teacher { position: absolute; text-align: center;
+    font-family: "Tajawal", sans-serif; font-size: 13pt; font-weight: 700; color: #33291F;
+    background: rgba(251,247,236,.96); border-radius: 2.5mm; padding: 1mm 2mm 3mm; }
+  .d-designer .m-serial { position: absolute; left: 0; right: 0; text-align: center;
+    font-family: "Tajawal", sans-serif; font-size: 8pt; color: #8A7B66; direction: ltr; }
 
   /* ═══ نموذج «فاخرة»: البانر كاملاً في الوسط وخط أميري احتفالي ═══ */
   .d-fakhera .letterhead { width: 150mm; max-height: 19mm; object-fit: contain; display: block;

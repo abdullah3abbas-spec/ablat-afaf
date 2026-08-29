@@ -94,7 +94,7 @@ export default function CertificatesPage() {
   const [edNameSize, setEdNameSize] = useState(46);
   const [edSeal, setEdSeal] = useState(true);
   const [edBg, setEdBg] = useState("kid1");
-  const [edDesign, setEdDesign] = useState("merha");
+  const [edDesign, setEdDesign] = useState("designer");
   const [freeEdit, setFreeEdit] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -110,7 +110,7 @@ export default function CertificatesPage() {
       setEdAccent(prefs?.accent ?? "");
       setEdNameSize(prefs?.nameSizePt ?? 46);
       setEdSeal(prefs?.showSeal ?? true);
-      const dKey = prefs?.designKey ?? "merha";
+      const dKey = prefs?.designKey ?? "designer";
       setEdDesign(dKey);
       setEdBg(prefs?.bgKey ?? CERT_DESIGNS.find((d) => d.key === dKey)?.defaultBg ?? "kid1");
       setFreeEdit(false);
@@ -340,7 +340,8 @@ export default function CertificatesPage() {
                     ))}
                   </div>
                 </div>
-                <div className="space-y-1">
+                {edDesign === "designer" && <p className="rounded-card bg-gold-bg p-3 text-sm text-gold-dark">{s.certs.designerHint}</p>}
+                {edDesign !== "designer" && <div className="space-y-1">
                   <span className="font-medium">{s.certs.bgLabel}</span>
                   <div className="grid grid-cols-2 gap-2" role="group" aria-label={s.certs.bgLabel}>
                     {CERT_BACKGROUNDS.map((b) => (
@@ -355,23 +356,23 @@ export default function CertificatesPage() {
                       </button>
                     ))}
                   </div>
-                </div>
-                <label className="block space-y-1">
+                </div>}
+                {edDesign !== "designer" && <label className="block space-y-1">
                   <span className="font-medium">{s.certs.reason}</span>
                   <textarea value={edReason} onChange={(e) => setEdReason(e.target.value)} rows={2}
                     className="w-full rounded-card border-2 border-line px-3 py-2 focus:border-teal" />
-                </label>
-                <label className="block space-y-1">
+                </label>}
+                {edDesign !== "designer" && <label className="block space-y-1">
                   <span className="font-medium">{s.certs.grantLine}</span>
                   <textarea value={edGrant} onChange={(e) => setEdGrant(e.target.value)} rows={2}
                     className="w-full rounded-card border-2 border-line px-3 py-2 focus:border-teal" />
-                </label>
+                </label>}
                 <label className="block space-y-1">
                   <span className="font-medium">{s.certs.dateLabel}</span>
                   <input type="text" value={edDate} onChange={(e) => setEdDate(e.target.value)}
                     className="min-h-touch w-full rounded-card border-2 border-line px-3 focus:border-teal" />
                 </label>
-                <div className="space-y-1">
+                {edDesign !== "designer" && <div className="space-y-1">
                   <span className="font-medium">{s.certs.accentLabel}</span>
                   <div className="flex flex-wrap gap-2" role="group" aria-label={s.certs.accentLabel}>
                     {["", "#8A1538", "#0B534C", "#1E3A5F", "#7A5716", "#5E0E26"].map((c) => (
@@ -384,7 +385,7 @@ export default function CertificatesPage() {
                       </button>
                     ))}
                   </div>
-                </div>
+                </div>}
                 <label className="block space-y-1">
                   <span className="font-medium">{s.certs.nameSize}</span>
                   <select value={edNameSize} onChange={(e) => setEdNameSize(Number(e.target.value))} className="min-h-touch w-full rounded-card border-2 border-line bg-white px-3 focus:border-teal">
