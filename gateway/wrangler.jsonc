@@ -15,7 +15,11 @@
     // اسم متجدد يتبع أحدث flash مستقر تلقائياً — لا يتقادم مع تقاعد النماذج
     // (القائمة الفعلية المتاحة للمفتاح: GET /api/models)
     "GEMINI_MODEL": "gemini-flash-latest",
+    "OPENAI_IMAGE_MODEL": "gpt-image-1",
+    "IMAGE_QUALITY": "low",
+    "IMAGE_USD_EACH": "0.015",
     "OPENAI_MODEL": "gpt-5-mini",
+    "OPENAI_REASONING_EFFORT": "low",
     "TOTAL_BUDGET_USD": "50",
     "DAILY_CAP_USD": "5",
     "GEMINI_IN_PER_M": "0.30",

@@ -48,7 +48,7 @@ export async function callGemini(apiKey: string, model: string, system: string, 
   };
 }
 
-export async function callOpenAI(apiKey: string, model: string, system: string, user: string, maxTokens: number): Promise<CallResult> {
+export async function callOpenAI(apiKey: string, model: string, system: string, user: string, maxTokens: number, effort?: string): Promise<CallResult> {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
@@ -59,6 +59,7 @@ export async function callOpenAI(apiKey: string, model: string, system: string, 
         { role: "user", content: user },
       ],
       max_completion_tokens: maxTokens,
+      ...(effort ? { reasoning_effort: effort } : {}),
     }),
   });
   if (!res.ok) throw new ProviderError("openai", res.status, (await res.text()).slice(0, 300));
@@ -135,4 +136,23 @@ export async function callOpenAIJson(
     inTokens: data.usage?.prompt_tokens ?? 0,
     outTokens: data.usage?.completion_tokens ?? 0,
   };
+}
+
+/** توليد صورة عبر OpenAI Images — تُعاد base64 (بلا روابط مؤقتة) */
+export async function callOpenAIImage(
+  apiKey: string,
+  model: string,
+  prompt: string,
+  quality: string
+): Promise<{ b64: string }> {
+  const res = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ model, prompt, n: 1, size: "1024x1024", quality, output_format: "png" }),
+  });
+  if (!res.ok) throw new ProviderError("openai", res.status, (await res.text()).slice(0, 300));
+  const data = (await res.json()) as { data?: { b64_json?: string }[] };
+  const b64 = data.data?.[0]?.b64_json;
+  if (!b64) throw new ProviderError("openai", 502, "ردّ صورة فارغ من المزوّد");
+  return { b64 };
 }

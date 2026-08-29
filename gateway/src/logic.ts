@@ -140,6 +140,7 @@ export interface GenSlide {
   icons?: { items: { icon: string; text: string }[] };
   interaction?: { kind: "question" | "predict" | "challenge"; prompt: string; answer: string };
   chart?: { kind: "pie" | "bars"; items: { label: string; value: number }[]; unit?: string };
+  image?: { prompt: string; dataUrl?: string };
   note: { say: string; ask?: string; expected?: string; misconception?: string };
   source?: string;
 }
@@ -164,6 +165,7 @@ export function slidesSystemPrompt(): string {
     'icons: {"items":[{"icon":"droplets","text":"الماء سائل"}]}',
     'interaction: {"kind":"question","prompt":"...","answer":"..."}',
     'chart: {"kind":"pie"|"bars","items":[{"label":"آكلة العشب","value":6}],"unit":"?"} — أضيفي رسماً بيانياً حين توجد أعداد أو نسب تُفهم بصرياً أفضل (تصنيفات، مقارنات كمية).',
+    'image: {"prompt":"وصف مشهد بالعربية"} — أضيفيه لشريحتين إلى أربع شرائح يخدمها رسم توضيحي: صفي المشهد من محتوى المصادر فقط (كائنات الدرس وبيئتها) بجملة غنية، ولا تطلبي أي نص داخل الصورة.',
     'note: {"say":"...","ask":"...","expected":"...","misconception":"..."}',
 
     "قيم layout المسموحة: cover, objectives, bullets, comparison, cycle, steps, labeled, icons, interaction.",
@@ -245,6 +247,10 @@ export const SLIDES_OPENAI_SCHEMA = {
                 prompt: { type: "string" },
                 answer: { type: "string" },
               },
+            },
+            image: {
+              type: "object", additionalProperties: false, required: ["prompt"],
+              properties: { prompt: { type: "string" } },
             },
             chart: {
               type: "object", additionalProperties: false, required: ["kind", "items"],
@@ -353,6 +359,16 @@ function coerceSlide(input: Record<string, unknown>): GenSlide {
       s.chart = { kind: ch.kind, items, unit: typeof ch.unit === "string" ? ch.unit : undefined };
     } else {
       delete (s as Record<string, unknown>).chart;
+    }
+  }
+  // image: نبقي الوصف النصي فقط (الصورة تولَّد لاحقاً بموافقة المعلّمة)
+  const im = s.image as unknown as { prompt?: unknown; dataUrl?: unknown } | undefined;
+  if (im) {
+    const promptTxt = typeof im.prompt === "string" ? im.prompt.trim() : "";
+    if (promptTxt.length >= 8) {
+      s.image = { prompt: promptTxt, dataUrl: typeof im.dataUrl === "string" ? im.dataUrl : undefined };
+    } else {
+      delete (s as Record<string, unknown>).image;
     }
   }
   return s as GenSlide;

@@ -15,7 +15,7 @@ import { db } from "@/db";
 import type { Presentation, VisualSlide } from "@/db/schema";
 import { ALL_KITS } from "@/content/lessonKits";
 import { bookLessonByCode } from "@/content/bookG05S1P1";
-import { generateSlides, AiClientError } from "@/lib/aiClient";
+import { generateImage, generateSlides, AiClientError } from "@/lib/aiClient";
 import type { AskSource } from "@/lib/aiClient";
 import { lessonBookSources, lessonMetaSource } from "@/lib/bookRetrieval";
 import { kitToSource, resourceToSource } from "@/lib/curriculumSources";
@@ -161,6 +161,51 @@ export default function SlidesStudioPage() {
 
   const n = (v: number) => fmtNum(v, numerals);
 
+  /** الشرائح التي اقترح لها المولّد صوراً ولم تولَّد بعد */
+  const pendingImages = (current?.slides ?? [])
+    .map((sl, idx) => ({ idx, prompt: sl.image?.prompt, has: !!sl.image?.dataUrl }))
+    .filter((x): x is { idx: number; prompt: string; has: boolean } => !!x.prompt && !x.has);
+
+  const [imgPreview, setImgPreview] = useState<{ content: string } | null>(null);
+
+  /** توليد صور الشرائح المقترَحة تسلسلياً بعد موافقة «ما سيُرسل» */
+  async function generateImagesApproved(sendLogId: number) {
+    if (!current) return;
+    setImgPreview(null);
+    setBusy(true);
+    const record = { ...current, slides: [...current.slides] };
+    let done = 0;
+    let cost = 0;
+    try {
+      for (const { idx, prompt } of pendingImages) {
+        setGenLine(s.slides.imagesProgress(n(done + 1), n(pendingImages.length)));
+        const r = await generateImage(prompt);
+        cost += r.costUsd;
+        record.slides[idx] = { ...record.slides[idx], image: { prompt, dataUrl: r.dataUrl } };
+        done++;
+      }
+      record.status = "draft";
+      record.updatedAt = Date.now();
+      if (record.id != null) await db.presentations.put(record as Presentation);
+      else record.id = (await db.presentations.add(record as Presentation)) as number;
+      setDraft(null);
+      setGenLine(s.slides.imagesDone(n(done), fmtNum(Math.round(cost * 1000) / 1000, numerals)));
+      await db.aiSendLog.update(sendLogId, { status: "sent", note: `صور: ${done} · ~${Math.round(cost * 1000) / 1000}$` });
+      show(s.slides.imagesDone(n(done), fmtNum(Math.round(cost * 1000) / 1000, numerals)));
+    } catch (e) {
+      const msg = e instanceof AiClientError ? e.messageAr : s.errors.generic;
+      setErrorAr(msg);
+      await db.aiSendLog.update(sendLogId, { status: done > 0 ? "sent" : "failed", note: msg });
+      if (done > 0) {
+        // نحفظ ما اكتمل — لا نضيع صوراً مدفوعة
+        record.updatedAt = Date.now();
+        if (record.id != null) await db.presentations.put(record as Presentation);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-5">
 
@@ -265,6 +310,20 @@ export default function SlidesStudioPage() {
                     {s.slides.present}
                   </Link>
                 )}
+                {pendingImages.length > 0 && (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      setImgPreview({
+                        content: [s.slides.imagesExplain, "", ...pendingImages.map((x, i) => `${i + 1}) ${x.prompt}`)].join("\n"),
+                      })
+                    }
+                    className="btn-primary disabled:opacity-50"
+                  >
+                    🎨 {s.slides.genImages(n(pendingImages.length))}
+                  </button>
+                )}
                 <button type="button" onClick={() => void downloadSlidesPptx(current, schoolName || "مدرستي")} className="btn-secondary">
                   <Download className="size-5" aria-hidden />
                   {s.slides.exportPptx}
@@ -358,6 +417,16 @@ export default function SlidesStudioPage() {
             ))}
           </ol>
         </>
+      )}
+
+      {imgPreview && (
+        <SendPreviewDialog
+          kind="generation"
+          title={s.slides.imagesTitle}
+          content={imgPreview.content}
+          onApproved={(id) => void generateImagesApproved(id)}
+          onClose={() => setImgPreview(null)}
+        />
       )}
 
       {preview && lesson && (

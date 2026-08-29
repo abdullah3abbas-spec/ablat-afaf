@@ -190,7 +190,7 @@ async function runSeed(): Promise<void> {
             pointLevels: prev?.pointLevels ?? DEFAULT_POINT_LEVELS,
             monthlyPointsCap: prev?.monthlyPointsCap ?? DEFAULT_MONTHLY_POINTS_CAP,
             absenceAlertThreshold: prev?.absenceAlertThreshold ?? DEFAULT_ABSENCE_ALERT,
-            aiConnectionEnabled: prev?.aiConnectionEnabled ?? false,
+            aiConnectionEnabled: prev?.aiConnectionEnabled ?? true,
             seeded: true,
             createdAt: prev?.createdAt ?? now,
             updatedAt: now,

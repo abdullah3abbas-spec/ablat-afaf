@@ -164,6 +164,15 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
           </div>
         )}
 
+        {/* صورة توليدية معتمَدة — من محتوى الوزارة، بلا نص داخلها */}
+        {slide.image?.dataUrl && (
+          <img
+            src={slide.image.dataUrl}
+            alt={slide.image.prompt}
+            className={"mx-auto w-full rounded-card border-2 border-line object-cover " + (p ? "max-h-80 max-w-2xl" : "max-h-32 max-w-xs")}
+          />
+        )}
+
         {/* رسم بياني — SVG بقواعد dataviz (تسميات مباشرة، ألوان الهوية) */}
         {slide.chart && slide.chart.items.length > 0 && (
           slide.chart.kind === "pie"

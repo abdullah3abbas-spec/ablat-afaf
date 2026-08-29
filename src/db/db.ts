@@ -267,6 +267,15 @@ export class ManassatDB extends Dexie {
         if (!cur || cur === LEGACY_GATEWAY_URL) st.aiGatewayUrl = DEFAULT_GATEWAY_URL;
       });
     });
+
+    // v13 — «كل حاجة واضحة وبلا خطوات»: الرمز صار سرّاً على خادم الموقع،
+    // فمساعدة الذكاء تعمل من أول لحظة. نفعّلها فقط للأجهزة التي لم تُضبط
+    // يدوياً قط (لا رمز مُدخل) — ومن قطعت الاتصال بنفسها بعد ضبطٍ يدوي يُحترم قرارها.
+    this.version(13).upgrade(async (tx) => {
+      await tx.table("settings").toCollection().modify((st: { aiConnectionEnabled?: boolean; aiGatewayToken?: string }) => {
+        if (!st.aiGatewayToken?.trim()) st.aiConnectionEnabled = true;
+      });
+    });
   }
 }
 

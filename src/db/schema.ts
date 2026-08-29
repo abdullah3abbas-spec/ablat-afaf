@@ -761,6 +761,8 @@ export interface VisualSlide {
   interaction?: { kind: "question" | "predict" | "challenge"; prompt: string; answer: string };
   /** رسم بياني (دائري أو أعمدة) — يُرسم SVG بقواعد dataviz، لا صور */
   chart?: { kind: "pie" | "bars"; items: { label: string; value: number }[]; unit?: string };
+  /** صورة توليدية من محتوى المصادر: وصف يقترحه المولّد، والصورة تُولَّد بموافقة المعلّمة */
+  image?: { prompt: string; dataUrl?: string };
   note: VisualSlideNote;
   source?: string;
   /** زر إجراء داخل العرض (العرض المساعد): «العبنها في وضع الفصل» مثلاً */

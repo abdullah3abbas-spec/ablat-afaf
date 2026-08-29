@@ -32,7 +32,7 @@ import {
   type AskSource,
   type Provider,
 } from "./logic";
-import { ProviderError, callGemini, callGeminiJson, callOpenAI, callOpenAIJson, type CallResult } from "./providers";
+import { ProviderError, callGemini, callGeminiJson, callOpenAI, callOpenAIJson, type CallResult , callOpenAIImage } from "./providers";
 
 interface Env {
   USAGE: KVNamespace;
@@ -42,6 +42,11 @@ interface Env {
   ALLOWED_ORIGINS: string;
   /** مرحلة المشرفة على مخرجات التوليد (افتراضياً مفعّلة) */
   SUPERVISOR_ENABLED?: string;
+  OPENAI_IMAGE_MODEL?: string;
+  IMAGE_QUALITY?: string;
+  IMAGE_USD_EACH?: string;
+  /** جهد تفكير نماذج gpt-5 — بدونها قد يعود الرد فارغاً */
+  OPENAI_REASONING_EFFORT?: string;
   GEMINI_MODEL: string;
   OPENAI_MODEL: string;
   TOTAL_BUDGET_USD: string;
@@ -229,7 +234,7 @@ export default {
           const result: CallResult =
             p === "gemini"
               ? await callGemini(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, sys, usr, LIMITS.answerMaxTokens)
-              : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, sys, usr, LIMITS.answerMaxTokens);
+              : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, sys, usr, LIMITS.answerMaxTokens, env.OPENAI_REASONING_EFFORT || "low");
 
           const prices =
             p === "gemini"
@@ -322,7 +327,7 @@ export default {
           const result: CallResult =
             p === "gemini"
               ? await callGeminiJson(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, sys, usr, GEN_LIMITS.maxAnswerTokens)
-              : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, sys + "\nأخرجي JSON فقط بلا أي نص آخر.", usr, GEN_LIMITS.maxAnswerTokens);
+              : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, sys + "\nأخرجي JSON فقط بلا أي نص آخر.", usr, GEN_LIMITS.maxAnswerTokens, env.OPENAI_REASONING_EFFORT || "low");
 
           const prices =
             p === "gemini"
@@ -357,7 +362,7 @@ export default {
               const r2: CallResult =
                 reviewer === "gemini"
                   ? await callGeminiJson(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, supervisorPackPrompt(), supUsr, GEN_LIMITS.maxAnswerTokens)
-                  : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, supervisorPackPrompt() + "\nأخرجي JSON فقط بلا أي نص آخر.", supUsr, GEN_LIMITS.maxAnswerTokens);
+                  : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, supervisorPackPrompt() + "\nأخرجي JSON فقط بلا أي نص آخر.", supUsr, GEN_LIMITS.maxAnswerTokens, env.OPENAI_REASONING_EFFORT || "low");
               const prices2 =
                 reviewer === "gemini"
                   ? { inPerM: Number(env.GEMINI_IN_PER_M) || 0, outPerM: Number(env.GEMINI_OUT_PER_M) || 0 }
@@ -454,7 +459,7 @@ export default {
           const result: CallResult =
             p === "gemini"
               ? await callGeminiJson(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, sys, usr, GEN_LIMITS.maxAnswerTokens)
-              : await callOpenAIJson(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, sys, usr, GEN_LIMITS.maxAnswerTokens, SLIDES_OPENAI_SCHEMA);
+              : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, sys + "\nأخرجي JSON فقط بلا أي نص آخر.", usr, GEN_LIMITS.maxAnswerTokens, env.OPENAI_REASONING_EFFORT || "low");
 
           const prices =
             p === "gemini"
@@ -465,7 +470,7 @@ export default {
 
           let parsed: unknown;
           try {
-            parsed = JSON.parse(result.text);
+            parsed = JSON.parse(result.text.replace(/^```json\s*/, "").replace(/```\s*$/, ""));
           } catch {
             lastError = `${p}: مخرج غير JSON`;
             console.warn("provider_failed", lastError);
@@ -489,7 +494,7 @@ export default {
               const r2: CallResult =
                 reviewer === "gemini"
                   ? await callGeminiJson(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, supervisorSlidesPrompt(), supUsr, GEN_LIMITS.maxAnswerTokens)
-                  : await callOpenAIJson(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, supervisorSlidesPrompt(), supUsr, GEN_LIMITS.maxAnswerTokens, SLIDES_OPENAI_SCHEMA);
+                  : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, supervisorSlidesPrompt() + "\nأخرجي JSON فقط بلا أي نص آخر.", supUsr, GEN_LIMITS.maxAnswerTokens, env.OPENAI_REASONING_EFFORT || "low");
               const prices2 =
                 reviewer === "gemini"
                   ? { inPerM: Number(env.GEMINI_IN_PER_M) || 0, outPerM: Number(env.GEMINI_OUT_PER_M) || 0 }
@@ -529,6 +534,57 @@ export default {
         502,
         cors
       );
+    }
+
+    // توليد صورة تعليمية من محتوى الوزارة (استوديو المخرجات)
+    if (request.method === "POST" && url.pathname === "/api/generate-image") {
+      let body: { prompt?: string };
+      try {
+        body = (await request.json()) as typeof body;
+      } catch {
+        return json({ error: "bad_json", messageAr: "طلب غير مقروء" }, 400, cors);
+      }
+      const raw = (body.prompt ?? "").trim();
+      if (raw.length < 8 || raw.length > 900) {
+        return json({ error: "invalid", messageAr: "وصف الصورة قصير جداً أو طويل جداً" }, 400, cors);
+      }
+
+      const openaiUse = await usageOf(env, "openai", nowMs);
+      if (!openaiUse.configured) return json({ error: "no_providers", messageAr: "مفتاح توليد الصور لم يُضبط بعد" }, 503, cors);
+      if (openaiUse.exhausted) return json({ error: "budget_exhausted", messageAr: "وصلتِ حدّ ميزانية الصور اليوم" }, 429, cors);
+
+      // أسلوب موحّد يفرضه الخادم: رسم تعليمي نظيف، وبلا أي نص داخل الصورة
+      // (§ الممنوعات: لا نص عربي مولّداً داخل الصور)
+      const prompt = `${raw}\nرسم توضيحي تعليمي مسطّح نظيف لأطفال المرحلة الابتدائية، ألوان دافئة هادئة (عنّابي وذهبي وتركوازي فاتحة)، خلفية بسيطة، دقة علمية للمشهد الموصوف فقط، ومن دون أي نص أو حروف أو أرقام داخل الصورة إطلاقاً.`;
+
+      const key = "img:" + (await cacheKeyOf({ prompt }));
+      const cached = await env.USAGE.get(key);
+      if (cached) return json({ ...(JSON.parse(cached) as object), cached: true }, 200, cors);
+
+      try {
+        const { b64 } = await callOpenAIImage(
+          env.OPENAI_API_KEY as string,
+          env.OPENAI_IMAGE_MODEL || "gpt-image-1",
+          prompt,
+          env.IMAGE_QUALITY || "low"
+        );
+        const costUsd = Number(env.IMAGE_USD_EACH) || 0.02;
+        ctx.waitUntil(addSpend(env, "openai", costUsd, nowMs));
+        const payload = {
+          dataUrl: `data:image/png;base64,${b64}`,
+          provider: "openai",
+          model: env.OPENAI_IMAGE_MODEL || "gpt-image-1",
+          costUsd,
+          alert: alertLevel(openaiUse.totalUsd + costUsd, openaiUse.budgetUsd),
+          cached: false,
+        };
+        ctx.waitUntil(env.USAGE.put(key, JSON.stringify(payload), { expirationTtl: Number(env.CACHE_TTL_SECONDS) || 604800 }));
+        return json(payload, 200, cors);
+      } catch (e) {
+        const detail = e instanceof ProviderError ? `${e.provider} ${e.status}: ${e.message}` : String(e);
+        console.warn("image_failed", detail);
+        return json({ error: "image_failed", messageAr: "تعذّر توليد الصورة الآن — حاولي بعد قليل", detail }, 502, cors);
+      }
     }
 
     return json({ error: "not_found" }, 404, cors);

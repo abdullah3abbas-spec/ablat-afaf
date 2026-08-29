@@ -82,13 +82,18 @@ export async function gatewayConfig(): Promise<GatewayConfig> {
 
 async function gatewayFetch(path: string, init?: RequestInit): Promise<Response> {
   const cfg = await gatewayConfig();
-  if (!cfg.enabled) throw new AiClientError("off", "الاتصال بالذكاء الاصطناعي مقطوع — فعّليه من الإعدادات أولاً");
-  if (!cfg.token) throw new AiClientError("no_token", "رمز الربط غير مُدخل — أدخليه في الإعدادات (خطوة عبد الله)");
+  if (!cfg.enabled) throw new AiClientError("off", "الاتصال بمساعدة الذكاء مقطوع — فعّليه من الإعدادات أولاً");
+  // لا رمز مطلوب من المعلّمة: البروكسي على دومين الموقع يحقن الرمز من سرّ
+  // الخادم. الإدخال اليدوي في الإعدادات يتقدّم إن وُجد (تدوير/طوارئ فقط).
   let res: Response;
   try {
     res = await fetch(cfg.url + path, {
       ...init,
-      headers: { "content-type": "application/json", "x-afaf-token": cfg.token, ...(init?.headers ?? {}) },
+      headers: {
+        "content-type": "application/json",
+        ...(cfg.token ? { "x-afaf-token": cfg.token } : {}),
+        ...(init?.headers ?? {}),
+      },
     });
   } catch {
     throw new AiClientError("network", "تعذّر الوصول للبوابة — تأكدي من الإنترنت ثم أعيدي المحاولة");
@@ -145,6 +150,27 @@ export async function generateSlides(lessonTitle: string, sources: AskSource[]):
     body: JSON.stringify({ lessonTitle, sources }),
   });
   return (await res.json()) as SlidesResult;
+}
+
+export interface ImageResult {
+  dataUrl: string;
+  provider: "openai";
+  model: string;
+  costUsd: number;
+  alert: 0 | 60 | 80 | 95 | 100;
+  cached: boolean;
+}
+
+/**
+ * توليد صورة تعليمية من وصف مشتق من محتوى الوزارة (استوديو المخرجات).
+ * يُستدعى حصراً بعد موافقة شاشة «ما سيُرسل» على قائمة الأوصاف.
+ */
+export async function generateImage(prompt: string): Promise<ImageResult> {
+  const res = await gatewayFetch("/api/generate-image", {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
+  });
+  return (await res.json()) as ImageResult;
 }
 
 export interface LessonPackResult {

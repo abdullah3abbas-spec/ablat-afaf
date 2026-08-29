@@ -7,13 +7,15 @@
  */
 const GATEWAY = "https://afaf-ai-gateway.abdullah3abbas.workers.dev";
 
-export async function onRequest({ request, params }) {
+export async function onRequest({ request, env, params }) {
   const path = Array.isArray(params.path) ? params.path.join("/") : (params.path ?? "");
   const url = new URL(request.url);
   const target = `${GATEWAY}/api/${path}${url.search}`;
 
   const headers = new Headers();
-  const token = request.headers.get("x-afaf-token");
+  // رمز الربط يسكن هنا على الخادم (Pages secret) — المعلّمة لا تدخل شيئاً
+  // أبداً، والتطبيق لا يحمل أي سر. إدخال يدوي في الإعدادات يتقدّم إن وُجد.
+  const token = request.headers.get("x-afaf-token") || env.GATEWAY_TOKEN || "";
   const contentType = request.headers.get("content-type");
   if (token) headers.set("x-afaf-token", token);
   if (contentType) headers.set("content-type", contentType);

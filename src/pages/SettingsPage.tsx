@@ -466,35 +466,40 @@ function GatewayPanel() {
   return (
     <div className="space-y-3 rounded-card border-2 border-line p-4">
       <p className="font-bold">{s.aiGateway.title}</p>
-      <p className="text-sm text-ink-soft">{s.aiGateway.explain}</p>
-
-      <label className="block">
-        <span className="mb-1 block font-medium">{s.aiGateway.url}</span>
-        <input
-          type="url"
-          dir="ltr"
-          defaultValue={settings?.aiGatewayUrl ?? DEFAULT_GATEWAY_URL}
-          onBlur={(e) => void saveField({ aiGatewayUrl: e.target.value.trim() })}
-          className="w-full rounded-card border-2 border-line p-3 text-start focus:border-teal"
-        />
-      </label>
-
-      <label className="block">
-        <span className="mb-1 block font-medium">{s.aiGateway.token}</span>
-        <input
-          type="password"
-          dir="ltr"
-          defaultValue={settings?.aiGatewayToken ?? ""}
-          onBlur={(e) => void saveField({ aiGatewayToken: e.target.value.trim() })}
-          className="w-full rounded-card border-2 border-line p-3 text-start focus:border-teal"
-        />
-        <span className="mt-1 block text-sm text-ink-soft">{s.aiGateway.tokenHint}</span>
-      </label>
+      <p className="text-sm text-ink-soft">{s.aiGateway.explainZero}</p>
 
       <button type="button" onClick={() => void testConnection()} disabled={testing} className="btn-secondary disabled:opacity-50">
         <PlugZap className="size-5" aria-hidden />
         {testing ? s.common.loading : s.aiGateway.test}
       </button>
+
+      {/* الحقول التقنية — لعبد الله فقط، مطوية حتى لا تربك المعلّمة */}
+      <details className="rounded-card border border-line bg-cream/60 p-3">
+        <summary className="cursor-pointer font-medium text-ink-soft">{s.aiGateway.advanced}</summary>
+        <div className="mt-3 space-y-3">
+          <label className="block">
+            <span className="mb-1 block font-medium">{s.aiGateway.url}</span>
+            <input
+              type="url"
+              dir="ltr"
+              defaultValue={settings?.aiGatewayUrl ?? DEFAULT_GATEWAY_URL}
+              onBlur={(e) => void saveField({ aiGatewayUrl: e.target.value.trim() })}
+              className="w-full rounded-card border-2 border-line p-3 text-start focus:border-teal"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block font-medium">{s.aiGateway.token}</span>
+            <input
+              type="password"
+              dir="ltr"
+              defaultValue={settings?.aiGatewayToken ?? ""}
+              onBlur={(e) => void saveField({ aiGatewayToken: e.target.value.trim() })}
+              className="w-full rounded-card border-2 border-line p-3 text-start focus:border-teal"
+            />
+            <span className="mt-1 block text-sm text-ink-soft">{s.aiGateway.tokenHintZero}</span>
+          </label>
+        </div>
+      </details>
 
       {testError && (
         <p role="alert" className="rounded-card bg-danger-bg p-3 font-medium text-danger">
