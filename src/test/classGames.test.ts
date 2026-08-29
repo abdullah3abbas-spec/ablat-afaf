@@ -111,3 +111,79 @@ describe("waterStateOf — حالة الماء في المحاكاة", () => {
     expect(waterStateOf(100)).toBe("steam");
   });
 });
+
+// ═══════ إصلاح أغسطس ٢٠٢٦: صيغة «عرّفي:» + مخزون يضمن عمل الألعاب في كل درس ═══════
+import { buildGamePool, vocabDefineQuestions } from "@/lib/classGames";
+import { BOOK_UNITS } from "@/content/bookG05S1P1";
+import { buildBankQuestions } from "@/content/questionBank";
+
+/** بنك الكتاب كاملاً بمعرّفات دروس اصطناعية (كما تزرعه seed) */
+function bookBank(): { all: Question[]; lessons: { id: number; unitId: number; code: string }[] } {
+  const byCode = new Map<string, { id: number; unitId: number }>();
+  const lessons: { id: number; unitId: number; code: string }[] = [];
+  let id = 1;
+  BOOK_UNITS.forEach((u, ui) =>
+    u.lessons.forEach((l) => {
+      byCode.set(l.code, { id, unitId: ui + 1 });
+      lessons.push({ id, unitId: ui + 1, code: l.code });
+      id++;
+    })
+  );
+  return { all: buildBankQuestions(byCode), lessons };
+}
+
+describe("extractTerm — صيغة الكتاب «عرّفي: المصطلح.»", () => {
+  it("يقرأ صيغة النقطتين الرأسيتين", () => {
+    expect(extractTerm("عرّفي: آكل العشب.")).toBe("آكل العشب");
+    expect(extractTerm("عرّفي: القارت.")).toBe("القارت");
+  });
+
+  it("الصيغ القديمة ما زالت تعمل", () => {
+    expect(extractTerm("عرّفي المخلوط.")).toBe("المخلوط");
+    expect(extractTerm("اذكري تعريف المادة.")).toBe("المادة");
+  });
+});
+
+describe("vocabDefineQuestions — احتياطي مسرد الكتاب", () => {
+  it("درس 1.1 ينتج ٣ أسئلة تعريف فأكثر من مفرداته", () => {
+    const qs = vocabDefineQuestions("1.1", 1, 5);
+    expect(qs.length).toBeGreaterThanOrEqual(3);
+    for (const q of qs) {
+      expect(q.type).toBe("define");
+      expect(extractTerm(q.text)).toBeTruthy();
+      expect(typeof q.answerKey).toBe("string");
+      expect((q.answerKey as string).length).toBeGreaterThan(5);
+      expect(q.lessonId).toBe(5);
+      expect(q.unitId).toBe(1);
+    }
+  });
+
+  it("درس بلا رمز أو برمز مجهول يعيد قائمة فارغة", () => {
+    expect(vocabDefineQuestions(undefined, 1)).toEqual([]);
+    expect(vocabDefineQuestions("9.9", 1)).toEqual([]);
+  });
+});
+
+describe("buildGamePool — كل درس من الكتاب يشغّل كل الألعاب", () => {
+  const { all, lessons } = bookBank();
+  const rnd = () => 0.42;
+
+  for (const l of lessons) {
+    it(`درس ${l.code}: ≥3 أزواج تعريف وسؤال ترتيب صالح`, () => {
+      const pool = buildGamePool(all, { lessonId: l.id, unitId: l.unitId, lessonCode: l.code });
+      // «طابقي وصنّفي» و«بطاقات الذاكرة» تحتاجان ٣ أزواج
+      expect(buildPairs(pool, 6, rnd).length).toBeGreaterThanOrEqual(3);
+      // «رتّبي الخطوات» تحتاج سؤال ترتيب واحداً بإجابة ≥3 عناصر
+      const orderGames = pool.filter((q) => q.type === "order").map((q) => buildOrderGame(q, rnd)).filter(Boolean);
+      expect(orderGames.length).toBeGreaterThanOrEqual(1);
+      // «من أنا؟» يكفيها زوج واحد — مغطاة ضمناً بالشرط الأول
+    });
+  }
+
+  it("لا يكرّر مصطلحاً موجوداً في البنك", () => {
+    const l = lessons.find((x) => x.code === "1.1")!;
+    const pool = buildGamePool(all, { lessonId: l.id, unitId: l.unitId, lessonCode: l.code });
+    const terms = pool.filter((q) => q.type === "define").map((q) => extractTerm(q.text)).filter(Boolean);
+    expect(new Set(terms).size).toBe(terms.length);
+  });
+});

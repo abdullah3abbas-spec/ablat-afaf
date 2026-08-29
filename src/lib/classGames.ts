@@ -4,6 +4,7 @@
  * قابل للاختبار بلا واجهة: عشوائية قابلة للحقن في كل دالة.
  */
 import type { Question } from "@/db/schema";
+import { BOOK_GLOSSARY, bookLessonByCode } from "@/content/bookG05S1P1";
 
 /** خلط قابل للحقن */
 function shuffle<T>(arr: T[], rnd: () => number = Math.random): T[] {
@@ -23,8 +24,9 @@ function shuffle<T>(arr: T[], rnd: () => number = Math.random): T[] {
 export function extractTerm(text: string): string | null {
   const t = text.trim().replace(/[.؟!]+$/, "");
   const patterns = [
+    /^عر[ّ]?في\s*[:：]\s*(.+)$/,
     /^عر[ّ]?في\s+(.+)$/,
-    /^اذكري\s+تعريف\s+(.+)$/,
+    /^اذكري\s+تعريف\s*[:：]?\s+(.+)$/,
     /^ما\s+(?:هي\s+|هو\s+)?(.+)$/,
   ];
   for (const re of patterns) {
@@ -62,6 +64,62 @@ export function buildPairs(questions: Question[], max: number, rnd: () => number
     pairs.push({ a: term, b: clipDefinition(q.answerKey) });
   }
   return shuffle(pairs, rnd).slice(0, max);
+}
+
+/**
+ * أسئلة تعريف احتياطية من مفردات الدرس + مسرد الكتاب (ص146–149) —
+ * تضمن عمل ألعاب التعريف في كل درس حتى لو قلّت أسئلة البنك (§2-ج).
+ * لا تُحفظ في قاعدة البيانات؛ تُضاف لمخزون الألعاب في الذاكرة فقط.
+ */
+export function vocabDefineQuestions(lessonCode: string | undefined, unitId: number, lessonId?: number): Question[] {
+  if (!lessonCode) return [];
+  const found = bookLessonByCode(lessonCode);
+  if (!found) return [];
+  const now = Date.now();
+  const qs: Question[] = [];
+  for (const v of found.lesson.vocab) {
+    const entry = BOOK_GLOSSARY.find((g) => g.term === v.term);
+    if (!entry) continue;
+    qs.push({
+      unitId,
+      lessonId,
+      text: `عرّفي: ${entry.term}.`,
+      type: "define",
+      answerKey: entry.def,
+      marks: 1,
+      difficulty: "medium",
+      cognitiveLevel: "remember",
+      tags: ["من-المسرد"],
+      usageCount: 0,
+      createdAt: now,
+    });
+  }
+  return qs;
+}
+
+/**
+ * مخزون أسئلة الألعاب لدرس: أسئلة الدرس أولاً، وتتوسّع للوحدة إن نقصت
+ * أسئلة التعريف (<3) أو الترتيب (0)، ثم يكمَّل التعريف من مسرد الكتاب.
+ */
+export function buildGamePool(
+  all: Question[],
+  opts: { lessonId?: number; unitId?: number; lessonCode?: string }
+): Question[] {
+  const live = all.filter((q) => !q.deletedAt);
+  const ofLesson = live.filter((q) => q.lessonId === opts.lessonId);
+  const defineCount = ofLesson.filter((q) => q.type === "define").length;
+  const orderCount = ofLesson.filter((q) => q.type === "order").length;
+  let pool = defineCount >= 3 && orderCount >= 1 ? ofLesson : live.filter((q) => q.unitId === opts.unitId);
+  if (opts.unitId != null) {
+    const covered = new Set(
+      pool.filter((q) => q.type === "define").map((q) => extractTerm(q.text)).filter(Boolean)
+    );
+    const vocabQs = vocabDefineQuestions(opts.lessonCode, opts.unitId, opts.lessonId).filter(
+      (q) => !covered.has(extractTerm(q.text))
+    );
+    pool = [...pool, ...vocabQs];
+  }
+  return pool;
 }
 
 export interface OrderGameData {

@@ -28,6 +28,7 @@ import type { Question } from "@/db/schema";
 import { kitByLessonTitle } from "@/content/lessonKits";
 import { absentTodayIds, classPickables, fairPick, makeGroups, type Pickable } from "@/lib/funTools";
 import { TEAM_INFO, formatAnswer, pickGameQuestions } from "@/lib/classMode";
+import { buildGamePool } from "@/lib/classGames";
 import { MatchGame, MemoryGame, OrderGame, WhoAmIGame } from "@/components/classGames/games";
 import SlideVisual from "@/components/slides/SlideVisual";
 import { buildLessonShow } from "@/lib/lessonShow";
@@ -102,11 +103,8 @@ export default function ClassModePage() {
   useEffect(() => {
     if (!running) return;
     void (async () => {
-      const all = (await db.questions.toArray()).filter((q) => !q.deletedAt);
-      const ofLesson = all.filter((q) => q.lessonId === lessonId);
-      const defineCount = ofLesson.filter((q) => q.type === "define").length;
-      // الدرس أولاً؛ وإن قلّت أسئلته وسّعنا للوحدة (مراجعة ضمن نفس الهدف)
-      setBankPool(defineCount >= 3 ? ofLesson : all.filter((q) => q.unitId === lesson?.unitId));
+      const all = await db.questions.toArray();
+      setBankPool(buildGamePool(all, { lessonId, unitId: lesson?.unitId, lessonCode: lesson?.code }));
     })();
   }, [running, lessonId, lesson?.unitId]);
 

@@ -82,7 +82,9 @@ export function MatchGame({ questions, onExit }: { questions: Question[]; onExit
     }
   }, [pickedTerm, pickedDef]);
 
-  if (pairs.length < 3) return <p className="text-3xl text-white/70">{s.games.needDefine(fmtNum(3, numerals))}</p>;
+  if (pairs.length < 3) return (
+    <div className="space-y-6"><p className="text-3xl text-white/70">{s.games.needDefine(fmtNum(3, numerals))}</p><BackRow onExit={onExit} label={s.games.back} /></div>
+  );
 
   const done = matched.size === pairs.length;
   const btn = (active: boolean, isMatched: boolean) =>
