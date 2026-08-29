@@ -27,6 +27,9 @@ export const CERT_TEMPLATES: CertTemplateDef[] = [
   { key: "most_improved", nameAr: "الأكثر تحسّناً", defaultReason: "لتحسّنها الملموس في مستواها الدراسي", accent: "#0B534C", accentSoft: "#E6F2F0", icon: "📈" },
   { key: "best_experiment", nameAr: "أفضل تجربة علمية", defaultReason: "لتميّزها في تنفيذ التجربة العملية وعرض نتائجها", accent: "#1E3A5F", accentSoft: "#E8EEF5", icon: "🔬" },
   { key: "guardian_thanks", nameAr: "شكر لولية الأمر", defaultReason: "لتعاونها المثمر ومتابعتها الدائمة لابنتها", accent: "#5E0E26", accentSoft: "#F3E2E7", icon: "🌷" },
+  { key: "little_scientist", nameAr: "العالمة الصغيرة", defaultReason: "لشغفها العلمي وبحثها المتميّز في دروس العلوم", accent: "#0B534C", accentSoft: "#E6F2F0", icon: "🔭" },
+  { key: "science_explorer", nameAr: "مستكشفة العلوم", defaultReason: "لاستكشافها المتميّز وأسئلتها الذكية في مادة العلوم", accent: "#7A5716", accentSoft: "#FCF3E2", icon: "🔍" },
+  { key: "lab_star", nameAr: "نجمة المختبر", defaultReason: "لإتقانها العمل في المختبر والتزامها بقواعد السلامة", accent: "#1E3A5F", accentSoft: "#E8EEF5", icon: "🧪" },
 ];
 
 export interface CertData {
@@ -119,6 +122,9 @@ const MASTER_CAL: Record<string, Partial<MasterCal>> = {
   most_improved: {},
   best_experiment: { nameTop: 41.5, dateTop: 68, teacherTop: 81 },
   guardian_thanks: {},
+  little_scientist: { nameTop: 43.5, dateTop: 68, teacherTop: 79.5 },
+  science_explorer: { nameTop: 43.5, dateTop: 67, teacherTop: 74.5 },
+  lab_star: { nameTop: 43.5, dateTop: 67.5, teacherTop: 73.5 },
 };
 
 const escC = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);

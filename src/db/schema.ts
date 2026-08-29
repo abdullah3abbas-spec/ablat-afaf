@@ -637,7 +637,10 @@ export type CertificateTemplate =
   | "star_of_month"
   | "most_improved"
   | "best_experiment"
-  | "guardian_thanks";
+  | "guardian_thanks"
+  | "little_scientist"
+  | "science_explorer"
+  | "lab_star";
 
 export interface Certificate extends Timestamped, SoftDeletable, DemoFlaggable {
   id?: number;
