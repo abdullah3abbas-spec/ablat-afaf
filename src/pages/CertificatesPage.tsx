@@ -7,7 +7,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Award, Image as ImageIcon, Printer } from "lucide-react";
 import { db } from "@/db";
 import type { CertificateTemplate } from "@/db/schema";
-import { CERT_TEMPLATES, GRANT_LINE_DEFAULT, certificatesHtml, exportCertificatePng, issueCertificates, type CertData, type CertStyleOpts } from "@/lib/certificates";
+import { CERT_BACKGROUNDS, CERT_TEMPLATES, GRANT_LINE_DEFAULT, certificatesHtml, exportCertificatePng, issueCertificates, type CertData, type CertStyleOpts } from "@/lib/certificates";
 import { activeStudentsOf } from "@/lib/students";
 import { computeMonthAwards, monthKeyOf } from "@/lib/points";
 import { fmtNum } from "@/lib/numerals";
@@ -93,6 +93,7 @@ export default function CertificatesPage() {
   const [edAccent, setEdAccent] = useState<string>("");
   const [edNameSize, setEdNameSize] = useState(46);
   const [edSeal, setEdSeal] = useState(true);
+  const [edBg, setEdBg] = useState("sadu");
   const [freeEdit, setFreeEdit] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -108,6 +109,7 @@ export default function CertificatesPage() {
       setEdAccent(prefs?.accent ?? "");
       setEdNameSize(prefs?.nameSizePt ?? 46);
       setEdSeal(prefs?.showSeal ?? true);
+      setEdBg(prefs?.bgKey ?? "sadu");
       setFreeEdit(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -120,7 +122,7 @@ export default function CertificatesPage() {
       void (async () => {
         const settings = await db.settings.get(1);
         const certPrefs = { ...(settings?.certPrefs ?? {}) };
-        certPrefs[templateKey] = { reason: edReason, grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal };
+        certPrefs[templateKey] = { reason: edReason, grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg };
         await db.settings.update(1, { certPrefs });
         setSavedTick(true);
         setTimeout(() => setSavedTick(false), 1800);
@@ -128,11 +130,11 @@ export default function CertificatesPage() {
     }, 700);
     return () => clearTimeout(h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [edReason, edGrant, edAccent, edNameSize, edSeal]);
+  }, [edReason, edGrant, edAccent, edNameSize, edSeal, edBg]);
 
   const editorOpts: CertStyleOpts = useMemo(
-    () => ({ grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal }),
-    [edGrant, edAccent, edNameSize, edSeal]
+    () => ({ grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg }),
+    [edGrant, edAccent, edNameSize, edSeal, edBg]
   );
   const shownCerts = useMemo(
     () => (previewCerts ?? []).map((c) => ({ ...c, reason: edReason || c.reason, dateStr: edDate || c.dateStr })),
@@ -323,6 +325,22 @@ export default function CertificatesPage() {
             <div className="flex min-h-0 flex-1 flex-col md:flex-row">
               {/* لوحة التخصيص — كل تغيير يظهر فوراً ويُحفظ تلقائياً */}
               <aside className="w-full shrink-0 space-y-3 overflow-y-auto border-b border-line p-4 md:w-80 md:border-b-0 md:border-e">
+                <div className="space-y-1">
+                  <span className="font-medium">{s.certs.bgLabel}</span>
+                  <div className="grid grid-cols-2 gap-2" role="group" aria-label={s.certs.bgLabel}>
+                    {CERT_BACKGROUNDS.map((b) => (
+                      <button key={b.key} type="button" aria-pressed={edBg === b.key} onClick={() => setEdBg(b.key)}
+                        className={"overflow-hidden rounded-card border-4 text-center " + (edBg === b.key ? "border-gold" : "border-line")}>
+                        {b.url ? (
+                          <img src={b.url} alt="" className="h-14 w-full object-cover" />
+                        ) : (
+                          <div className="flex h-14 w-full items-center justify-center bg-cream" />
+                        )}
+                        <span className="block bg-white py-0.5 text-xs font-bold">{b.nameAr}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <label className="block space-y-1">
                   <span className="font-medium">{s.certs.reason}</span>
                   <textarea value={edReason} onChange={(e) => setEdReason(e.target.value)} rows={2}

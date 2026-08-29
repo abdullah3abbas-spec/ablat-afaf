@@ -52,10 +52,18 @@ export const KID_CSS = `
   /* الترويسة الرسمية مصغّرة */
   .k-banner { display: block; width: 100%; max-height: 12mm; object-fit: contain; }
 
+  /* البانر البطولي — رسمة الدرس بعرض الصفحة خلف بطاقة الرحلة */
+  .k-hero { position: relative; height: 34mm; border-radius: 4mm; overflow: hidden; margin: 0 1mm; }
+  .k-hero img { width: 100%; height: 100%; object-fit: cover; object-position: center 45%; }
+  .k-hero::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to top, #fff 4%, rgba(255,255,255,.55) 34%, transparent 62%); }
+
   /* «بطاقة الرحلة» — عنوان الدرس كتذكرة سفر مع عدسة البوصلة */
   .k-trip { display: flex; align-items: center; gap: 5mm; padding: 3.5mm 5mm;
     border: 0.7mm dashed var(--zk-gold); border-radius: 4mm; transform: rotate(-0.6deg);
-    margin: 1mm 1mm 5mm; }
+    margin: 1mm 1mm 5mm; background: #fff; }
+  .k-hero + .k-trip { margin-top: -11mm; margin-inline: 8mm; position: relative;
+    box-shadow: 0 1mm 3mm rgba(43,33,24,.12); }
   .k-trip .t { flex: 1; }
   .k-trip h1 { font-family: "Baloo", "Cairo", sans-serif; font-weight: 800; font-size: 19pt;
     color: var(--zk-annabi); line-height: 1.5; }
@@ -170,9 +178,9 @@ export function kidHeader(o: KidHeadOpts): string {
     .filter(Boolean).join(" · ");
   return `<img class="k-banner" src="/letterhead.png" alt="مدرسة زكريت الابتدائية للبنات — وزارة التربية والتعليم والتعليم العالي"/>
   <div class="k-sadu"></div>
+  ${art ? `<div class="k-hero"><img src="${art}" alt="" onerror="this.parentElement.remove()"/></div>` : ""}
   <div class="k-trip">
     <div class="t"><h1>${esc(o.docTitle)}: ${esc(o.lessonTitle)}</h1><div class="m">${esc(meta)}</div></div>
-    ${art ? `<img class="k-lens" src="${art}" alt="" onerror="this.remove()"/>` : ""}
   </div>
   ${o.studentFields ? `<div class="k-fields"><span>اسمي: </span><span>الرقم: </span><span>التاريخ: </span></div>` : ""}`;
 }
