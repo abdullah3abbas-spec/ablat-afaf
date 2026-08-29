@@ -14,6 +14,8 @@ import {
   LIMITS,
   packSystemPrompt,
   packUserPrompt,
+  supervisorPackPrompt,
+  supervisorSlidesPrompt,
   validateLessonPack,
   SLIDES_OPENAI_SCHEMA,
   alertLevel,
@@ -38,6 +40,8 @@ interface Env {
   GEMINI_API_KEY?: string;
   OPENAI_API_KEY?: string;
   ALLOWED_ORIGINS: string;
+  /** مرحلة المشرفة على مخرجات التوليد (افتراضياً مفعّلة) */
+  SUPERVISOR_ENABLED?: string;
   GEMINI_MODEL: string;
   OPENAI_MODEL: string;
   TOTAL_BUDGET_USD: string;
@@ -308,7 +312,12 @@ export default {
       const usr = packUserPrompt(lessonTitle, sources);
       let lastError = "";
 
-      for (const p of order) {
+      // «GPT عامل»: في التوليد يتقدم OpenAI ترتيبَ العمل، والمزوّد الآخر مشرفاً
+      const workOrder: Provider[] = order.includes("openai")
+        ? ["openai", ...order.filter((x) => x !== "openai")]
+        : order;
+
+      for (const p of workOrder) {
         try {
           const result: CallResult =
             p === "gemini"
@@ -337,12 +346,41 @@ export default {
             continue;
           }
 
+          // مرحلة المشرفة: مراجعة تعليمية/تصميمية بالمزوّد الآخر — تحسين لا إعادة اختراع
+          let finalPack = checked.pack;
+          let supCost = 0;
+          let supLabel = "";
+          const reviewer = (workOrder.find((x) => x !== p) ?? null) as Provider | null;
+          if ((env.SUPERVISOR_ENABLED ?? "true") !== "false" && reviewer) {
+            try {
+              const supUsr = `مسودة العامل (JSON):\n${JSON.stringify(checked.pack)}\n\n${usr}`;
+              const r2: CallResult =
+                reviewer === "gemini"
+                  ? await callGeminiJson(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, supervisorPackPrompt(), supUsr, GEN_LIMITS.maxAnswerTokens)
+                  : await callOpenAI(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, supervisorPackPrompt() + "\nأخرجي JSON فقط بلا أي نص آخر.", supUsr, GEN_LIMITS.maxAnswerTokens);
+              const prices2 =
+                reviewer === "gemini"
+                  ? { inPerM: Number(env.GEMINI_IN_PER_M) || 0, outPerM: Number(env.GEMINI_OUT_PER_M) || 0 }
+                  : { inPerM: Number(env.OPENAI_IN_PER_M) || 0, outPerM: Number(env.OPENAI_OUT_PER_M) || 0 };
+              supCost = estimateCostUsd(r2.inTokens, r2.outTokens, prices2);
+              ctx.waitUntil(addSpend(env, reviewer, supCost, nowMs));
+              const parsed2 = JSON.parse(r2.text.replace(/^```json\s*/, "").replace(/```\s*$/, ""));
+              const checked2 = validateLessonPack(parsed2);
+              if (checked2.ok) {
+                finalPack = checked2.pack;
+                supLabel = ` ← مراجعة ${reviewer === "gemini" ? env.GEMINI_MODEL : env.OPENAI_MODEL}`;
+              }
+            } catch (e) {
+              console.warn("supervisor_skipped", String(e));
+            }
+          }
+
           const usage = p === "gemini" ? gemini : openai;
           const payload = {
-            pack: checked.pack,
+            pack: finalPack,
             provider: p,
-            model: p === "gemini" ? env.GEMINI_MODEL : env.OPENAI_MODEL,
-            costUsd,
+            model: (p === "gemini" ? env.GEMINI_MODEL : env.OPENAI_MODEL) + supLabel,
+            costUsd: Math.round((costUsd + supCost) * 1e6) / 1e6,
             alert: alertLevel(usage.totalUsd + costUsd, usage.budgetUsd),
             cached: false,
           };
@@ -406,7 +444,12 @@ export default {
       const usr = slidesUserPrompt(lessonTitle, sources);
       let lastError = "";
 
-      for (const p of order) {
+      // «GPT عامل»: OpenAI أولاً في التوليد، والآخر مشرفاً
+      const workOrder: Provider[] = order.includes("openai")
+        ? ["openai", ...order.filter((x) => x !== "openai")]
+        : order;
+
+      for (const p of workOrder) {
         try {
           const result: CallResult =
             p === "gemini"
@@ -435,12 +478,41 @@ export default {
             continue;
           }
 
+          // مرحلة المشرفة — مراجعة القوس والكثافة والرسوم بالمزوّد الآخر
+          let finalSlides = checked.slides;
+          let supCost = 0;
+          let supLabel = "";
+          const reviewer = (workOrder.find((x) => x !== p) ?? null) as Provider | null;
+          if ((env.SUPERVISOR_ENABLED ?? "true") !== "false" && reviewer) {
+            try {
+              const supUsr = `مسودة العامل (JSON):\n${JSON.stringify(checked.slides)}\n\n${usr}`;
+              const r2: CallResult =
+                reviewer === "gemini"
+                  ? await callGeminiJson(env.GEMINI_API_KEY as string, env.GEMINI_MODEL, supervisorSlidesPrompt(), supUsr, GEN_LIMITS.maxAnswerTokens)
+                  : await callOpenAIJson(env.OPENAI_API_KEY as string, env.OPENAI_MODEL, supervisorSlidesPrompt(), supUsr, GEN_LIMITS.maxAnswerTokens, SLIDES_OPENAI_SCHEMA);
+              const prices2 =
+                reviewer === "gemini"
+                  ? { inPerM: Number(env.GEMINI_IN_PER_M) || 0, outPerM: Number(env.GEMINI_OUT_PER_M) || 0 }
+                  : { inPerM: Number(env.OPENAI_IN_PER_M) || 0, outPerM: Number(env.OPENAI_OUT_PER_M) || 0 };
+              supCost = estimateCostUsd(r2.inTokens, r2.outTokens, prices2);
+              ctx.waitUntil(addSpend(env, reviewer, supCost, nowMs));
+              const parsed2 = JSON.parse(r2.text.replace(/^```json\s*/, "").replace(/```\s*$/, ""));
+              const checked2 = validateSlidesPayload(parsed2);
+              if (checked2.ok) {
+                finalSlides = checked2.slides;
+                supLabel = ` ← مراجعة ${reviewer === "gemini" ? env.GEMINI_MODEL : env.OPENAI_MODEL}`;
+              }
+            } catch (e) {
+              console.warn("supervisor_skipped", String(e));
+            }
+          }
+
           const usage = p === "gemini" ? gemini : openai;
           const payload = {
-            slides: checked.slides,
+            slides: finalSlides,
             provider: p,
-            model: p === "gemini" ? env.GEMINI_MODEL : env.OPENAI_MODEL,
-            costUsd,
+            model: (p === "gemini" ? env.GEMINI_MODEL : env.OPENAI_MODEL) + supLabel,
+            costUsd: Math.round((costUsd + supCost) * 1e6) / 1e6,
             alert: alertLevel(usage.totalUsd + costUsd, usage.budgetUsd),
             cached: false,
           };

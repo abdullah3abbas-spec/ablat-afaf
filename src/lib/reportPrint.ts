@@ -7,6 +7,7 @@ import type { Question } from "@/db/schema";
 import type { ClassAdminReport, StudentReport } from "./reportData";
 import type { ExamAnalysis } from "./examAnalysis";
 import { toEastern } from "./numerals";
+import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityHeader } from "./printTheme";
 import { printHtml } from "./sheetPrint";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
@@ -14,8 +15,8 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&l
 const REPORT_CSS = `
   @page { size: A4; margin: 12mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-400.woff2") format("woff2"); font-weight: 400; }
-  @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-700.woff2") format("woff2"); font-weight: 700; }
+  ${PRINT_FONTS_CSS}
+  ${IDENTITY_HEADER_CSS}
   body { font-family: "Tajawal", sans-serif; font-size: 12pt; line-height: 1.8; color: #1E2430; }
   .page { page-break-after: always; }
   .page:last-child { page-break-after: auto; }
@@ -98,8 +99,7 @@ export function parentCardHtml(reports: StudentReport[], schoolName: string, ter
         )
         .join("");
       return `<div class="page">
-      <div class="head"><h1>${esc(schoolName)} — بطاقة متابعة الطالبة</h1>
-      <div class="meta">العلوم · ${esc(termName)} · الفصل: ${esc(r.className)} · التاريخ: ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
+      ${identityHeader(schoolName, "بطاقة متابعة الطالبة", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">العلوم · ${esc(termName)} · الفصل: ${esc(r.className)} · التاريخ: ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
       <h2>الطالبة: ${esc(r.student.name)}</h2>
       <div class="tiles">
         <div class="tile"><b>${toEastern(String(r.total))} / ${toEastern(String(r.outOf))}</b><span>المجموع</span></div>
@@ -147,8 +147,7 @@ export function adminReportHtml(reports: ClassAdminReport[], schoolName: string,
     })
     .join("");
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>تقرير الإدارة</title><style>${REPORT_CSS}</style></head><body>
-    <div class="head"><h1>${esc(schoolName)} — تقرير الإدارة (العلوم)</h1>
-    <div class="meta">${esc(termName)} · ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
+    ${identityHeader(schoolName, "تقرير الإدارة (العلوم)", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${esc(termName)} · ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
     <h2>ملخص الفصول</h2>
     <table><tr><th>الفصل</th><th class="c">الطالبات</th><th class="c">المرصود لهنّ</th><th class="c">المتوسط</th><th class="c">نسبة النجاح</th></tr>${rows}</table>
     ${charts}
@@ -166,8 +165,7 @@ export function examAnalysisHtml(title: string, analysis: ExamAnalysis, schoolNa
     )
     .join("");
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>تحليل ${esc(title)}</title><style>${REPORT_CSS}</style></head><body>
-    <div class="head"><h1>${esc(schoolName)} — تقرير تحليل نتائج الاختبار</h1>
-    <div class="meta">${esc(title)} · عدد النتائج: ${toEastern(String(analysis.resultsCount))} · المتوسط: ${toEastern(String(analysis.average))}</div></div>
+    ${identityHeader(schoolName, "تحليل نتائج الاختبار", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${esc(title)} · عدد النتائج: ${toEastern(String(analysis.resultsCount))} · المتوسط: ${toEastern(String(analysis.average))}</div></div>
     <table><tr><th class="c">س</th><th>نص السؤال</th><th class="c">معامل السهولة</th><th class="c">الخطأ الجماعي</th></tr>${rows}</table>
     <h2>دروس تحتاج إعادة شرح (خطأ جماعي > ٥٠٪)</h2>
     ${analysis.reteach.length === 0 ? `<p>لا دروس متعثرة.</p>` : `<ul class="recs" style="border-color:#B3261E;background:#FDECEA">${analysis.reteach.map((r) => `<li>${esc(r.lessonTitle)} — ${toEastern(String(r.hardQuestions))} سؤال عالي الخطأ (متوسط ${toEastern(String(r.avgErrorPct))}٪)</li>`).join("")}</ul>`}
@@ -193,8 +191,7 @@ export function bankWorksheetHtml(
     })
     .join("");
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(meta.title)}</title><style>${REPORT_CSS}</style></head><body>
-    <div class="head"><h1>${esc(meta.schoolName)} — ${esc(meta.title)}${withAnswers ? " (نسخة الإجابات)" : ""}</h1>
-    <div class="meta">العلوم · المستوى الخامس · ${esc(meta.unitName)}</div>
+    ${identityHeader(meta.schoolName, `${meta.title}${withAnswers ? " (نسخة الإجابات)" : ""}`, "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">العلوم · المستوى الخامس · ${esc(meta.unitName)}</div>
     ${withAnswers ? "" : `<div style="font-size:11pt;margin-top:2mm">اسم الطالبة: .............................. · الرقم: ...... · التاريخ: ..........</div>`}</div>
     ${items}
   </body></html>`;

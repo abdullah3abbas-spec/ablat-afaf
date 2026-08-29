@@ -8,6 +8,7 @@ import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
 import BottomNav from "@/components/BottomNav";
 import ToastViewport from "@/components/Toast";
+import WelcomeTour from "@/components/WelcomeTour";
 
 export default function RootLayout() {
   return (
@@ -22,6 +23,7 @@ export default function RootLayout() {
       </div>
       <BottomNav />
       <ToastViewport />
+      <WelcomeTour />
     </div>
   );
 }

@@ -8,14 +8,13 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Download, Eye, Gamepad2, Home, LogOut } from "lucide-react";
 import { db } from "@/db";
-import type { Presentation } from "@/db/schema";
 import { buildLessonShow } from "@/lib/lessonShow";
-import { downloadSlidesPptx } from "@/lib/slidesPptx";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
 import SlideVisual from "@/components/slides/SlideVisual";
+import ExportBar from "@/components/slides/ExportBar";
 
 export default function LessonShowPage() {
   const s = useStrings();
@@ -68,31 +67,36 @@ export default function LessonShowPage() {
   const sl = built.slides[idx];
   const n = (v: number) => fmtNum(v, numerals);
 
-  async function handlePptx() {
-    const pseudo: Presentation = {
+  /** «زر تعديل حقيقي»: حفظ العرض مسودةً في الاستوديو للتحرير شريحةً شريحة */
+  async function saveAsDraft() {
+    const id = (await db.presentations.add({
+      lessonId,
       title: built!.title,
       slides: built!.slides,
-      status: "approved",
+      status: "draft",
       sourceNames: [s.lessonShow.sourceName],
+      generatedBy: "العرض المساعد",
       createdAt: Date.now(),
-    };
-    await downloadSlidesPptx(pseudo, schoolName || "مدرستي");
-    show(s.library.downloaded);
+      updatedAt: Date.now(),
+    })) as number;
+    show(s.lessonShow.savedDraft);
+    navigate(`/slides?lesson=${lessonId}&presentation=${id}`);
   }
 
   return (
     <div className="flex min-h-dvh flex-col bg-cream text-ink">
       {/* رأس رفيع */}
-      <header className="flex items-center justify-between gap-3 border-b-2 border-line bg-white px-5 py-2">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-line bg-white px-5 py-2">
         <span className="truncate font-heading text-xl font-bold text-maroon">{built.title}</span>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          <ExportBar title={built.title} slides={built.slides} compact />
           <button
             type="button"
-            onClick={() => void handlePptx()}
-            className="flex min-h-touch items-center gap-2 rounded-card px-3 text-ink-soft hover:bg-cream hover:text-ink"
+            onClick={() => void saveAsDraft()}
+            className="flex min-h-touch items-center gap-1.5 rounded-card px-2.5 text-sm font-medium text-teal-dark transition-colors hover:bg-teal-bg"
           >
-            <Download className="size-5" aria-hidden />
-            PowerPoint
+            <Download className="size-5 rotate-180" aria-hidden />
+            {s.lessonShow.editInStudio}
           </button>
           <Link to="/" className="flex min-h-touch items-center gap-2 rounded-card px-3 text-ink-soft hover:bg-cream hover:text-ink">
             <Home className="size-5" aria-hidden />

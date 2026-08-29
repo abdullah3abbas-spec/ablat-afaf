@@ -139,6 +139,7 @@ export interface GenSlide {
   labeled?: { center: string; labels: string[] };
   icons?: { items: { icon: string; text: string }[] };
   interaction?: { kind: "question" | "predict" | "challenge"; prompt: string; answer: string };
+  chart?: { kind: "pie" | "bars"; items: { label: string; value: number }[]; unit?: string };
   note: { say: string; ask?: string; expected?: string; misconception?: string };
   source?: string;
 }
@@ -162,6 +163,7 @@ export function slidesSystemPrompt(): string {
     'labeled: {"center":"المادة","labels":["لها كتلة","تشغل حيزا"]}',
     'icons: {"items":[{"icon":"droplets","text":"الماء سائل"}]}',
     'interaction: {"kind":"question","prompt":"...","answer":"..."}',
+    'chart: {"kind":"pie"|"bars","items":[{"label":"آكلة العشب","value":6}],"unit":"?"} — أضيفي رسماً بيانياً حين توجد أعداد أو نسب تُفهم بصرياً أفضل (تصنيفات، مقارنات كمية).',
     'note: {"say":"...","ask":"...","expected":"...","misconception":"..."}',
 
     "قيم layout المسموحة: cover, objectives, bullets, comparison, cycle, steps, labeled, icons, interaction.",
@@ -244,6 +246,20 @@ export const SLIDES_OPENAI_SCHEMA = {
                 answer: { type: "string" },
               },
             },
+            chart: {
+              type: "object", additionalProperties: false, required: ["kind", "items"],
+              properties: {
+                kind: { type: "string", enum: ["pie", "bars"] },
+                unit: { type: "string" },
+                items: {
+                  type: "array",
+                  items: {
+                    type: "object", additionalProperties: false, required: ["label", "value"],
+                    properties: { label: { type: "string" }, value: { type: "number" } },
+                  },
+                },
+              },
+            },
             note: {
               type: "object", additionalProperties: false, required: ["say"],
               properties: {
@@ -324,6 +340,21 @@ function coerceSlide(input: Record<string, unknown>): GenSlide {
     } else delete (s as Record<string, unknown>).icons;
   }
 
+  // chart: تطبيع القيم أرقاماً وإسقاط الفارغ
+  const ch = s.chart as unknown as { kind?: string; items?: unknown[]; unit?: unknown } | undefined;
+  if (ch) {
+    const items = (Array.isArray(ch.items) ? ch.items : [])
+      .map((it) => {
+        const o = it as { label?: unknown; value?: unknown };
+        return { label: String(o.label ?? "").trim(), value: Number(o.value) };
+      })
+      .filter((it) => it.label !== "" && Number.isFinite(it.value));
+    if ((ch.kind === "pie" || ch.kind === "bars") && items.length >= 2) {
+      s.chart = { kind: ch.kind, items, unit: typeof ch.unit === "string" ? ch.unit : undefined };
+    } else {
+      delete (s as Record<string, unknown>).chart;
+    }
+  }
   return s as GenSlide;
 }
 
@@ -481,4 +512,29 @@ export function validateLessonPack(raw: unknown): { ok: true; pack: LessonPack }
       sources: strArr(p.sources),
     },
   };
+}
+
+
+// ═══════════ مرحلة المشرفة (زكريت — «كلود مشرف وGPT عامل») ═══════════
+
+/**
+ * تعليمات المشرفة: تراجع مخرج العامل كمشرفة تصميم وتعليم، تصلّح دون
+ * إعادة اختراع، وتعيد JSON بنفس العقد تماماً.
+ */
+export function supervisorSlidesPrompt(): string {
+  return [
+    "أنتِ مشرفة جودة تعليمية وتصميمية خبيرة (عين مديرة إبداعية).",
+    "أمامك مسودة شرائح من معلّم منفّذ — راجعيها وأعيدي JSON بنفس العقد تماماً (مصفوفة شرائح بنفس الحقول) بعد إصلاح:",
+    "١) القوس الوزاري وترتيبه إن اختلّ · ٢) الكثافة: لا شريحة فوق ٤٥ كلمة — جزّئي · ٣) عربية سليمة بصيغة مؤنث للطالبات · ٤) مصطلحات المصادر حرفياً · ٥) أضيفي chart حيث توجد أعداد تُفهم بصرياً ولم يضعها · ٦) تنويع layouts بصرياً (٦٠٪ بصري) · ٧) note مكتملة لكل شريحة.",
+    "لا تحذفي محتوى صحيحاً ولا تغيّري الحقائق — حسّني الشكل والصياغة والاكتمال فقط.",
+    "أخرجي JSON فقط.",
+  ].join("\n");
+}
+
+export function supervisorPackPrompt(): string {
+  return [
+    "أنتِ مشرفة جودة تعليمية خبيرة تراجع حزمة حصة أعدّها معلّم منفّذ.",
+    "أعيدي JSON بنفس العقد تماماً بعد إصلاح: دقائق الخطة (تهيئة ٥ وغلق ٥ ومجموع ٤٥) · التمايز الثلاثي في النشاطين · صيغة المؤنث · مصطلحات المصادر حرفياً · الالتزام بالإثراء المعتمد إن ورد · جودة الأسئلة وتدرجها.",
+    "لا تغيّري الحقائق — حسّني الاكتمال والصياغة فقط. أخرجي JSON فقط.",
+  ].join("\n");
 }

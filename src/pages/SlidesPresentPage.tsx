@@ -12,6 +12,7 @@ import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import SlideVisual from "@/components/slides/SlideVisual";
+import ExportBar from "@/components/slides/ExportBar";
 
 export default function SlidesPresentPage() {
   const s = useStrings();
@@ -49,9 +50,10 @@ export default function SlidesPresentPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-cream text-ink">
       {/* رأس رفيع */}
-      <header className="flex items-center justify-between gap-3 border-b-2 border-line bg-white px-5 py-2">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-line bg-white px-5 py-2">
         <span className="truncate font-heading text-xl font-bold text-maroon">{pres.title}</span>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          <ExportBar title={pres.title} slides={pres.slides} compact />
           <Link to="/" className="flex min-h-touch items-center gap-2 rounded-card px-3 text-ink-soft hover:bg-cream hover:text-ink">
             <Home className="size-5" aria-hidden />
             {s.common.home}

@@ -7,8 +7,14 @@
  */
 import { db } from "@/db";
 
-/** رابط البوابة المنشورة — قابل للتغيير من الإعدادات */
-export const DEFAULT_GATEWAY_URL = "https://afaf-ai-gateway.abdullah3abbas.workers.dev";
+/**
+ * رابط البوابة الافتراضي — عبر دومين الموقع نفسه (بروكسي Pages Functions):
+ * بعض الشبكات تحجب workers.dev، ونفس الأصل يعمل حيثما عمل الموقع وبلا CORS.
+ */
+export const DEFAULT_GATEWAY_URL = "https://ablat-afaf.pages.dev";
+
+/** الرابط المباشر القديم — يُرحَّل عنه تلقائياً في v12 */
+export const LEGACY_GATEWAY_URL = "https://afaf-ai-gateway.abdullah3abbas.workers.dev";
 
 export interface AskSource {
   name: string;

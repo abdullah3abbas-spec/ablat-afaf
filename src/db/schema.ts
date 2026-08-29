@@ -75,6 +75,8 @@ export interface Settings extends Timestamped {
   schoolName: string;
   /** اسم المعلّمة كما يظهر في ترويسة خطة التحضير الوزارية */
   teacherName?: string;
+  /** أُنجزت مرشدة البداية (أول تشغيل) */
+  onboardingDone?: boolean;
   currentAcademicYearId: number;
   /** الفصل الدراسي الحالي (١ أو ٢) — يظهر في الشريط العلوي */
   currentTerm?: Term;
@@ -757,6 +759,8 @@ export interface VisualSlide {
   labeled?: { center: string; labels: string[] };
   icons?: { items: { icon: string; text: string }[] };
   interaction?: { kind: "question" | "predict" | "challenge"; prompt: string; answer: string };
+  /** رسم بياني (دائري أو أعمدة) — يُرسم SVG بقواعد dataviz، لا صور */
+  chart?: { kind: "pie" | "bars"; items: { label: string; value: number }[]; unit?: string };
   note: VisualSlideNote;
   source?: string;
   /** زر إجراء داخل العرض (العرض المساعد): «العبنها في وضع الفصل» مثلاً */

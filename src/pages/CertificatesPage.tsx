@@ -7,7 +7,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { Award, Image as ImageIcon, Printer } from "lucide-react";
 import { db } from "@/db";
 import type { CertificateTemplate } from "@/db/schema";
-import { CERT_TEMPLATES, exportCertificatePng, issueCertificates, printCertificates, type CertData } from "@/lib/certificates";
+import { CERT_TEMPLATES, certificatesHtml, exportCertificatePng, issueCertificates, printCertificates, type CertData } from "@/lib/certificates";
 import { activeStudentsOf } from "@/lib/students";
 import { computeMonthAwards, monthKeyOf } from "@/lib/points";
 import { fmtNum } from "@/lib/numerals";
@@ -79,10 +79,12 @@ export default function CertificatesPage() {
     setBusy(true);
     const certs = await issueCertificates({ templateKey, recipients, reason, classId: mode === "class" ? classId : undefined, withQr });
     setLastBatch(certs);
-    printCertificates(certs);
+    setPreviewCerts(certs); // «كل حاجة تتعرض بريفيو الأول» — الطباعة من المعاينة
     setBusy(false);
     show(s.certs.generated(fmtNum(certs.length, numerals)));
   }
+
+  const [previewCerts, setPreviewCerts] = useState<CertData[] | null>(null);
 
   const selectCls = "min-h-touch rounded-card border-2 border-line bg-white px-3 focus:border-teal";
 
@@ -215,6 +217,37 @@ export default function CertificatesPage() {
             ))}
           </ul>
         </section>
+      )}
+      {/* معاينة الشهادات — بريفيو أولاً ثم الصيغ */}
+      {previewCerts && (
+        <div role="dialog" aria-modal="true" aria-label={s.certs.previewTitle} className="fixed inset-0 z-50 grid place-items-center bg-maroon-deep/60 p-4 backdrop-blur-[2px]">
+          <div className="flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-card bg-white shadow-lift">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
+              <h2 className="font-heading text-xl font-bold text-maroon">{s.certs.previewTitle}</h2>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" className="btn-primary" onClick={() => { printCertificates(previewCerts); show(s.certs.sentToPrint); }}>
+                  {s.certs.printPdf}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() =>
+                    void (async () => {
+                      for (const c of previewCerts) await exportCertificatePng(c);
+                      show(s.certs.pngDone);
+                    })()
+                  }
+                >
+                  {s.certs.pngAll}
+                </button>
+                <button type="button" className="btn border-2 border-line bg-white text-ink" onClick={() => setPreviewCerts(null)}>
+                  {s.common.close}
+                </button>
+              </div>
+            </div>
+            <iframe title={s.certs.previewTitle} srcDoc={certificatesHtml(previewCerts)} className="min-h-0 w-full flex-1 bg-[#F2ECE0]" />
+          </div>
+        </div>
       )}
     </div>
   );

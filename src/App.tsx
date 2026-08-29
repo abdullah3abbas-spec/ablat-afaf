@@ -41,6 +41,7 @@ import ClassModePage from "@/pages/ClassModePage";
 import SlidesStudioPage from "@/pages/SlidesStudioPage";
 import SlidesPresentPage from "@/pages/SlidesPresentPage";
 import LessonShowPage from "@/pages/LessonShowPage";
+import SetupPage from "@/pages/SetupPage";
 import LabPage from "@/pages/LabPage";
 import LessonPackPage from "@/pages/LessonPackPage";
 
@@ -92,6 +93,8 @@ const router = createHashRouter([
   { path: "/slides/:presentationId/present", element: <SlidesPresentPage /> },
   // «العرض المساعد» — برزنتيشن الحصة الكامل الفوري لأي درس من الكتاب
   { path: "/show", element: <LessonShowPage /> },
+  // رابط الإعداد السحري — توصيل الذكاء بضغطة واحدة (يُرسل للمعلّمة مرة)
+  { path: "/setup", element: <SetupPage /> },
   // المختبر التفاعلي — شاشة كاملة داكنة (زكريت م٤-ب)
   { path: "/lab", element: <LabPage /> },
 ]);

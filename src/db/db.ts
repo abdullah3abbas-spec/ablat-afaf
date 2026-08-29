@@ -256,6 +256,17 @@ export class ManassatDB extends Dexie {
         if (!st.teacherName?.trim()) st.teacherName = "عفاف حسين";
       });
     });
+
+    // v12 — بوابة الذكاء عبر دومين الموقع (بروكسي): الأجهزة التي خزّنت
+    // الرابط المباشر القديم تُرحَّل للافتراضي الجديد؛ أي رابط خاص كتبته
+    // المستخدمة بنفسها لا يُمَس.
+    this.version(12).upgrade(async (tx) => {
+      const { DEFAULT_GATEWAY_URL, LEGACY_GATEWAY_URL } = await import("@/lib/aiClient");
+      await tx.table("settings").toCollection().modify((st: { aiGatewayUrl?: string }) => {
+        const cur = st.aiGatewayUrl?.trim().replace(/\/+$/, "");
+        if (!cur || cur === LEGACY_GATEWAY_URL) st.aiGatewayUrl = DEFAULT_GATEWAY_URL;
+      });
+    });
   }
 }
 

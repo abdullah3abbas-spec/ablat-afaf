@@ -3,6 +3,7 @@
  * كل زر «اطبعي» يستدعي printHtml فوراً بلا حوارات وسيطة.
  */
 import type { KitGame, LessonKit } from "@/content/kitTypes";
+import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityHeader } from "./printTheme";
 import { printHtml } from "./sheetPrint";
 
 /** غلاف صفحة الطباعة المشترك: خطوط محلية + RTL + ترويسة */
@@ -13,9 +14,8 @@ function wrap(title: string, bodyHtml: string): string {
 <meta charset="utf-8" />
 <title>${esc(title)}</title>
 <style>
-  @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-400.woff2") format("woff2"); font-weight: 400; }
-  @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-700.woff2") format("woff2"); font-weight: 700; }
-  @font-face { font-family: "Amiri"; src: url("/fonts/amiri-arabic-700.woff2") format("woff2"); font-weight: 700; }
+  ${PRINT_FONTS_CSS}
+  ${IDENTITY_HEADER_CSS}
   @page { size: A4; margin: 14mm 12mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: "Tajawal", sans-serif; font-size: 13pt; line-height: 1.9; color: #111; }
@@ -58,11 +58,9 @@ interface HeaderInfo {
 }
 
 function docHeader(kind: string, kit: LessonKit, info: HeaderInfo, withStudentFields: boolean): string {
-  return `<div class="doc-header">
-    <h1>${esc(info.schoolName)} — ${esc(kind)}</h1>
-    <div class="meta">العلوم · المستوى الخامس · الوحدة: ${esc(kit.unitTitle)} · الدرس: ${esc(kit.lessonTitle)}${info.className ? ` · الفصل: ${esc(info.className)}` : ""}</div>
-    ${withStudentFields ? `<div class="fields"><span>اسم الطالبة: </span><span>الرقم: </span><span>التاريخ: </span></div>` : ""}
-  </div>`;
+  const meta = `العلوم · المستوى الخامس · الوحدة: ${kit.unitTitle} · الدرس: ${kit.lessonTitle}${info.className ? ` · الفصل: ${info.className}` : ""}`;
+  return `${identityHeader(info.schoolName, kind, meta)}
+    ${withStudentFields ? `<div class="fields" style="margin-bottom:4mm"><span>اسم الطالبة: </span><span>الرقم: </span><span>التاريخ: </span></div>` : ""}`;
 }
 
 // ── ورقة العمل (+ نسخة الإجابات) ──────────────────────────────

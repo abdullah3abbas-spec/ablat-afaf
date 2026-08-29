@@ -30,6 +30,8 @@ import { absentTodayIds, classPickables, fairPick, makeGroups, type Pickable } f
 import { TEAM_INFO, formatAnswer, pickGameQuestions } from "@/lib/classMode";
 import { MatchGame, MemoryGame, OrderGame, WhoAmIGame } from "@/components/classGames/games";
 import SlideVisual from "@/components/slides/SlideVisual";
+import { buildLessonShow } from "@/lib/lessonShow";
+import type { VisualSlide } from "@/db/schema";
 import { Home as HomeIcon, Link2, ListOrdered, SquareStack, UsersRound } from "lucide-react";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
@@ -71,10 +73,26 @@ export default function ClassModePage() {
   const lesson = (lessons ?? []).find((l) => l.id === lessonId);
   const kit = lesson ? kitByLessonTitle(lesson.title) : undefined;
 
-  // ── الشرائح ──────────────────────────────────────────────
+  // ── الشرائح: حزمة يدوية إن وجدت، وإلا «العرض المساعد» من الكتاب ──
   const [slideIdx, setSlideIdx] = useState(0);
   const [showNote, setShowNote] = useState(false);
-  const slides = kit?.slides ?? [];
+  const [slideRevealed, setSlideRevealed] = useState(false);
+  const [assistantSlides, setAssistantSlides] = useState<VisualSlide[]>([]);
+
+  useEffect(() => {
+    if (!running || kit || !lesson?.code || lesson.id == null) {
+      setAssistantSlides([]);
+      return;
+    }
+    void (async () => {
+      const bank = (await db.questions.where("lessonId").equals(lesson.id!).toArray()).filter((q) => !q.deletedAt);
+      setAssistantSlides(buildLessonShow(lesson.code!, bank)?.slides ?? []);
+    })();
+  }, [running, kit, lesson?.id, lesson?.code]);
+
+  const slides: VisualSlide[] = kit
+    ? kit.slides.map((sl) => ({ layout: "bullets", title: sl.title, bullets: sl.bullets, note: { say: sl.note ?? "" } }))
+    : assistantSlides;
 
   // ── الألعاب: قائمة القوالب + مخزون أسئلة الدرس/الوحدة ─────
   type ActiveGame = "menu" | "team" | "match" | "order" | "memory" | "who";
@@ -327,32 +345,41 @@ export default function ClassModePage() {
           ) : (
             <div className="w-full max-w-5xl space-y-6">
               {/* الشريحة المصمَّمة الموحّدة — سطح فاتح على خشبة داكنة كبروجكتور حقيقي */}
-              <SlideVisual
-                slide={{
-                  layout: "bullets",
-                  title: slides[slideIdx].title,
-                  bullets: slides[slideIdx].bullets,
-                  note: { say: slides[slideIdx].note ?? "" },
-                }}
-                variant="present"
-                index={slideIdx}
-              />
-              {slides[slideIdx].note && (
-                <div className="mx-auto max-w-3xl text-center">
+              <SlideVisual slide={slides[slideIdx]} variant="present" index={slideIdx} answerRevealed={slideRevealed} />
+              <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-center gap-3">
+                {slides[slideIdx].interaction && !slideRevealed && (
                   <button
                     type="button"
-                    onClick={() => setShowNote((v) => !v)}
-                    className="min-h-touch rounded-pill border border-white/25 px-4 text-white/70 hover:text-white"
+                    onClick={() => setSlideRevealed(true)}
+                    className="btn min-h-[60px] bg-gold px-8 text-2xl font-bold text-ink hover:bg-gold-dark hover:text-white"
                   >
-                    {s.classMode.teacherNote}
+                    {s.classMode.reveal}
                   </button>
-                  {showNote && <p className="mt-2 rounded-card bg-white/10 p-3 text-xl text-white/85">{slides[slideIdx].note}</p>}
-                </div>
+                )}
+                {slides[slideIdx].action && (
+                  <button
+                    type="button"
+                    onClick={() => setMode("game")}
+                    className="btn min-h-[60px] border-2 border-gold bg-transparent px-6 text-xl font-bold text-gold hover:bg-gold hover:text-ink"
+                  >
+                    {slides[slideIdx].action!.label}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowNote((v) => !v)}
+                  className="min-h-touch rounded-pill border border-white/25 px-4 text-white/70 hover:text-white"
+                >
+                  {s.classMode.teacherNote}
+                </button>
+              </div>
+              {showNote && (
+                <p className="mx-auto mt-2 max-w-3xl rounded-card bg-white/10 p-3 text-xl text-white/85">{slides[slideIdx].note.say}</p>
               )}
               <div className="flex items-center justify-center gap-6">
                 <button
                   type="button"
-                  onClick={() => { setSlideIdx((i) => Math.max(i - 1, 0)); setShowNote(false); }}
+                  onClick={() => { setSlideIdx((i) => Math.max(i - 1, 0)); setShowNote(false); setSlideRevealed(false); }}
                   disabled={slideIdx === 0}
                   className="btn min-h-[64px] border-2 border-white/30 bg-transparent px-8 text-2xl text-white hover:bg-white/10 disabled:opacity-30"
                 >
@@ -361,7 +388,7 @@ export default function ClassModePage() {
                 <span className="text-xl text-white/60">{s.classMode.slideOf(n(slideIdx + 1), n(slides.length))}</span>
                 <button
                   type="button"
-                  onClick={() => { setSlideIdx((i) => Math.min(i + 1, slides.length - 1)); setShowNote(false); }}
+                  onClick={() => { setSlideIdx((i) => Math.min(i + 1, slides.length - 1)); setShowNote(false); setSlideRevealed(false); }}
                   disabled={slideIdx >= slides.length - 1}
                   className="btn min-h-[64px] bg-gold px-8 text-2xl font-bold text-ink hover:bg-gold-dark hover:text-white disabled:opacity-30"
                 >

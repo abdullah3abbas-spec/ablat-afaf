@@ -164,6 +164,13 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
           </div>
         )}
 
+        {/* رسم بياني — SVG بقواعد dataviz (تسميات مباشرة، ألوان الهوية) */}
+        {slide.chart && slide.chart.items.length > 0 && (
+          slide.chart.kind === "pie"
+            ? <PieChart items={slide.chart.items} unit={slide.chart.unit} present={p} />
+            : <BarsChart items={slide.chart.items} unit={slide.chart.unit} present={p} />
+        )}
+
         {/* تفاعل — بطاقة تحدٍّ بارزة */}
         {slide.interaction && (
           <div className="overflow-hidden rounded-card border-2 border-gold">
@@ -192,6 +199,84 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+/** ألوان الفئات — لوحة هوية محدودة يمكن تمييزها (dataviz) */
+const CHART_COLORS = ["#0F6B62", "#C08A2E", "#8A1538", "#2E7D4F", "#1E3A5F", "#7A5716"];
+
+/** أعمدة: لون واحد تركوازي، قيم مباشرة بلون الحبر، أطراف مدوّرة، RTL */
+function BarsChart({ items, unit, present }: { items: { label: string; value: number }[]; unit?: string; present: boolean }) {
+  const W = 640, H = 300, padTop = 34, padBottom = 46;
+  const plotH = H - padTop - padBottom;
+  const max = Math.max(...items.map((d) => d.value), 1);
+  const slot = W / items.length;
+  const barW = Math.min(72, slot - 18);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={items.map((d) => `${d.label}: ${d.value}${unit ?? ""}`).join(" · ")}
+      className={"mx-auto w-full " + (present ? "max-w-2xl" : "max-w-sm")}>
+      {[0.25, 0.5, 0.75, 1].map((t) => (
+        <line key={t} x1={8} x2={W - 8} y1={padTop + plotH * (1 - t)} y2={padTop + plotH * (1 - t)} stroke="#E9E0D2" strokeWidth="1" />
+      ))}
+      {items.map((d, i) => {
+        const h = Math.max(4, (d.value / max) * plotH);
+        const x = W - (i + 0.5) * slot - barW / 2; // RTL: الأول يميناً
+        const y = padTop + plotH - h;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={barW} height={h} rx={8} fill="#0F6B62" />
+            <rect x={x} y={y + Math.min(10, h)} width={barW} height={Math.max(0, h - 10)} fill="#0F6B62" />
+            <text x={x + barW / 2} y={y - 8} textAnchor="middle" fill="#1E2430" fontWeight="bold" fontSize={present ? 19 : 15} fontFamily="Tajawal, sans-serif">
+              {d.value}{unit ?? ""}
+            </text>
+            <text x={x + barW / 2} y={H - 16} textAnchor="middle" fill="#4A5568" fontSize={present ? 17 : 13} fontFamily="Tajawal, sans-serif">
+              {d.label}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/** دائري: شرائح مرتّبة تنازلياً بألوان الهوية وتسميات مباشرة بنسبها */
+function PieChart({ items, unit, present }: { items: { label: string; value: number }[]; unit?: string; present: boolean }) {
+  const sorted = [...items].sort((a, b) => b.value - a.value).slice(0, 6);
+  const total = sorted.reduce((s, d) => s + d.value, 0) || 1;
+  const size = 300, c = size / 2, r = 108;
+  let angle = -Math.PI / 2;
+  const slices = sorted.map((d, i) => {
+    const frac = d.value / total;
+    const a0 = angle;
+    const a1 = (angle += frac * Math.PI * 2);
+    const large = frac > 0.5 ? 1 : 0;
+    const x0 = c + r * Math.cos(a0), y0 = c + r * Math.sin(a0);
+    const x1 = c + r * Math.cos(a1), y1 = c + r * Math.sin(a1);
+    const mid = (a0 + a1) / 2;
+    return { d, i, path: `M ${c} ${c} L ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} Z`, mid, pct: Math.round(frac * 100) };
+  });
+  return (
+    <div className={"mx-auto flex flex-wrap items-center justify-center gap-6 " + (present ? "" : "gap-3")}>
+      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={sorted.map((d) => `${d.label} ${Math.round((d.value / total) * 100)}٪`).join(" · ")}
+        className={present ? "w-64" : "w-36"}>
+        {slices.map((s) => (
+          <path key={s.i} d={s.path} fill={CHART_COLORS[s.i % CHART_COLORS.length]} stroke="#fff" strokeWidth="3" />
+        ))}
+        {slices.filter((s) => s.pct >= 8).map((s) => (
+          <text key={"t" + s.i} x={c + r * 0.62 * Math.cos(s.mid)} y={c + r * 0.62 * Math.sin(s.mid)} textAnchor="middle" dominantBaseline="middle"
+            fill="#fff" fontWeight="bold" fontSize={present ? 20 : 15} fontFamily="Tajawal, sans-serif">{s.pct}٪</text>
+        ))}
+      </svg>
+      <ul className={"space-y-2 text-start " + (present ? "text-2xl" : "text-xs")}>
+        {slices.map((s) => (
+          <li key={s.i} className="flex items-center gap-2">
+            <span className="inline-block size-4 shrink-0 rounded" style={{ background: CHART_COLORS[s.i % CHART_COLORS.length] }} aria-hidden />
+            <span className="font-medium">{s.d.label}</span>
+            <span className="text-ink-soft">{s.d.value}{unit ?? ""}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -4,6 +4,7 @@
  * + بطاقات القص + نص القصة بخط كبير للقراءة المسرحية.
  */
 import type { LessonEnrichment } from "@/content/enrichment";
+import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityHeader } from "./printTheme";
 import { printHtml } from "./sheetPrint";
 
 function esc(s: string): string {
@@ -17,8 +18,8 @@ function wrap(title: string, bodyHtml: string): string {
 <meta charset="utf-8" />
 <title>${esc(title)}</title>
 <style>
-  @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-400.woff2") format("woff2"); font-weight: 400; }
-  @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-700.woff2") format("woff2"); font-weight: 700; }
+  ${PRINT_FONTS_CSS}
+  ${IDENTITY_HEADER_CSS}
   @page { size: A4; margin: 14mm 12mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: "Tajawal", sans-serif; font-size: 13pt; line-height: 1.9; color: #111; }
@@ -44,10 +45,11 @@ function wrap(title: string, bodyHtml: string): string {
 }
 
 function header(e: LessonEnrichment, schoolName: string, lessonTitle: string): string {
-  return `<div class="doc-header">
-    <h1>${esc(schoolName)} — إثراء الحصة: ${esc(e.title)}</h1>
-    <div class="meta">العلوم · المستوى الخامس · الدرس ${esc(e.lessonCode)}: ${esc(lessonTitle)} · الوسيلة: ${esc(e.vehicle)} · ${e.minutes} دقيقة</div>
-  </div>`;
+  return identityHeader(
+    schoolName,
+    `إثراء الحصة: ${e.title}`,
+    `العلوم · المستوى الخامس · الدرس ${e.lessonCode}: ${lessonTitle} · الوسيلة: ${e.vehicle} · ${e.minutes} دقيقة`
+  );
 }
 
 /** ورقة المعلّمة الكاملة (+ القصة والبطاقات إن وجدت) */

@@ -96,8 +96,44 @@ export default function TodayPage() {
 
   async function handleWeekBundle() {
     const kits = upcoming.map((u) => u.kit).filter((k): k is NonNullable<typeof k> => Boolean(k));
-    if (kits.length === 0) return;
-    printWeekBundle(kits, await headerInfo(), await classNames());
+    if (kits.length > 0) {
+      printWeekBundle(kits, await headerInfo(), await classNames());
+      show(s.today.weekBundlePrinted);
+      return;
+    }
+    // دروس الكتاب الحقيقية: الحزمة تُبنى من إثراء كل درس + ورقة عمل من بنكه
+    const { enrichmentByCode } = await import("@/content/enrichment");
+    const { enrichmentSheetHtml } = await import("@/lib/enrichmentPrint");
+    const { bankWorksheetHtml, printDoc } = await import("@/lib/reportPrint");
+    const info = await headerInfo();
+    const parts: string[] = [];
+    for (const { lesson, unitTitle } of upcoming) {
+      if (!lesson.code || lesson.id == null) continue;
+      const enrichment = enrichmentByCode(lesson.code);
+      if (enrichment) {
+        parts.push(enrichmentSheetHtml(enrichment, info.schoolName, lesson.title).replace(/^[\s\S]*?<body>/, "").replace(/<\/body>[\s\S]*$/, ""));
+      }
+      const bank = (await db.questions.where("lessonId").equals(lesson.id).toArray()).filter((q) => !q.deletedAt).slice(0, 8);
+      if (bank.length > 0) {
+        parts.push(
+          bankWorksheetHtml(bank, { schoolName: info.schoolName, title: `ورقة عمل: ${lesson.title}`, unitName: unitTitle }, false)
+            .replace(/^[\s\S]*?<body>/, "")
+            .replace(/<\/body>[\s\S]*$/, "")
+        );
+      }
+    }
+    if (parts.length === 0) {
+      show(s.today.weekBundleEmpty, { kind: "info" });
+      return;
+    }
+    const { PRINT_FONTS_CSS, IDENTITY_HEADER_CSS } = await import("@/lib/printTheme");
+    printDoc(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>حزمة الأسبوع</title>
+      <style>${PRINT_FONTS_CSS}${IDENTITY_HEADER_CSS}
+      @page { size: A4; margin: 12mm; } * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family: "Tajawal", sans-serif; font-size: 12pt; line-height: 1.9; color: #1E2430; }
+      h2 { color: #0B534C; } ul, ol { padding-inline-start: 7mm; }
+      .bundle-part { page-break-after: always; } .bundle-part:last-child { page-break-after: auto; }
+      </style></head><body>${parts.map((p) => `<div class="bundle-part">${p}</div>`).join("")}</body></html>`);
     show(s.today.weekBundlePrinted);
   }
 

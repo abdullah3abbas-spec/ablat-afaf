@@ -47,28 +47,45 @@ export function certSerial(templateKey: string, id: number, dateMs: number): str
   return `AA-${templateKey.slice(0, 3).toUpperCase()}-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}-${id}`;
 }
 
-/** صفحة شهادة واحدة (HTML داخلي) */
+/** نجمة السدو — شعار المدرسة (SVG داخلي، يلوَّن بلون القالب أو الذهب) */
+function starSvg(cls: string): string {
+  return `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 1.5 14.6 7l5.9-1.5L17 10.4l4.5 4-6-.4-1 5.9-2.5-5.5-5.4 2.7 2.7-5.4L3.8 9.2l6 .3L11 3.6Z" opacity=".3"/>
+    <path d="M12 3.5 13.9 9l5.6.2-4.4 3.4 1.6 5.4L12 14.8 7.3 18l1.6-5.4L4.5 9.2 10.1 9Z"/>
+    <circle cx="12" cy="11.6" r="1.7" class="star-eye"/>
+  </svg>`;
+}
+
+/** صفحة شهادة واحدة (HTML داخلي) — تصميم زكريت الاحتفالي */
 function certPage(c: CertData): string {
   const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
   return `<div class="cert" style="--accent:${c.template.accent};--accent-soft:${c.template.accentSoft}">
-    <div class="border-outer"><div class="border-inner">
-      <div class="cert-head">
-        <div class="school-logo">${esc(c.schoolName.slice(0, 1) || "م")}</div>
-        <div>
+    <div class="frame">
+      <div class="sadu top"></div>
+      <div class="inner">
+        ${starSvg("watermark")}
+        <div class="cert-head">
+          <div class="emblem">${starSvg("emblem-star")}</div>
           <div class="school-name">${esc(c.schoolName)}</div>
-          <div class="cert-kind">${c.template.icon} شهادة ${esc(c.template.nameAr)}</div>
+          <div class="cert-kind">شهادة ${esc(c.template.nameAr)}</div>
+          <div class="kind-rule"><span></span>${c.template.icon}<span></span></div>
+        </div>
+        <p class="grant-line">تتشرّف إدارة المدرسة ومعلّمة العلوم بإهداء هذه الشهادة إلى</p>
+        <p class="recipient">${esc(c.recipientName)}</p>
+        <svg class="flourish" viewBox="0 0 300 12" aria-hidden="true"><path d="M4 6 H120 M180 6 H296" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M150 1 l5 5 -5 5 -5 -5 Z" fill="currentColor"/><circle cx="132" cy="6" r="1.8" fill="currentColor"/><circle cx="168" cy="6" r="1.8" fill="currentColor"/></svg>
+        <p class="reason">${esc(c.reason)}</p>
+        <p class="date-line">حُررت بتاريخ ${esc(toEastern(c.dateStr))}</p>
+        <div class="cert-footer">
+          <span class="sig">توقيع المعلّمة<br/><b>${esc(c.teacherName ?? "")}</b></span>
+          <div class="seal">
+            ${c.qrDataUrl ? `<img class="qr" src="${c.qrDataUrl}" alt="${esc(c.serial)}" />` : starSvg("seal-star")}
+            <span class="serial">${esc(c.serial)}</span>
+          </div>
+          <span class="sig">توقيع مديرة المدرسة<br/><b>&nbsp;</b></span>
         </div>
       </div>
-      <p class="grant-line">تُهدى هذه الشهادة إلى</p>
-      <p class="recipient">${esc(c.recipientName)}</p>
-      <p class="reason">${esc(c.reason)}</p>
-      <p class="date-line">حُررت بتاريخ ${esc(toEastern(c.dateStr))}</p>
-      <div class="cert-footer">
-        <span>توقيع المعلّمة<br/>${esc(c.teacherName ?? "................")}</span>
-        ${c.qrDataUrl ? `<img class="qr" src="${c.qrDataUrl}" alt="${esc(c.serial)}" />` : `<span class="serial">${esc(c.serial)}</span>`}
-        <span>توقيع مديرة المدرسة<br/>................</span>
-      </div>
-    </div></div>
+      <div class="sadu bottom"></div>
+    </div>
   </div>`;
 }
 
@@ -78,28 +95,51 @@ const CERT_CSS = `
   @font-face { font-family: "Amiri"; src: url("/fonts/amiri-arabic-700.woff2") format("woff2"); font-weight: 700; }
   @font-face { font-family: "Amiri"; src: url("/fonts/amiri-arabic-400.woff2") format("woff2"); font-weight: 400; }
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-400.woff2") format("woff2"); font-weight: 400; }
+  @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-700.woff2") format("woff2"); font-weight: 700; }
+  :root { --gold: #C08A2E; --gold-soft: #E5C98F; --ivory: #FFFDF6; }
   body { font-family: "Amiri", serif; }
-  .cert { width: 297mm; height: 210mm; padding: 10mm; page-break-after: always; background: #FFFDF8; }
-  .border-outer { height: 100%; border: 1.2mm solid var(--accent); border-radius: 4mm; padding: 3mm; }
-  .border-inner { height: 100%; border: 0.4mm solid var(--accent); border-radius: 2.5mm; padding: 10mm 16mm;
-                  display: flex; flex-direction: column; text-align: center;
-                  background:
-                    radial-gradient(circle at 0% 0%, var(--accent-soft) 0, transparent 28%),
-                    radial-gradient(circle at 100% 100%, var(--accent-soft) 0, transparent 28%); }
-  .cert-head { display: flex; align-items: center; gap: 6mm; justify-content: center; }
-  .school-logo { width: 18mm; height: 18mm; border: 0.6mm solid var(--accent); border-radius: 50%;
-                 display: flex; align-items: center; justify-content: center; font-size: 22pt; font-weight: 700; color: var(--accent); }
-  .school-name { font-size: 15pt; font-weight: 700; }
-  .cert-kind { font-size: 20pt; font-weight: 700; color: var(--accent); }
-  .grant-line { font-size: 15pt; margin-top: 9mm; }
-  .recipient { font-family: "Amiri", serif; font-size: 44pt; font-weight: 700; color: var(--accent); margin: 3mm 0;
-               line-height: 1.4; }
-  .reason { font-size: 16pt; max-width: 200mm; margin: 0 auto; line-height: 1.9; }
-  .date-line { font-size: 13pt; margin-top: 5mm; color: #333; }
-  .cert-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end;
-                 font-family: "Tajawal", sans-serif; font-size: 11.5pt; line-height: 2; }
-  .qr { width: 16mm; height: 16mm; }
-  .serial { font-size: 9pt; color: #666; direction: ltr; }
+  .cert { width: 297mm; height: 210mm; padding: 9mm; page-break-after: always;
+          background: var(--ivory);
+          background-image: radial-gradient(ellipse at 50% 42%, #fff 0%, var(--ivory) 55%, #F7F0E2 100%); }
+  .frame { position: relative; height: 100%; border: 0.5mm solid var(--gold);
+           outline: 1.6mm solid var(--accent); outline-offset: 1.6mm;
+           display: flex; flex-direction: column; overflow: hidden; background: transparent; }
+  .sadu { height: 5.5mm; flex: none;
+          background: repeating-conic-gradient(from 45deg at 50% 50%, var(--gold) 0 25%, transparent 0 50%) 0 0 / 5.5mm 5.5mm,
+                      linear-gradient(to left, var(--accent), color-mix(in srgb, var(--accent) 70%, #000)); }
+  .inner { position: relative; flex: 1; display: flex; flex-direction: column; text-align: center;
+           padding: 8mm 18mm 7mm; }
+  .watermark { position: absolute; inset: 0; margin: auto; width: 120mm; height: 120mm;
+               fill: var(--accent); opacity: 0.035; }
+  .watermark .star-eye { fill: var(--ivory); }
+  .cert-head { position: relative; }
+  .emblem { width: 21mm; height: 21mm; margin: 0 auto 2.5mm; border-radius: 50%;
+            border: 0.7mm solid var(--gold); outline: 0.25mm solid var(--gold); outline-offset: 1.1mm;
+            background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 82%, #fff), var(--accent) 70%);
+            display: flex; align-items: center; justify-content: center; }
+  .emblem-star { width: 13mm; height: 13mm; fill: var(--gold-soft); }
+  .emblem-star .star-eye { fill: var(--accent); }
+  .school-name { font-family: "Tajawal", sans-serif; font-weight: 700; font-size: 14.5pt; letter-spacing: 0; }
+  .cert-kind { font-size: 30pt; font-weight: 700; color: var(--accent); margin-top: 1mm; }
+  .kind-rule { display: flex; align-items: center; justify-content: center; gap: 4mm; color: var(--gold);
+               font-size: 13pt; margin-top: 1mm; }
+  .kind-rule span { display: inline-block; width: 42mm; height: 0.35mm; background: linear-gradient(to left, transparent, var(--gold), transparent); }
+  .grant-line { font-size: 14.5pt; margin-top: 6mm; color: #3a3a3a; }
+  .recipient { font-family: "Amiri", serif; font-size: 46pt; font-weight: 700; color: var(--accent);
+               margin-top: 1mm; line-height: 1.5; }
+  .flourish { width: 86mm; height: 4mm; margin: 0.5mm auto 0; color: var(--gold); }
+  .reason { font-size: 15.5pt; max-width: 195mm; margin: 4mm auto 0; line-height: 1.9; color: #262626; }
+  .date-line { font-size: 12.5pt; margin-top: 4mm; color: #4a4a4a; }
+  .cert-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
+  .sig { font-family: "Tajawal", sans-serif; font-size: 11.5pt; line-height: 2.1; color: #333; min-width: 46mm; }
+  .sig b { display: inline-block; min-width: 40mm; border-top: 0.3mm dotted #8a8a8a; padding-top: 1mm; font-weight: 700; }
+  .seal { display: flex; flex-direction: column; align-items: center; gap: 1mm; }
+  .seal-star, .qr { width: 17mm; height: 17mm; padding: 2mm; border-radius: 50%;
+                    border: 0.55mm solid var(--gold); outline: 0.25mm solid var(--gold); outline-offset: 1mm;
+                    background: radial-gradient(circle at 35% 30%, #fff, var(--ivory)); }
+  .seal-star { fill: var(--accent); }
+  .seal-star .star-eye { fill: var(--ivory); }
+  .serial { font-family: "Tajawal", sans-serif; font-size: 8.5pt; color: #777; direction: ltr; }
 `;
 
 /** بناء مستند شهادات كامل (صفحة لكل شهادة) */

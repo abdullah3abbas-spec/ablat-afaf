@@ -4,6 +4,7 @@
  * ونسخة المعلّمة بالإجابات والملاحظات في صفحات لاحقة.
  */
 import type { LessonPackContent } from "@/db/schema";
+import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityHeader } from "@/lib/printTheme";
 import { printDoc } from "@/lib/reportPrint";
 
 function esc(s: string): string {
@@ -28,6 +29,8 @@ export function printLessonPack(title: string, pack: LessonPackContent, schoolNa
 
   printDoc(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>حزمة ${esc(title)}</title>
   <style>
+    ${PRINT_FONTS_CSS}
+    ${IDENTITY_HEADER_CSS}
     @page { size: A4; margin: 12mm; }
     * { box-sizing: border-box; margin: 0; }
     body { font-family: Tajawal, Arial, sans-serif; color: #1E2430; font-size: 12pt; line-height: 1.9; }
@@ -47,10 +50,7 @@ export function printLessonPack(title: string, pack: LessonPackContent, schoolNa
     .warn { color: #7A5716; }
   </style></head><body>
 
-  <header>
-    <h1>حزمة حصة: ${esc(title)}</h1>
-    <p class="meta">${esc(schoolName)} · العلوم — المستوى الخامس</p>
-  </header>
+  ${identityHeader(schoolName, `حزمة حصة: ${title}`, "العلوم — المستوى الخامس · جاهزة للتدريس والطباعة")}
 
   <h2>خطة الحصة (${pack.plan.stages.reduce((a, b) => a + b.minutes, 0)} دقيقة)</h2>
   <p><b>الأهداف:</b></p><ul>${li(pack.plan.objectives)}</ul>
