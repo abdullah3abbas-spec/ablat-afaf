@@ -114,10 +114,10 @@ const MASTER_CAL_DEFAULT: MasterCal = {
   marksTop: 10.5, marksH: 7,
 };
 const MASTER_CAL: Record<string, Partial<MasterCal>> = {
-  excellence: { dateTop: 70, teacherTop: 78.5, teacherRight: 12, serialTop: 89 },
-  star_of_month: { nameTop: 44, dateTop: 67.5, teacherTop: 76, serialTop: 89 },
-  most_improved: { nameTop: 45, dateTop: 67, teacherTop: 75.5, teacherRight: 9, teacherW: 27, serialTop: 90 },
-  best_experiment: { nameTop: 43.5, nameH: 14, dateTop: 70, teacherTop: 79, serialTop: 91 },
+  excellence: { nameTop: 45, nameH: 13, dateTop: 69.5, teacherTop: 79.5, teacherRight: 11, serialTop: 91.5, marksTop: 6.5, marksH: 6.5 },
+  star_of_month: { nameTop: 49.5, nameH: 11, dateTop: 71.5, teacherTop: 78.5, serialTop: 94, marksTop: 7.5, marksH: 6.5 },
+  most_improved: { nameTop: 45, nameH: 13.5, dateTop: 66.5, teacherTop: 79, serialTop: 91.5, marksTop: 6.5, marksH: 6.5 },
+  best_experiment: { nameTop: 45, nameH: 12, dateTop: 66.5, teacherTop: 77.5, serialTop: 91, marksTop: 8, marksH: 6.5 },
   guardian_thanks: { nameTop: 44, dateTop: 67.5, teacherTop: 76, serialTop: 90 },
 };
 
