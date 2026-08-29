@@ -1,17 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { parseCommand, normalizeAr, type CmdContext } from "@/lib/commandBox";
+import { defaultSuggestions, parseCommand, normalizeAr, type CmdContext } from "@/lib/commandBox";
+import { BOOK_UNITS } from "@/content/bookG05S1P1";
 
+// السياق من المنهج الحقيقي المزروع (+ وحدة ثالثة كما قد تضيفها المعلّمة)
+let lessonAutoId = 1;
+const realLessons = BOOK_UNITS.flatMap((u, ui) =>
+  u.lessons.map((l) => ({ id: lessonAutoId++, title: l.title, unitId: ui + 1, code: l.code }))
+);
+const lessonByCode = (code: string) => realLessons.find((l) => l.code === code)!;
 const ctx: CmdContext = {
   units: [
-    { id: 1, title: "المادة وتغيّراتها", order: 1 },
-    { id: 2, title: "أجهزة جسم الإنسان", order: 2 },
-    { id: 3, title: "الطاقة والحركة", order: 3 },
+    ...BOOK_UNITS.map((u, ui) => ({ id: ui + 1, title: u.title, order: ui + 1 })),
+    { id: 3, title: "وحدة إضافية", order: 3 },
   ],
-  lessons: [
-    { id: 1, title: "خصائص المادة", unitId: 1 },
-    { id: 5, title: "الجهاز الهضمي", unitId: 2 },
-    { id: 6, title: "الجهاز التنفسي", unitId: 2 },
-  ],
+  lessons: realLessons,
   students: [
     { id: 1, name: "نورة المهندي", classId: 1 },
     { id: 2, name: "سارة الجابر", classId: 1 },
@@ -63,13 +65,10 @@ describe("parseCommand — أمثلة الأمر ٨-ب الإلزامية", () =
     }
   });
 
-  it("«اطبعيلي ورقة عمل على الجهاز الهضمي» → ورقة عمل للدرس", () => {
-    const a = parseCommand("اطبعيلي ورقة عمل على الجهاز الهضمي", ctx);
+  it("«اطبعيلي ورقة عمل على السلاسل الغذائية» → درس الكتاب 1.2 بالكلمات المفتاحية", () => {
+    const a = parseCommand("اطبعيلي ورقة عمل على السلاسل الغذائية", ctx);
     expect(a.kind).toBe("worksheet");
-    if (a.kind === "worksheet") {
-      expect(a.lessonId).toBe(5);
-      expect(a.topic).toBe("الجهاز الهضمي");
-    }
+    if (a.kind === "worksheet") expect(a.lessonId).toBe(lessonByCode("1.2").id);
   });
 
   it("«جهّزي تقرير نورة لولية أمرها» → بطاقة متابعة نورة", () => {
@@ -102,10 +101,10 @@ describe("parseCommand — أمثلة الأمر ٨-ب الإلزامية", () =
     if (a.kind === "officialSheet") expect(a.classId).toBe(1);
   });
 
-  it("«حضّريلي درس الجهاز التنفسي» → تحضير الدرس", () => {
-    const a = parseCommand("حضّريلي درس الجهاز التنفسي", ctx);
+  it("«حضّريلي درس الدوائر الكهربائية» → تحضير درس الكتاب 2.1", () => {
+    const a = parseCommand("حضّريلي درس الدوائر الكهربائية", ctx);
     expect(a.kind).toBe("lessonPlan");
-    if (a.kind === "lessonPlan") expect(a.lessonId).toBe(6);
+    if (a.kind === "lessonPlan") expect(a.lessonId).toBe(lessonByCode("2.1").id);
   });
 
   it("«اطبعي شهادة تفوّق لنورة» → شهادة للطالبة", () => {
@@ -122,5 +121,44 @@ describe("parseCommand — أمثلة الأمر ٨-ب الإلزامية", () =
     const a = parseCommand("مرحبا كيف حالك", ctx);
     expect(a.kind).toBe("unknown");
     if (a.kind === "unknown") expect(a.suggestions.length).toBeGreaterThan(0);
+  });
+});
+
+
+describe("المطابقة على المنهج الحقيقي — إصلاح أغسطس ٢٠٢٦", () => {
+  it("«اعملي كويز على درس السلاسل الغذائية» → كويز بدرس 1.2 (العنوان استفهامي طويل)", () => {
+    const a = parseCommand("اعملي كويز على درس السلاسل الغذائية", ctx);
+    expect(a.kind).toBe("quiz");
+    if (a.kind === "quiz") expect(a.lessonId).toBe(lessonByCode("1.2").id);
+  });
+
+  it("«ورقة عمل على المحلّلات» → درس 1.7 عبر مفردات الكتاب", () => {
+    const a = parseCommand("اطبعيلي ورقة عمل على المحلّلات", ctx);
+    expect(a.kind).toBe("worksheet");
+    if (a.kind === "worksheet") expect(a.lessonId).toBe(lessonByCode("1.7").id);
+  });
+
+  it("بلا أل التعريف: «ورقة عمل على سلاسل غذائية» تطابق", () => {
+    const a = parseCommand("اطبعيلي ورقة عمل على سلاسل غذائية", ctx);
+    expect(a.kind).toBe("worksheet");
+    if (a.kind === "worksheet") expect(a.lessonId ?? a.unitId).toBeTruthy();
+  });
+
+  it("قائمة التوقّف: «مرحبا كيف حالك» تبقى unknown رغم أن «كيف» في عناوين الكتاب", () => {
+    expect(parseCommand("مرحبا كيف حالك", ctx).kind).toBe("unknown");
+  });
+
+  it("عقد الاقتراحات: كل اقتراح تعيده defaultSuggestions قابل للتنفيذ", () => {
+    const sugs = defaultSuggestions(ctx);
+    expect(sugs.length).toBeGreaterThanOrEqual(4);
+    for (const sug of sugs) {
+      const a = parseCommand(sug, ctx);
+      expect(a.kind, `اقتراح غير مفهوم: ${sug}`).not.toBe("unknown");
+      if (a.kind === "worksheet" || a.kind === "lessonPlan") {
+        expect(a.lessonId ?? ("unitId" in a ? a.unitId : undefined), `اقتراح بلا هدف: ${sug}`).toBeTruthy();
+      }
+      if (a.kind === "exam") expect(a.unitIds.length, `اختبار بلا وحدات: ${sug}`).toBeGreaterThan(0);
+      if (a.kind === "parentReport") expect(a.studentId).toBeTruthy();
+    }
   });
 });

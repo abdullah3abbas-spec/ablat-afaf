@@ -46,7 +46,7 @@ export default function CommandBox() {
     ]);
     return {
       units: units.filter((u) => !u.deletedAt).map((u) => ({ id: u.id!, title: u.title, order: u.order })),
-      lessons: lessons.filter((l) => !l.deletedAt).map((l) => ({ id: l.id!, title: l.title, unitId: l.unitId })),
+      lessons: lessons.filter((l) => !l.deletedAt).map((l) => ({ id: l.id!, title: l.title, unitId: l.unitId, code: l.code })),
       students: students.filter((st) => !st.deletedAt).map((st) => ({ id: st.id!, name: st.name, classId: st.classId })),
       classes: classes.filter((c) => !c.deletedAt).map((c) => ({ id: c.id!, name: c.name })),
     };

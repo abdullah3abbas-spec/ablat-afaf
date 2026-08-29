@@ -8,6 +8,8 @@ import { db } from "@/db";
 import type { Exam, Question, Unit } from "@/db/schema";
 import { buildVariant, COG_AR, COG_ORDER, markQuestionsUsed, type VariantQuestion } from "./examBuilder";
 import { printHtml } from "./sheetPrint";
+import { activePolicyOf } from "./policy";
+import { ar } from "@/i18n/ar";
 
 const TYPE_AR: Record<Question["type"], string> = {
   mcq: "اختاري الإجابة الصحيحة",
@@ -407,6 +409,32 @@ export async function generateAllFiles(exam: Exam, questions: Question[], units:
 }
 
 /** طباعة نسخة (§5) — ورقة أو نموذج إجابة */
+/** أسئلة اختبار محفوظ من قاعدة البيانات — بترتيبها المحفوظ (لطباعة من القائمة) */
+export async function loadExamQuestions(examId: number): Promise<Question[]> {
+  const eqs = await db.examQuestions.where("[examId+order]").between([examId, 0], [examId, Infinity]).toArray();
+  const qs = await Promise.all(eqs.map((eq) => db.questions.get(eq.questionId)));
+  return qs.filter((q): q is Question => Boolean(q));
+}
+
+/** ترويسة الطباعة لاختبار محفوظ — نوع الاختبار من سياسة سنته لا السنة الحالية */
+export async function buildExamMeta(exam: Exam): Promise<ExamMeta> {
+  const settings = await db.settings.get(1);
+  const year = await db.academicYears.get(exam.academicYearId);
+  const subject = await db.subjects.toCollection().first();
+  const klass = exam.classId ? await db.classes.get(exam.classId) : undefined;
+  const typeDef = (await activePolicyOf(exam.academicYearId))?.examTypes.find((x) => x.key === exam.typeKey);
+  return {
+    schoolName: settings?.schoolName ?? "",
+    subjectName: subject?.nameAr ?? ar.subject,
+    gradeName: ar.gradeLevel,
+    termName: exam.term === 1 ? ar.common.term1 : ar.common.term2,
+    yearName: year?.name ?? "",
+    examTypeName: typeDef?.nameAr ?? exam.title,
+    className: klass?.name,
+    dateStr: new Date().toLocaleDateString("ar", { day: "numeric", month: "long", year: "numeric" }),
+  };
+}
+
 export function printExam(exam: Exam, variant: VariantQuestion[], meta: ExamMeta, opts: { variantLabel: string; withAnswers: boolean }): void {
   printHtml(examPrintHtml(exam, variant, meta, opts));
 }

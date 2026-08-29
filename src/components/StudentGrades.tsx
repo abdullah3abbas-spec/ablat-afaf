@@ -5,6 +5,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { BarChart3, CheckCircle2, XCircle } from "lucide-react";
 import { db } from "@/db";
+import { Link } from "react-router-dom";
 import type { Term } from "@/db/schema";
 import { DEFAULT_GRADE_SCALE } from "@/db/constants";
 import { activePolicyOf } from "@/lib/policy";
@@ -46,7 +47,19 @@ export default function StudentGrades({ studentId }: { studentId: number }) {
 
   const anyGrades = terms.some((t) => t.total.counted > 0);
   if (!anyGrades) {
-    return <EmptyState icon={BarChart3} title={s.studentFile.gradesEmpty} hint={s.studentFile.gradesEmptyHint} />;
+    return (
+      <EmptyState
+        icon={BarChart3}
+        title={s.studentFile.gradesEmpty}
+        hint={s.studentFile.gradesEmptyHint}
+        action={
+          <Link to="/grades" className="btn-primary">
+            <BarChart3 className="size-5" aria-hidden />
+            {s.studentFile.gradesEmptyCta}
+          </Link>
+        }
+      />
+    );
   }
 
   const bothComplete = terms.every((t) => t.comps.length > 0 && t.total.counted === t.comps.length);

@@ -11,9 +11,12 @@
  *   «اعملي اختبار على الوحدة الأولى» → فتح معالج الاختبار
  */
 
+import { bookLessonByCode } from "@/content/bookG05S1P1";
+import { searchTokens } from "./bookRetrieval";
+
 export interface CmdContext {
   units: { id: number; title: string; order: number }[];
-  lessons: { id: number; title: string; unitId: number }[];
+  lessons: { id: number; title: string; unitId: number; code?: string }[];
   students: { id: number; name: string; classId: number }[];
   classes: { id: number; name: string }[];
 }
@@ -85,15 +88,80 @@ function allUnitNumbers(norm: string): number[] {
   return [...nums];
 }
 
-/** أطول تطابق عنوان من قائمة (وحدة/درس/فصل) داخل النص المطبّع */
-function matchByTitle<T extends { title?: string; name?: string }>(norm: string, list: T[]): T | undefined {
+/**
+ * كلمات لا تصلح مفتاحاً للمطابقة — أدوات استفهام وأفعال شائعة في عناوين
+ * الكتاب الاستفهامية («كيف أستطيع أن أبني…») وكلمات أوامر عامة.
+ */
+const MATCH_STOP = new Set([
+  "ماذا", "كيف", "لماذا", "اين", "متي", "علي", "عن", "في", "من", "الي",
+  "استطيع", "اعرف", "ابني", "تكون", "توجد", "يوجد", "اكثر",
+  "درس", "وحده", "الدرس", "الوحده", "اعملي", "اطبعي", "اطبعيلي", "جهزي", "حضريلي", "حضري",
+]);
+
+/**
+ * تقطيع موحّد للمطابقة: normalizeAr أولاً (فيتطابق تطبيع الهمزات في
+ * الطرفين) ثم searchTokens (نزع أل التعريف وإسقاط ما دون ٣ أحرف).
+ */
+function matchTokens(text: string): string[] {
+  return searchTokens(normalizeAr(text)).filter((x) => !MATCH_STOP.has(x));
+}
+
+/** كلمات عنصر قابلة للمطابقة: كلمات عنوانه + (للدروس) مفردات الكتاب برمزه */
+function itemTokens(title: string, code?: string): string[] {
+  const tokens = matchTokens(title);
+  if (code) {
+    const found = bookLessonByCode(code);
+    for (const v of found?.lesson.vocab ?? []) tokens.push(...matchTokens(v.term));
+  }
+  return tokens;
+}
+
+/**
+ * مطابقة عنوان على مرحلتين:
+ * ١) العنوان كاملاً داخل الأمر (مسار الاقتراحات الحرفية) —
+ * ٢) وإلا: تقاطع كلمات مفتاحية بعد استبعاد كلمات التوقّف. يُقبل المرشح
+ *    بكلمتين متطابقتين، أو بكلمة واحدة (≥ ٤ أحرف) لا تظهر إلا عنده وحده.
+ */
+function matchByTitle<T extends { title?: string; name?: string; code?: string }>(
+  norm: string,
+  list: T[]
+): T | undefined {
   let best: T | undefined;
   let bestLen = 0;
   for (const item of list) {
-    const t = normalizeAr(item.title ?? item.name ?? "");
-    if (t.length >= 3 && norm.includes(t) && t.length > bestLen) {
+    const full = normalizeAr(item.title ?? item.name ?? "");
+    if (full.length >= 3 && norm.includes(full) && full.length > bestLen) {
       best = item;
-      bestLen = t.length;
+      bestLen = full.length;
+    }
+  }
+  if (best) return best;
+
+  const cmdTokens = [...new Set(matchTokens(norm))];
+  if (cmdTokens.length === 0) return undefined;
+
+  // كم مرشحاً يملك كل كلمة — لرفض الكلمة المفردة الغامضة
+  const owners = new Map<string, number>();
+  const perItem = list.map((item) => {
+    const toks = new Set(itemTokens(item.title ?? item.name ?? "", item.code));
+    const matched = cmdTokens.filter((c) => toks.has(c));
+    for (const m of new Set(matched)) owners.set(m, (owners.get(m) ?? 0) + 1);
+    return { item, matched };
+  });
+
+  let bestScore = 0;
+  let bestTitleLen = Infinity;
+  for (const { item, matched } of perItem) {
+    const accepted =
+      matched.length >= 2 ||
+      (matched.length === 1 && matched[0].length >= 4 && owners.get(matched[0]) === 1);
+    if (!accepted) continue;
+    const score = matched.reduce((a, m) => a + m.length, 0);
+    const titleLen = (item.title ?? item.name ?? "").length;
+    if (score > bestScore || (score === bestScore && titleLen < bestTitleLen)) {
+      best = item;
+      bestScore = score;
+      bestTitleLen = titleLen;
     }
   }
   return best;
@@ -124,7 +192,7 @@ const has = (norm: string, ...words: string[]) => words.some((w) => norm.include
  */
 export function parseCommand(text: string, ctx: CmdContext): CommandAction {
   const norm = normalizeAr(text);
-  if (!norm) return { kind: "unknown", text, suggestions: defaultSuggestions() };
+  if (!norm) return { kind: "unknown", text, suggestions: defaultSuggestions(ctx) };
 
   const unit = (() => {
     const n = unitNumberFrom(norm);
@@ -198,16 +266,21 @@ export function parseCommand(text: string, ctx: CmdContext): CommandAction {
     return { kind: "exam", unitIds, examType, variants, label: `اختبار ${examType === "mid" ? "منتصف الفصل" : "نهاية الفصل"}` };
   }
 
-  return { kind: "unknown", text, suggestions: defaultSuggestions() };
+  return { kind: "unknown", text, suggestions: defaultSuggestions(ctx) };
 }
 
-function defaultSuggestions(): string[] {
-  return [
-    "اعملي اختبار نهاية الفصل على الوحدة الأولى والثانية",
-    "اطبعيلي ورقة عمل على الجهاز الهضمي",
-    "جهّزي تقرير نورة لولية أمرها",
-    "كم طالبة ضعيفة في الوحدة الثانية؟",
-    "جهّزي كشف الدرجات لخامس ١",
-    "حضّريلي درس الجهاز التنفسي",
-  ];
+/** اقتراحات حيّة من بيانات المعلّمة الفعلية — كل اقتراح قابل للتنفيذ فوراً */
+export function defaultSuggestions(ctx: CmdContext): string[] {
+  const out: string[] = [];
+  const l1 = ctx.lessons[0];
+  const l2 = ctx.lessons.find((l) => l !== l1);
+  if (l1) out.push(`اطبعيلي ورقة عمل على «${l1.title}»`);
+  if (l2) out.push(`حضّريلي درس «${l2.title}»`);
+  out.push(`اعملي اختبار نهاية الفصل على الوحدة الأولى${ctx.units.length > 1 ? " والثانية" : ""}`);
+  const st = ctx.students[0];
+  if (st) out.push(`جهّزي تقرير ${st.name.split(" ")[0]} لولية أمرها`);
+  out.push("كم طالبة ضعيفة في الوحدة الأولى؟");
+  const c = ctx.classes[0];
+  if (c) out.push(`جهّزي كشف الدرجات لـ${c.name}`);
+  return out;
 }

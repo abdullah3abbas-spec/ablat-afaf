@@ -9,7 +9,7 @@ import { db } from "@/db";
 import type { CognitiveLevel, Exam, ExamTypeDef, Question, Term, Unit } from "@/db/schema";
 import { activePolicyOf } from "@/lib/policy";
 import { autoPick, checkBudgets, COG_AR, COG_ORDER, defaultUnitPct } from "@/lib/examBuilder";
-import { buildVariants, generateAllFiles, printExam, type ExamMeta } from "@/lib/examFiles";
+import { buildExamMeta, buildVariants, generateAllFiles, printExam, type ExamMeta } from "@/lib/examFiles";
 import { leafComponents } from "@/lib/gradeComponents";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
@@ -160,21 +160,7 @@ export default function ExamWizardPage() {
   }
 
   async function buildMeta(exam: Exam): Promise<ExamMeta> {
-    const settings = await db.settings.get(1);
-    const year = await db.academicYears.get(exam.academicYearId);
-    const subject = await db.subjects.toCollection().first();
-    const klass = exam.classId ? await db.classes.get(exam.classId) : undefined;
-    const typeDef = examTypes.find((t) => t.key === exam.typeKey);
-    return {
-      schoolName: settings?.schoolName ?? "",
-      subjectName: subject?.nameAr ?? s.subject,
-      gradeName: s.gradeLevel,
-      termName: exam.term === 1 ? s.common.term1 : s.common.term2,
-      yearName: year?.name ?? "",
-      examTypeName: typeDef?.nameAr ?? exam.title,
-      className: klass?.name,
-      dateStr: new Date().toLocaleDateString("ar", { day: "numeric", month: "long", year: "numeric" }),
-    };
+    return buildExamMeta(exam);
   }
 
   async function handlePrint(variantLabel: "أ" | "ب", withAnswers: boolean) {

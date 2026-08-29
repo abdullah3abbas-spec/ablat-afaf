@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { BarChart3, ClipboardList, Pencil, Plus, Trash2 } from "lucide-react";
+import { BarChart3, ClipboardList, Pencil, Plus, Printer, Trash2 } from "lucide-react";
 import { db } from "@/db";
 import type { Exam } from "@/db/schema";
 import { fmtNum } from "@/lib/numerals";
@@ -10,6 +10,8 @@ import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import Modal from "@/components/Modal";
+import { buildExamMeta, buildVariants, loadExamQuestions, printExam } from "@/lib/examFiles";
 import EmptyState from "@/components/EmptyState";
 
 export default function ExamsPage() {
@@ -17,6 +19,7 @@ export default function ExamsPage() {
   const numerals = useUi((x) => x.numeralsTable);
   const show = useToast((x) => x.show);
   const [deleting, setDeleting] = useState<Exam | null>(null);
+  const [printing, setPrinting] = useState<Exam | null>(null);
 
   const exams = useLiveQuery(async () => {
     const list = (await db.exams.toArray()).filter((e) => !e.deletedAt).sort((a, b) => b.createdAt - a.createdAt);
@@ -28,6 +31,17 @@ export default function ExamsPage() {
       }))
     );
   });
+
+  async function doPrint(exam: Exam, variantLabel: "أ" | "ب", withAnswers: boolean) {
+    const questions = await loadExamQuestions(exam.id!);
+    if (questions.length === 0) {
+      show(s.exams.noQuestionsSaved, { kind: "danger" });
+      return;
+    }
+    const variants = buildVariants(exam.id!, questions);
+    printExam(exam, variantLabel === "أ" ? variants.A : variants.B, await buildExamMeta(exam), { variantLabel, withAnswers });
+    setPrinting(null);
+  }
 
   async function softDelete() {
     if (!deleting) return;
@@ -94,6 +108,12 @@ export default function ExamsPage() {
                   {resultsCount > 0 ? ` · ${fmtNum(resultsCount, numerals)} نتيجة` : ""}
                 </p>
               </div>
+              {exam.status !== "draft" && (
+                <button type="button" onClick={() => setPrinting(exam)} className="btn-secondary px-4">
+                  <Printer className="size-5" aria-hidden />
+                  {s.exams.print}
+                </button>
+              )}
               <Link to={`/exams/${exam.id}/build`} className="btn-secondary px-4">
                 <Pencil className="size-5" aria-hidden />
                 {s.exams.openBuilder}
@@ -113,6 +133,25 @@ export default function ExamsPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {printing && (
+        <Modal title={`${s.exams.printTitle}: ${printing.title}`} onClose={() => setPrinting(null)}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button type="button" onClick={() => void doPrint(printing, "أ", false)} className="btn-primary min-h-[64px]">
+              <Printer className="size-5" aria-hidden />{s.exams.wizard.printA}
+            </button>
+            <button type="button" onClick={() => void doPrint(printing, "ب", false)} className="btn-primary min-h-[64px]">
+              <Printer className="size-5" aria-hidden />{s.exams.wizard.printB}
+            </button>
+            <button type="button" onClick={() => void doPrint(printing, "أ", true)} className="btn-secondary min-h-[64px]">
+              {s.exams.wizard.printKeyA}
+            </button>
+            <button type="button" onClick={() => void doPrint(printing, "ب", true)} className="btn-secondary min-h-[64px]">
+              {s.exams.wizard.printKeyB}
+            </button>
+          </div>
+        </Modal>
       )}
 
       {deleting && (

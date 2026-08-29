@@ -50,35 +50,50 @@ export default function ReportsPage() {
 
   async function printParentCards(all: boolean) {
     setBusy(true);
-    const t = await term();
-    const ids = all ? (students ?? []).map((st) => st.id!) : studentId ? [studentId] : [];
-    const reports = (await Promise.all(ids.map((id) => studentReport(id, t)))).filter(
-      (r): r is StudentReport => Boolean(r)
-    );
-    setBusy(false);
-    if (reports.length === 0) return;
-    printDoc(parentCardHtml(reports, await schoolName(), t === 1 ? s.common.term1 : s.common.term2));
-    show(s.reports.printedCards(fmtNum(reports.length, numerals)));
+    try {
+      const t = await term();
+      const ids = all ? (students ?? []).map((st) => st.id!) : studentId ? [studentId] : [];
+      const reports = (await Promise.all(ids.map((id) => studentReport(id, t)))).filter(
+        (r): r is StudentReport => Boolean(r)
+      );
+      if (reports.length === 0) return;
+      printDoc(parentCardHtml(reports, await schoolName(), t === 1 ? s.common.term1 : s.common.term2));
+      show(s.reports.printedCards(fmtNum(reports.length, numerals)));
+    } catch {
+      show(s.reports.failed, { kind: "danger" });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function printAdmin() {
     setBusy(true);
-    const t = await term();
-    const reports = [];
-    for (const c of classes ?? []) {
-      const r = await classAdminReport(c.id!, t);
-      if (r) reports.push(r);
+    try {
+      const t = await term();
+      const reports = [];
+      for (const c of classes ?? []) {
+        const r = await classAdminReport(c.id!, t);
+        if (r) reports.push(r);
+      }
+      printDoc(adminReportHtml(reports, await schoolName(), t === 1 ? s.common.term1 : s.common.term2));
+    } catch {
+      show(s.reports.failed, { kind: "danger" });
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
-    printDoc(adminReportHtml(reports, await schoolName(), t === 1 ? s.common.term1 : s.common.term2));
   }
 
   async function exportOfficial() {
     if (!classId) return;
     setBusy(true);
-    const r = await exportOfficialSheet(classId, await term());
-    setBusy(false);
-    if (r.ok) show(s.reports.exported);
+    try {
+      const r = await exportOfficialSheet(classId, await term());
+      if (r.ok) show(s.reports.exported);
+    } catch {
+      show(s.reports.failed, { kind: "danger" });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function printExamAnalysis() {
@@ -107,7 +122,7 @@ export default function ReportsPage() {
       <div className="card flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2">
           <span className="font-medium">{s.grades.pickClass}:</span>
-          <select value={classId} onChange={(e) => setClassId(Number(e.target.value))} className={selectCls}>
+          <select value={classId} onChange={(e) => { setClassId(Number(e.target.value)); setStudentId(0); }} className={selectCls}>
             <option value={0}>—</option>
             {classes?.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
