@@ -20,6 +20,12 @@ const ICONS: Record<string, typeof Sun> = {
   snowflake: Snowflake, flame: Flame, atom: Atom, eye: Eye, ear: Ear, sprout: Sprout,
 };
 
+/** خيط السدو — نفس نقش الهوية (repeating-conic) بلا أصول خارجية */
+const SADU_STYLE: React.CSSProperties = {
+  background:
+    "repeating-conic-gradient(from 45deg at 50% 50%, #C08A2E 0 25%, transparent 0 50%) 0 0 / 12px 12px, linear-gradient(to left, #8A1538, #0F6B62)",
+};
+
 interface Props {
   slide: VisualSlide;
   /** present = بروجكتور ضخم · preview = بطاقة تحرير مصغّرة */
@@ -37,19 +43,36 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
   const accent = accentFor(index);
   const emoji = emojiFor(slide);
 
-  // ═══ الغلاف: لوحة متدرّجة كاملة ═══
+  // ═══ الغلاف: دفتر المستكشفة — أرضية فاتحة + رسمة الدرس بولارويد + خيط سدو ═══
   if (slide.layout === "cover") {
+    const art = slide.image?.dataUrl;
     return (
-      <div className={"relative overflow-hidden rounded-card bg-gradient-to-bl from-maroon to-maroon-dark text-white " + (p ? "px-10 py-16" : "px-5 py-8")}>
-        <span aria-hidden className={"absolute -start-6 -top-8 select-none opacity-15 " + (p ? "text-[14rem]" : "text-7xl")}>{emoji}</span>
-        <span aria-hidden className={"absolute -bottom-10 -end-8 select-none opacity-10 " + (p ? "text-[12rem]" : "text-6xl")}>{emoji}</span>
-        <div className="relative space-y-4 text-center">
-          <span aria-hidden className={p ? "block text-8xl" : "block text-4xl"}>{emoji}</span>
-          <h3 className={"font-heading font-bold leading-snug " + (p ? "text-6xl lg:text-7xl" : "text-2xl")}>{slide.title}</h3>
-          <div className={"mx-auto rounded-pill bg-gold " + (p ? "h-1.5 w-40" : "h-1 w-20")} aria-hidden />
-          <p className={"text-white/85 " + (p ? "text-2xl" : "text-sm")}>
-            العلوم · المستوى الخامس{schoolName ? ` · ${schoolName}` : ""}
-          </p>
+      <div className={"relative overflow-hidden rounded-card border-2 border-line bg-cream text-ink " + (p ? "px-10 py-10" : "px-5 py-5")}>
+        {/* خيط السدو — توقيع الهوية أعلى الغلاف وأسفله */}
+        <div aria-hidden className={"absolute inset-x-0 top-0 " + (p ? "h-3" : "h-1.5")} style={SADU_STYLE} />
+        <div aria-hidden className={"absolute inset-x-0 bottom-0 " + (p ? "h-3" : "h-1.5")} style={SADU_STYLE} />
+        <div className={"relative flex items-center " + (p ? "gap-10" : "gap-4")}>
+          {/* رسمة الدرس — إطار بولارويد مائل بشريط لاصق ذهبي */}
+          {art ? (
+            <div className={"relative shrink-0 -rotate-2 bg-white shadow-card " + (p ? "p-3 pb-8" : "p-1.5 pb-4")}>
+              <span aria-hidden className={"absolute start-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rotate-3 bg-gold/40 " + (p ? "h-5 w-24" : "h-2.5 w-10")} />
+              <img src={art} alt="" onError={(e) => ((e.currentTarget.parentElement as HTMLElement).style.display = "none")}
+                className={"object-cover " + (p ? "size-64 lg:size-72" : "size-24")} />
+            </div>
+          ) : (
+            <span aria-hidden className={"shrink-0 select-none " + (p ? "text-9xl" : "text-5xl")}>{emoji}</span>
+          )}
+          <div className={"flex-1 text-start " + (p ? "space-y-5" : "space-y-2")}>
+            <p className={"flex items-center gap-2 font-kid font-bold text-teal " + (p ? "text-2xl" : "text-xs")}>
+              <svg viewBox="0 0 24 24" className={p ? "size-6" : "size-3"} aria-hidden><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M15.5 8.5 13.2 13.2 8.5 15.5 10.8 10.8Z" fill="currentColor"/></svg>
+              رحلة اليوم العلمية
+            </p>
+            <h3 className={"font-kid font-extrabold leading-snug text-maroon " + (p ? "text-6xl lg:text-7xl" : "text-2xl")}>{slide.title}</h3>
+            <div className={"rounded-pill bg-gold " + (p ? "h-1.5 w-40" : "h-1 w-20")} aria-hidden />
+            <p className={"text-ink-soft " + (p ? "text-2xl" : "text-sm")}>
+              العلوم · المستوى الخامس{schoolName ? ` · ${schoolName}` : ""}
+            </p>
+          </div>
         </div>
       </div>
     );

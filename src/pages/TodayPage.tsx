@@ -116,7 +116,7 @@ export default function TodayPage() {
       const bank = (await db.questions.where("lessonId").equals(lesson.id).toArray()).filter((q) => !q.deletedAt).slice(0, 8);
       if (bank.length > 0) {
         parts.push(
-          bankWorksheetHtml(bank, { schoolName: info.schoolName, title: `ورقة عمل: ${lesson.title}`, unitName: unitTitle }, false)
+          bankWorksheetHtml(bank, { schoolName: info.schoolName, title: `ورقة عمل: ${lesson.title}`, unitName: unitTitle, lessonCode: lesson.code }, false)
             .replace(/^[\s\S]*?<body>/, "")
             .replace(/<\/body>[\s\S]*$/, "")
         );

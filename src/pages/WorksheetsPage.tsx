@@ -64,7 +64,8 @@ export default function WorksheetsPage() {
   async function meta() {
     const settings = await db.settings.get(1);
     const unit = units?.find((u) => u.id === unitId);
-    return { schoolName: settings?.schoolName ?? "", title: title.trim() || "ورقة عمل", unitName: unit?.title ?? "" };
+    const lesson = lessonId ? await db.lessons.get(lessonId) : undefined;
+    return { schoolName: settings?.schoolName ?? "", title: title.trim() || "ورقة عمل", unitName: unit?.title ?? "", lessonCode: lesson?.code };
   }
 
   async function handlePrint(withAnswers: boolean) {

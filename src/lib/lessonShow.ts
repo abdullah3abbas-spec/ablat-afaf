@@ -113,6 +113,8 @@ export function buildLessonShow(
     layout: "cover",
     title: lesson.title,
     bullets: [`${unit.title} · الدرس ${lesson.code}`, pagesLabel],
+    // رسمة الدرس المولّدة (أصل محلي) — الغلاف يعرضها بإطار بولارويد
+    image: { prompt: lesson.title, dataUrl: `/lesson-art/${lessonCode.replace(".", "-")}.jpg` },
     note: { say: `رحّبي بالطالبات. حصة اليوم: «${lesson.title}» — ${pagesLabel}.` },
     source: pagesLabel,
   });

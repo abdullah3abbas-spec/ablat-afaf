@@ -65,7 +65,7 @@ export async function genWorksheet(opts: {
   const unit = opts.unitId ? await db.units.get(opts.unitId) : undefined;
   const lesson = opts.lessonId ? await db.lessons.get(opts.lessonId) : undefined;
   const title = opts.title ?? (lesson ? `ورقة عمل — ${lesson.title}` : "ورقة عمل");
-  printDoc(bankWorksheetHtml(picked, { schoolName: await schoolName(), title, unitName: unit?.title ?? lesson?.title ?? "" }, false));
+  printDoc(bankWorksheetHtml(picked, { schoolName: await schoolName(), title, unitName: unit?.title ?? lesson?.title ?? "", lessonCode: lesson?.code }, false));
   return picked.length;
 }
 

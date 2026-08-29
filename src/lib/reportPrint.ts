@@ -8,6 +8,7 @@ import type { ClassAdminReport, StudentReport } from "./reportData";
 import type { ExamAnalysis } from "./examAnalysis";
 import { toEastern } from "./numerals";
 import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "./printTheme";
+import { KID_CSS, kidFinish, kidHeader } from "./kidTheme";
 import { printHtml } from "./sheetPrint";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
@@ -176,24 +177,42 @@ export function examAnalysisHtml(title: string, analysis: ExamAnalysis, schoolNa
 
 export function bankWorksheetHtml(
   questions: Question[],
-  meta: { schoolName: string; title: string; unitName: string },
+  meta: { schoolName: string; title: string; unitName: string; lessonCode?: string },
   withAnswers: boolean
 ): string {
+  const last = questions.length - 1;
   const items = questions
     .map((q, i) => {
-      const opts = q.type === "mcq" && q.options ? `<div style="padding-inline-start:8mm">${q.options.map((o) => `<span style="margin-inline-end:9mm">${o.key}) ${esc(o.text)}</span>`).join("")}</div>` : "";
+      const opts = q.type === "mcq" && q.options ? `<div class="k-opts">${q.options.map((o) => `<span>${o.key}) ${esc(o.text)}</span>`).join("")}</div>` : "";
+      const orderParts = q.type === "order" && typeof q.answerKey === "string" ? q.answerKey.split("←").length : 0;
       const space = withAnswers
-        ? `<div class="recs" style="margin-top:1mm"><b>الإجابة:</b> ${esc(String(q.answerKey ?? ""))}</div>`
+        ? `<div class="recs" style="margin-top:1.5mm"><b>الإجابة:</b> ${esc(String(q.answerKey ?? ""))}</div>`
         : q.type === "mcq"
           ? ""
-          : `<div style="border-bottom:0.3mm dotted #888;height:9mm"></div>${q.marks >= 3 ? '<div style="border-bottom:0.3mm dotted #888;height:9mm"></div>' : ""}`;
-      return `<div style="margin-bottom:5mm"><b>${toEastern(String(i + 1))})</b> ${esc(q.text)} <span style="color:#555">(${toEastern(String(q.marks))})</span>${opts}${space}</div>`;
+          : q.type === "truefalse"
+            ? `<div class="k-tf"><span><i></i> صواب ✓</span><span><i></i> خطأ ✗</span></div>`
+            : orderParts >= 3
+              ? `<div class="k-chain">${Array.from({ length: orderParts }, () => "<b></b>").join("<span>←</span>")}</div>`
+              : `<div class="k-ansline"></div>${q.marks >= 3 ? '<div class="k-ansline"></div>' : ""}`;
+      const treasure = i === last && !withAnswers;
+      return `<div class="k-station${treasure ? " treasure" : ""}">
+        <span class="k-hex">${toEastern(String(i + 1))}</span>
+        ${treasure ? '<span class="k-treasure-tag">سؤال الكنز ★</span>' : ""}
+        ${withAnswers ? "" : '<span class="k-pearl"></span>'}
+        <div style="display:flex;justify-content:space-between;gap:4mm;align-items:baseline"><div>${esc(q.text)}</div><span class="k-marks">${toEastern(String(q.marks))} ${q.marks === 1 ? "درجة" : "درجات"}</span></div>
+        ${opts}${space}
+      </div>`;
     })
     .join("");
-  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(meta.title)}</title><style>${REPORT_CSS}</style></head><body>
-    ${identityFooter(meta.title)}${identityHeader(meta.schoolName, `${meta.title}${withAnswers ? " (نسخة الإجابات)" : ""}`, "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">العلوم · المستوى الخامس · ${esc(meta.unitName)}</div>
-    ${withAnswers ? "" : `<div style="font-size:11pt;margin-top:2mm">اسم الطالبة: .............................. · الرقم: ...... · التاريخ: ..........</div>`}</div>
+  // نسخة الإجابات تبقى بورقة أهدأ للمعلّمة — نفس القالب بلا لآلئ ولا نجمة
+  const title = withAnswers ? `${meta.title} (نسخة الإجابات)` : meta.title;
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(title)}</title><style>${REPORT_CSS}${KID_CSS}
+    @page { size: A4; margin: 12mm 15mm 14mm 10mm; }
+    body { padding-inline-end: 6mm; }</style></head><body>
+    ${identityFooter(meta.title)}
+    ${kidHeader({ docTitle: withAnswers ? "نسخة الإجابات" : "ورقة عمل", lessonTitle: meta.title.replace(/^ورقة عمل:\s*/, ""), unitTitle: meta.unitName, lessonCode: meta.lessonCode, studentFields: !withAnswers })}
     ${items}
+    ${withAnswers ? "" : kidFinish()}
   </body></html>`;
 }
 

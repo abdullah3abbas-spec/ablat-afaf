@@ -3,8 +3,16 @@
  * كل زر «اطبعي» يستدعي printHtml فوراً بلا حوارات وسيطة.
  */
 import type { KitGame, LessonKit } from "@/content/kitTypes";
+import { bookLessonByTitle } from "@/content/bookG05S1P1";
 import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "./printTheme";
+import { KID_CSS, kidFinish, kidHeader, star8Svg } from "./kidTheme";
+import { toEastern } from "./numerals";
 import { printHtml } from "./sheetPrint";
+
+/** رمز درس الحزمة من عنوانها الحرفي — لجلب رسمة الدرس المولّدة */
+function kitCode(kit: LessonKit): string | undefined {
+  return bookLessonByTitle(kit.lessonTitle)?.lesson.code;
+}
 
 /** غلاف صفحة الطباعة المشترك: خطوط محلية + RTL + ترويسة */
 function wrap(title: string, bodyHtml: string): string {
@@ -16,6 +24,7 @@ function wrap(title: string, bodyHtml: string): string {
 <style>
   ${PRINT_FONTS_CSS}
   ${IDENTITY_HEADER_CSS}
+  ${KID_CSS}
   @page { size: A4; margin: 14mm 12mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: "Tajawal", sans-serif; font-size: 13pt; line-height: 1.9; color: #111; }
@@ -66,15 +75,28 @@ function docHeader(kind: string, kit: LessonKit, info: HeaderInfo, withStudentFi
 // ── ورقة العمل (+ نسخة الإجابات) ──────────────────────────────
 
 export function worksheetHtml(kit: LessonKit, info: HeaderInfo, withAnswers: boolean): string {
+  const last = kit.worksheet.length - 1;
   const items = kit.worksheet
-    .map(
-      (q) => `<li>${esc(q.text)}${
-        withAnswers ? `<div class="answer">الإجابة: ${esc(q.answer)}</div>` : q.kind === "draw" ? `<div class="ans-line"></div><div class="ans-line"></div><div class="ans-line"></div>` : `<div class="ans-line"></div>`
-      }</li>`
-    )
+    .map((q, i) => {
+      const space = withAnswers
+        ? `<div class="answer">الإجابة: ${esc(q.answer)}</div>`
+        : q.kind === "draw"
+          ? `<div class="k-ansline"></div><div class="k-ansline"></div><div class="k-ansline"></div>`
+          : `<div class="k-ansline"></div>`;
+      const treasure = i === last && !withAnswers;
+      return `<div class="k-station${treasure ? " treasure" : ""}">
+        <span class="k-hex">${i + 1}</span>
+        ${treasure ? '<span class="k-treasure-tag">سؤال الكنز ★</span>' : ""}
+        ${withAnswers ? "" : '<span class="k-pearl"></span>'}
+        ${esc(q.text)}${space}
+      </div>`;
+    })
     .join("");
-  const title = withAnswers ? "ورقة عمل — نسخة الإجابات (للمعلّمة)" : "ورقة عمل";
-  return wrap(`${title} — ${kit.lessonTitle}`, `${docHeader(title, kit, info, !withAnswers)}<ol class="qs">${items}</ol><div class="footer-line">إعداد المعلّمة: ................ · منصّة أبلة عفاف</div>`);
+  const title = withAnswers ? "نسخة الإجابات" : "ورقة عمل";
+  return wrap(`${title} — ${kit.lessonTitle}`, `
+    ${kidHeader({ docTitle: title, lessonTitle: kit.lessonTitle, unitTitle: kit.unitTitle, className: info.className, lessonCode: kitCode(kit), studentFields: !withAnswers })}
+    <div style="padding-inline-end:6mm">${items}</div>
+    ${withAnswers ? "" : kidFinish()}`);
 }
 
 // ── بطاقات اللعبة ─────────────────────────────────────────────
@@ -82,13 +104,41 @@ export function worksheetHtml(kit: LessonKit, info: HeaderInfo, withAnswers: boo
 export function gameCardsHtml(kit: LessonKit, info: HeaderInfo): string {
   const g: KitGame = kit.game;
   const how = g.howTo.map((h) => `<li>${esc(h)}</li>`).join("");
-  const cards = g.cards.map((c) => `<div class="card">${esc(c)}</div>`).join("");
+  const TEAMS = [
+    { name: "فريق المها", color: "#0F6B62", text: "#0F6B62" },
+    { name: "فريق الصقر", color: "#8A1538", text: "#8A1538" },
+    { name: "فريق اللؤلؤ", color: "#C2456B", text: "#A93A5D" },
+    { name: "فريق الشعاب", color: "#4FA3D1", text: "#1D6FA5" },
+  ];
+  const isBingo = g.name.includes("بينجو");
+  const cards = g.cards
+    .map((c, i) => {
+      const team = TEAMS[i % TEAMS.length];
+      const chip = isBingo
+        ? `<span class="k-team" style="color:var(--zk-teal)"><i style="background:var(--zk-teal)"></i>بطاقة النداء — للمعلّمة</span>`
+        : `<span class="k-team" style="color:${team.text}"><i></i>${team.name}</span>`;
+      return `<div class="k-card" style="--team:${isBingo ? "#0F6B62" : team.color}">
+        <div class="k-watermark">${star8Svg("", false)}</div>
+        ${chip}
+        <div class="k-qtext">${esc(c)}</div>
+        <div class="k-cfoot"><span class="k-cnum">${toEastern(String(i + 1))}</span>${star8Svg("", true).replace('class=""', 'style="width:6mm;height:6mm"')}</div>
+      </div>`;
+    })
+    .join("");
+  // بينجو: شبكات فارغة تكتب فيها الثنائيات مصطلحاتهن من السبورة
+  const bingoGrids = isBingo
+    ? `<div class="page-break"></div>
+       <div class="k-cut">شبكات البينجو — قُصّيها ووزّعيها، وكل ثنائية تكتب ٩ مصطلحات من السبورة</div>
+       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4mm">${Array.from({ length: 6 },
+         () => `<table class="k-bingo"><caption>شبكتنا ★</caption>${Array.from({ length: 3 }, () => `<tr>${"<td></td>".repeat(3)}</tr>`).join("")}</table>`
+       ).join("")}</div>`
+    : "";
   return wrap(`لعبة ${g.name} — ${kit.lessonTitle}`, `
-    ${docHeader(`لعبة الحصة: ${g.name} (${g.minutes} دقيقة)`, kit, info, false)}
-    <h2>طريقة اللعب</h2><ul class="steps">${how}</ul>
+    ${kidHeader({ docTitle: `لعبة: ${g.name}`, lessonTitle: kit.lessonTitle, unitTitle: kit.unitTitle, className: info.className, lessonCode: kitCode(kit) })}
+    <h2 class="k-baloo" style="color:var(--zk-teal)">طريقة اللعب (${g.minutes} دقيقة)</h2><ul class="steps">${how}</ul>
     <div class="page-break"></div>
-    ${docHeader(`بطاقات لعبة ${g.name} — تُقص على الخط المتقطع`, kit, info, false)}
-    <div class="cards">${cards}</div>`);
+    <div class="k-cut">✂ بطاقات الكنز — قُصّيها على الحدود${isBingo ? " (تبقى بيدك للنداء)" : " ووزّعيها على الفرق"}</div>
+    <div class="k-deck">${cards}</div>${bingoGrids}`);
 }
 
 // ── التجربة العملية ───────────────────────────────────────────
@@ -106,12 +156,22 @@ export function experimentHtml(kit: LessonKit, info: HeaderInfo): string {
 
 // ── كرت الخروج ────────────────────────────────────────────────
 
-export function exitCardsHtml(kit: LessonKit, info: HeaderInfo, copies = 8): string {
-  const qs = kit.exitCard.map((q, i) => `<div>${i + 1}) ${esc(q)}</div><div class="ans-line"></div>`).join("");
-  const one = `<div class="small-card"><b>كرت الخروج — ${esc(kit.lessonTitle)}</b><div style="font-size:9.5pt;color:#444">الاسم: ................ · الرقم: ....</div>${qs}</div>`;
+export function exitCardsHtml(kit: LessonKit, info: HeaderInfo, copies = 6): string {
+  const art = kitCode(kit) ? `<img src="/lesson-art/${kitCode(kit)!.replace(".", "-")}.jpg" alt="" onerror="this.remove()"/>` : "";
+  const qs = kit.exitCard.map((q, i) => `<div class="k-tq">${toEastern(String(i + 1))}) ${esc(q)}</div><div class="k-tans"></div>`).join("");
+  const one = `<div class="k-ticket">
+    <div class="k-stub">${art}اسمي:<div class="k-nameline"></div>الرقم: ....</div>
+    <div class="k-tbody">
+      <div class="k-thead">${star8Svg("", true).replace('class=""', 'style="width:4mm;height:4mm;vertical-align:-0.5mm"')} تذكرة الخروج</div>
+      ${qs}
+      <div class="k-scale"><span><i class="k-dot"></i>فهمتُ</span><span><i class="k-dot"></i>تقريباً</span><span><i class="k-dot"></i>أحتاج مساعدة</span></div>
+      <div class="k-stamp"><i></i>ختم «أنهيتُ!» — لوّنيه عند التسليم</div>
+    </div>
+  </div>`;
   return wrap(`كرت الخروج — ${kit.lessonTitle}`, `
-    ${docHeader("كرت الخروج — يُقص ويُوزَّع آخر الحصة", kit, info, false)}
-    <div class="cards">${Array.from({ length: copies }, () => one).join("")}</div>`);
+    ${kidHeader({ docTitle: "تذاكر الخروج", lessonTitle: kit.lessonTitle, unitTitle: kit.unitTitle, className: info.className, lessonCode: kitCode(kit) })}
+    <div class="k-cut">✂ تُقص التذاكر وتوزَّع آخر الحصة — كل طالبة تسلّم تذكرتها عند الباب</div>
+    <div class="k-tickets">${Array.from({ length: copies }, () => one).join("")}</div>`);
 }
 
 // ── خطة الدرس (نموذج المدرسة) ────────────────────────────────
@@ -138,13 +198,17 @@ export function planHtml(kit: LessonKit, info: HeaderInfo): string {
 // ── ورقة رصد المشاركة ────────────────────────────────────────
 
 export function participationHtml(kit: LessonKit, info: HeaderInfo, studentNames: string[]): string {
-  const headCols = kit.participationCriteria.map((c) => `<th class="c" style="width:22mm">${esc(c)}</th>`).join("");
-  const rows = studentNames
-    .map((n, i) => `<tr><td class="c" style="width:9mm">${i + 1}</td><td>${esc(n)}</td>${kit.participationCriteria.map(() => `<td class="c"></td>`).join("")}</tr>`)
-    .join("");
+  const headCols = kit.participationCriteria.map((c) => `<th style="width:20mm">${esc(c)}</th>`).join("");
+  const blanks = Math.max(0, Math.min(25, 25 - studentNames.length));
+  const rows = [
+    ...studentNames.map((n, i) => `<tr><td class="c" style="width:10mm"><span class="k-roll">${i + 1}</span></td><td style="font-family:Cairo,sans-serif;font-weight:600">${esc(n)}</td>${kit.participationCriteria.map(() => `<td></td>`).join("")}</tr>`),
+    ...Array.from({ length: blanks }, (_, j) => `<tr><td class="c" style="width:10mm"><span class="k-roll">${studentNames.length + j + 1}</span></td><td></td>${kit.participationCriteria.map(() => `<td></td>`).join("")}</tr>`),
+  ].join("");
   return wrap(`رصد المشاركة — ${kit.lessonTitle}`, `
-    ${docHeader("ورقة رصد المشاركة الصفية (✓ عند التحقق)", kit, info, false)}
-    <table><tr><th class="c">م</th><th>اسم الطالبة</th>${headCols}</tr>${rows}</table>`);
+    ${kidHeader({ docTitle: "سجلّ بعثة الفصل", lessonTitle: kit.lessonTitle, unitTitle: kit.unitTitle, className: info.className, lessonCode: kitCode(kit) })}
+    <table class="k-ptable"><tr><th class="c">م</th><th>اسم الطالبة</th>${headCols}</tr>${rows}</table>
+    <div class="k-weekstar">${star8Svg("", false).replace('class=""', 'style="width:8mm;height:8mm;flex:none"')}<b>نجمة الأسبوع:</b> ........................ <span style="color:#6B5E58;font-size:9.5pt">— (✓ = تحقّق · ★ = مشاركة متميزة)</span></div>
+    <div class="k-notes">ملاحظات البعثة:</div>`);
 }
 
 // ── مخطط العرض (نسخة ورقية) ──────────────────────────────────
@@ -157,8 +221,6 @@ export function slidesOutlineHtml(kit: LessonKit, info: HeaderInfo): string {
     .join("");
   return wrap(`مخطط العرض — ${kit.lessonTitle}`, `${docHeader("مخطط العرض التقديمي (نسخة ورقية)", kit, info, false)}${slides}`);
 }
-
-// ── الطباعة الفورية والحِزم ──────────────────────────────────
 
 export type KitElementKind = "slides" | "worksheet" | "answers" | "game" | "experiment" | "exit" | "plan" | "participation";
 

@@ -4,6 +4,30 @@
    نطاقان لكل خط: عربي + لاتيني (للأرقام الغربية والأقواس الإنجليزية)
    ============================================================ */
 
+
+/* ---------- Baloo Bhaijaan 2 — خط العناوين الطفولية (منتجات الطالبات) ---------- */
+@font-face {
+  font-family: "Baloo";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/baloo-arabic-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Baloo";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/baloo-arabic-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Baloo";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/baloo-arabic-800.woff2") format("woff2");
+}
+
 /* ---------- Tajawal ---------- */
 @font-face {
   font-family: "Tajawal";

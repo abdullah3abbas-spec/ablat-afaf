@@ -11,6 +11,8 @@ export default {
         heading: ["Cairo", "Tajawal", "sans-serif"],
         // الشهادات والاختبارات الرسمية
         amiri: ["Amiri", "serif"],
+        // عناوين منتجات الطالبات — مدوّر مرح (دفتر المستكشفة)
+        kid: ["Baloo", "Cairo", "Tajawal", "sans-serif"],
       },
       colors: {
         // القيم الفعلية في src/index.css ‏(:root) — توكِنات قابلة للتخصيص
