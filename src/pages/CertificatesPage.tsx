@@ -93,7 +93,7 @@ export default function CertificatesPage() {
   const [edAccent, setEdAccent] = useState<string>("");
   const [edNameSize, setEdNameSize] = useState(46);
   const [edSeal, setEdSeal] = useState(true);
-  const [edBg, setEdBg] = useState("sadu");
+  const [edBg, setEdBg] = useState("kid1");
   const [freeEdit, setFreeEdit] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -109,7 +109,7 @@ export default function CertificatesPage() {
       setEdAccent(prefs?.accent ?? "");
       setEdNameSize(prefs?.nameSizePt ?? 46);
       setEdSeal(prefs?.showSeal ?? true);
-      setEdBg(prefs?.bgKey ?? "sadu");
+      setEdBg(prefs?.bgKey ?? "kid1");
       setFreeEdit(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
