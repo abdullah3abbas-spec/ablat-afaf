@@ -150,6 +150,12 @@ export function printHtml(html: string): void {
   heading.innerHTML =
     `<div style="font-family:Cairo,Tajawal,sans-serif;font-weight:700;font-size:18px;color:#8A1538;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">معاينة: ${escapeHtml(title)}</div>` +
     `<div style="font-size:14px;color:#6B5E58;">راجعيها ثم اضغطي «اطبعي» — ومن حوار المتصفح يمكنك «حفظ كـ PDF»</div>`;
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.textContent = "✏️ عدّلي النصوص";
+  editBtn.setAttribute("aria-pressed", "false");
+  editBtn.style.cssText =
+    "min-height:48px;padding:0 18px;border:2px solid #0F6B62;border-radius:12px;background:#fff;color:#0F6B62;font-family:inherit;font-size:17px;font-weight:700;cursor:pointer;";
   const printBtn = document.createElement("button");
   printBtn.type = "button";
   printBtn.textContent = "🖨 اطبعي / احفظي PDF";
@@ -161,7 +167,7 @@ export function printHtml(html: string): void {
   closeBtn.setAttribute("aria-label", "أغلقي المعاينة");
   closeBtn.style.cssText =
     "min-height:48px;padding:0 22px;border:2px solid #C9BFB4;border-radius:12px;background:#fff;color:#2B2118;font-family:inherit;font-size:18px;font-weight:700;cursor:pointer;";
-  bar.append(heading, printBtn, closeBtn);
+  bar.append(heading, editBtn, printBtn, closeBtn);
 
   // منطقة الورقة: إطار أبيض بظل، يتقلّص ليلائم الشاشة (موبايل §6)
   const stage = document.createElement("div");
@@ -208,9 +214,30 @@ export function printHtml(html: string): void {
     if (e.target === overlay || e.target === stage) cleanup();
   });
   printBtn.addEventListener("click", () => {
+    // أوقفي وضع التعديل قبل الطباعة كي لا يظهر مؤشر الكتابة في الورقة
+    if (frame.contentDocument) frame.contentDocument.designMode = "off";
+    setEditing(false);
     frame.contentWindow?.focus();
     frame.contentWindow?.print();
   });
+
+  // تعديل حر مباشرة على الورقة — يضغط النص ويغيّره، والطباعة تحفظ تعديلاته
+  let editing = false;
+  const hintDefault = heading.querySelector("div:last-child") as HTMLElement;
+  const setEditing = (on: boolean) => {
+    editing = on;
+    const doc = frame.contentDocument;
+    if (doc) doc.designMode = on ? "on" : "off";
+    editBtn.setAttribute("aria-pressed", String(on));
+    editBtn.style.background = on ? "#0F6B62" : "#fff";
+    editBtn.style.color = on ? "#fff" : "#0F6B62";
+    editBtn.textContent = on ? "✔ انتهيتُ من التعديل" : "✏️ عدّلي النصوص";
+    if (hintDefault)
+      hintDefault.textContent = on
+        ? "التعديل مفتوح — اضغطي أي نص في الورقة وغيّريه، ثم «اطبعي» وستُطبع بتعديلاتك"
+        : "راجعيها ثم اضغطي «اطبعي» — ومن حوار المتصفح يمكنك «حفظ كـ PDF»";
+  };
+  editBtn.addEventListener("click", () => setEditing(!editing));
 
   currentPreviewCleanup = cleanup;
   document.body.appendChild(overlay);

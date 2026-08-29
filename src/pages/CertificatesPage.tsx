@@ -2,12 +2,12 @@
  * الشهادات: قالب من خمسة + مستفيدات (فصل كامل / فائزات الشهر تلقائياً /
  * اختيار يدوي) → طباعة جماعية صفحة لكل شهادة + PNG لكل واحدة.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Award, Image as ImageIcon, Printer } from "lucide-react";
 import { db } from "@/db";
 import type { CertificateTemplate } from "@/db/schema";
-import { CERT_TEMPLATES, certificatesHtml, exportCertificatePng, issueCertificates, printCertificates, type CertData } from "@/lib/certificates";
+import { CERT_TEMPLATES, GRANT_LINE_DEFAULT, certificatesHtml, exportCertificatePng, issueCertificates, type CertData, type CertStyleOpts } from "@/lib/certificates";
 import { activeStudentsOf } from "@/lib/students";
 import { computeMonthAwards, monthKeyOf } from "@/lib/points";
 import { fmtNum } from "@/lib/numerals";
@@ -85,6 +85,75 @@ export default function CertificatesPage() {
   }
 
   const [previewCerts, setPreviewCerts] = useState<CertData[] | null>(null);
+
+  // ── محرّر الشهادة داخل المعاينة: تخصيصات حيّة تُحفظ لكل قالب ──
+  const [edReason, setEdReason] = useState("");
+  const [edGrant, setEdGrant] = useState(GRANT_LINE_DEFAULT);
+  const [edDate, setEdDate] = useState("");
+  const [edAccent, setEdAccent] = useState<string>("");
+  const [edNameSize, setEdNameSize] = useState(46);
+  const [edSeal, setEdSeal] = useState(true);
+  const [freeEdit, setFreeEdit] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+
+  // تحميل تفضيلات القالب المحفوظة عند فتح المعاينة
+  useEffect(() => {
+    if (!previewCerts) return;
+    void (async () => {
+      const prefs = (await db.settings.get(1))?.certPrefs?.[templateKey];
+      setEdReason(prefs?.reason ?? previewCerts[0]?.reason ?? "");
+      setEdGrant(prefs?.grantLine ?? GRANT_LINE_DEFAULT);
+      setEdDate(previewCerts[0]?.dateStr ?? "");
+      setEdAccent(prefs?.accent ?? "");
+      setEdNameSize(prefs?.nameSizePt ?? 46);
+      setEdSeal(prefs?.showSeal ?? true);
+      setFreeEdit(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewCerts]);
+
+  // حفظ تلقائي لتفضيلات القالب (§6: حفظ تلقائي + «تم الحفظ ✓»)
+  useEffect(() => {
+    if (!previewCerts) return;
+    const h = setTimeout(() => {
+      void (async () => {
+        const settings = await db.settings.get(1);
+        const certPrefs = { ...(settings?.certPrefs ?? {}) };
+        certPrefs[templateKey] = { reason: edReason, grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal };
+        await db.settings.update(1, { certPrefs });
+        setSavedTick(true);
+        setTimeout(() => setSavedTick(false), 1800);
+      })();
+    }, 700);
+    return () => clearTimeout(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [edReason, edGrant, edAccent, edNameSize, edSeal]);
+
+  const editorOpts: CertStyleOpts = useMemo(
+    () => ({ grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal }),
+    [edGrant, edAccent, edNameSize, edSeal]
+  );
+  const shownCerts = useMemo(
+    () => (previewCerts ?? []).map((c) => ({ ...c, reason: edReason || c.reason, dateStr: edDate || c.dateStr })),
+    [previewCerts, edReason, edDate]
+  );
+  const previewHtml = useMemo(() => certificatesHtml(shownCerts, editorOpts), [shownCerts, editorOpts]);
+
+  function toggleFreeEdit() {
+    const doc = frameRef.current?.contentDocument;
+    if (doc) doc.designMode = freeEdit ? "off" : "on";
+    setFreeEdit(!freeEdit);
+  }
+
+  function printFromPreview() {
+    const doc = frameRef.current?.contentDocument;
+    if (doc) doc.designMode = "off";
+    setFreeEdit(false);
+    frameRef.current?.contentWindow?.focus();
+    frameRef.current?.contentWindow?.print();
+    show(s.certs.sentToPrint);
+  }
 
   const selectCls = "min-h-touch rounded-card border-2 border-line bg-white px-3 focus:border-teal";
 
@@ -220,12 +289,18 @@ export default function CertificatesPage() {
       )}
       {/* معاينة الشهادات — بريفيو أولاً ثم الصيغ */}
       {previewCerts && (
-        <div role="dialog" aria-modal="true" aria-label={s.certs.previewTitle} className="fixed inset-0 z-50 grid place-items-center bg-maroon-deep/60 p-4 backdrop-blur-[2px]">
-          <div className="flex max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden rounded-card bg-white shadow-lift">
+        <div role="dialog" aria-modal="true" aria-label={s.certs.previewTitle} className="fixed inset-0 z-50 grid place-items-center bg-maroon-deep/60 p-2 backdrop-blur-[2px] md:p-4">
+          <div className="flex max-h-[96dvh] w-full max-w-6xl flex-col overflow-hidden rounded-card bg-white shadow-lift">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
-              <h2 className="font-heading text-xl font-bold text-maroon">{s.certs.previewTitle}</h2>
+              <h2 className="font-heading text-xl font-bold text-maroon">
+                {s.certs.editorTitle}
+                {savedTick && <span className="ms-3 text-sm font-medium text-ok">{s.certs.savedPrefs}</span>}
+              </h2>
               <div className="flex flex-wrap gap-2">
-                <button type="button" className="btn-primary" onClick={() => { printCertificates(previewCerts); show(s.certs.sentToPrint); }}>
+                <button type="button" className={freeEdit ? "btn bg-teal text-white" : "btn-secondary"} aria-pressed={freeEdit} onClick={toggleFreeEdit}>
+                  {freeEdit ? s.certs.freeEditOn : s.certs.freeEdit}
+                </button>
+                <button type="button" className="btn-primary" onClick={printFromPreview}>
                   {s.certs.printPdf}
                 </button>
                 <button
@@ -233,7 +308,7 @@ export default function CertificatesPage() {
                   className="btn-secondary"
                   onClick={() =>
                     void (async () => {
-                      for (const c of previewCerts) await exportCertificatePng(c);
+                      for (const c of shownCerts) await exportCertificatePng(c, editorOpts);
                       show(s.certs.pngDone);
                     })()
                   }
@@ -245,7 +320,54 @@ export default function CertificatesPage() {
                 </button>
               </div>
             </div>
-            <iframe title={s.certs.previewTitle} srcDoc={certificatesHtml(previewCerts)} className="min-h-0 w-full flex-1 bg-[#F2ECE0]" />
+            <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+              {/* لوحة التخصيص — كل تغيير يظهر فوراً ويُحفظ تلقائياً */}
+              <aside className="w-full shrink-0 space-y-3 overflow-y-auto border-b border-line p-4 md:w-80 md:border-b-0 md:border-e">
+                <label className="block space-y-1">
+                  <span className="font-medium">{s.certs.reason}</span>
+                  <textarea value={edReason} onChange={(e) => setEdReason(e.target.value)} rows={2}
+                    className="w-full rounded-card border-2 border-line px-3 py-2 focus:border-teal" />
+                </label>
+                <label className="block space-y-1">
+                  <span className="font-medium">{s.certs.grantLine}</span>
+                  <textarea value={edGrant} onChange={(e) => setEdGrant(e.target.value)} rows={2}
+                    className="w-full rounded-card border-2 border-line px-3 py-2 focus:border-teal" />
+                </label>
+                <label className="block space-y-1">
+                  <span className="font-medium">{s.certs.dateLabel}</span>
+                  <input type="text" value={edDate} onChange={(e) => setEdDate(e.target.value)}
+                    className="min-h-touch w-full rounded-card border-2 border-line px-3 focus:border-teal" />
+                </label>
+                <div className="space-y-1">
+                  <span className="font-medium">{s.certs.accentLabel}</span>
+                  <div className="flex flex-wrap gap-2" role="group" aria-label={s.certs.accentLabel}>
+                    {["", "#8A1538", "#0B534C", "#1E3A5F", "#7A5716", "#5E0E26"].map((c) => (
+                      <button key={c || "default"} type="button" aria-pressed={edAccent === c}
+                        aria-label={c ? c : s.certs.accentDefault}
+                        onClick={() => setEdAccent(c)}
+                        className={"flex size-11 items-center justify-center rounded-full border-4 text-[10px] font-bold " + (edAccent === c ? "border-gold" : "border-line")}
+                        style={c ? { background: c, color: "#fff" } : { background: "#fff" }}>
+                        {c ? "" : s.certs.accentDefaultShort}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label className="block space-y-1">
+                  <span className="font-medium">{s.certs.nameSize}</span>
+                  <select value={edNameSize} onChange={(e) => setEdNameSize(Number(e.target.value))} className="min-h-touch w-full rounded-card border-2 border-line bg-white px-3 focus:border-teal">
+                    <option value={38}>{s.certs.sizeNormal}</option>
+                    <option value={46}>{s.certs.sizeBig}</option>
+                    <option value={56}>{s.certs.sizeHuge}</option>
+                  </select>
+                </label>
+                <label className="flex min-h-touch items-center gap-2">
+                  <input type="checkbox" checked={edSeal} onChange={(e) => setEdSeal(e.target.checked)} className="size-5 accent-teal" />
+                  <span className="font-medium">{s.certs.showSeal}</span>
+                </label>
+                <p className="text-sm text-ink-soft">{s.certs.editorHint}</p>
+              </aside>
+              <iframe ref={frameRef} title={s.certs.previewTitle} srcDoc={previewHtml} className="min-h-[50dvh] w-full flex-1 bg-[#F2ECE0] md:min-h-0" />
+            </div>
           </div>
         </div>
       )}

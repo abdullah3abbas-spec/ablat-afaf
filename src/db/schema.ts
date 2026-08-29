@@ -63,7 +63,17 @@ export interface PointLevel {
   max: number | null;
 }
 
+export interface CertPrefs {
+  reason?: string;
+  grantLine?: string;
+  accent?: string;
+  nameSizePt?: number;
+  showSeal?: boolean;
+}
+
 export interface Settings extends Timestamped {
+  /** تخصيصات محرّر الشهادات لكل قالب (§ تعديل حر من داخل المنصّة) */
+  certPrefs?: Record<string, CertPrefs>;
   /** مفتاح ثابت = 1 — صف واحد دائماً */
   id: 1;
   studentGender: Gender;

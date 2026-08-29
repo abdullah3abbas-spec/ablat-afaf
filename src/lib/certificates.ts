@@ -56,10 +56,24 @@ function starSvg(cls: string): string {
   </svg>`;
 }
 
+/** سطر الإهداء الافتراضي — قابل للتخصيص من محرّر الشهادات */
+export const GRANT_LINE_DEFAULT = "تتشرّف إدارة المدرسة ومعلّمة العلوم بإهداء هذه الشهادة إلى";
+
+/** تخصيصات المعلّمة على مستوى الدفعة — تُحفظ في الإعدادات لكل قالب */
+export interface CertStyleOpts {
+  grantLine?: string;
+  /** يطغى على لون القالب */
+  accent?: string;
+  /** حجم اسم الطالبة بالنقاط (الافتراضي 46) */
+  nameSizePt?: number;
+  /** إظهار الختم والرقم التسلسلي (الافتراضي نعم) */
+  showSeal?: boolean;
+}
+
 /** صفحة شهادة واحدة (HTML داخلي) — تصميم زكريت الاحتفالي */
-function certPage(c: CertData): string {
+function certPage(c: CertData, o: CertStyleOpts = {}): string {
   const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
-  return `<div class="cert" style="--accent:${c.template.accent};--accent-soft:${c.template.accentSoft}">
+  return `<div class="cert" style="--accent:${o.accent ?? c.template.accent};--accent-soft:${c.template.accentSoft}">
     <div class="frame">
       <div class="sadu top"></div>
       <div class="inner">
@@ -69,17 +83,17 @@ function certPage(c: CertData): string {
           <div class="cert-kind">شهادة ${esc(c.template.nameAr)}</div>
           <div class="kind-rule"><span></span>${c.template.icon}<span></span></div>
         </div>
-        <p class="grant-line">تتشرّف إدارة المدرسة ومعلّمة العلوم بإهداء هذه الشهادة إلى</p>
-        <p class="recipient">${esc(c.recipientName)}</p>
+        <p class="grant-line">${esc(o.grantLine ?? GRANT_LINE_DEFAULT)}</p>
+        <p class="recipient"${o.nameSizePt ? ` style="font-size:${o.nameSizePt}pt"` : ""}>${esc(c.recipientName)}</p>
         <svg class="flourish" viewBox="0 0 300 12" aria-hidden="true"><path d="M4 6 H120 M180 6 H296" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M150 1 l5 5 -5 5 -5 -5 Z" fill="currentColor"/><circle cx="132" cy="6" r="1.8" fill="currentColor"/><circle cx="168" cy="6" r="1.8" fill="currentColor"/></svg>
         <p class="reason">${esc(c.reason)}</p>
         <p class="date-line">حُررت بتاريخ ${esc(toEastern(c.dateStr))}</p>
         <div class="cert-footer">
           <span class="sig">توقيع المعلّمة<br/><b>${esc(c.teacherName ?? "")}</b></span>
-          <div class="seal">
+          ${o.showSeal === false ? "<span></span>" : `<div class="seal">
             ${c.qrDataUrl ? `<img class="qr" src="${c.qrDataUrl}" alt="${esc(c.serial)}" />` : starSvg("seal-star")}
             <span class="serial">${esc(c.serial)}</span>
-          </div>
+          </div>`}
           <span class="sig">توقيع مديرة المدرسة<br/><b>&nbsp;</b></span>
         </div>
       </div>
@@ -137,9 +151,9 @@ const CERT_CSS = `
 `;
 
 /** بناء مستند شهادات كامل (صفحة لكل شهادة) */
-export function certificatesHtml(certs: CertData[]): string {
+export function certificatesHtml(certs: CertData[], opts: CertStyleOpts = {}): string {
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>شهادات — ${certs[0]?.template.nameAr ?? ""}</title><style>${CERT_CSS}</style></head><body>${certs
-    .map(certPage)
+    .map((c) => certPage(c, opts))
     .join("")}</body></html>`;
 }
 
@@ -194,7 +208,7 @@ export function printCertificates(certs: CertData[]): void {
  * تصدير شهادة PNG (للواتساب): تُركَّب الصفحة في iframe مخفي
  * ثم تُلتقط عبر html-to-image وتُنزَّل.
  */
-export async function exportCertificatePng(cert: CertData): Promise<void> {
+export async function exportCertificatePng(cert: CertData, opts: CertStyleOpts = {}): Promise<void> {
   const { toPng } = await import("html-to-image");
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
@@ -204,7 +218,7 @@ export async function exportCertificatePng(cert: CertData): Promise<void> {
   document.body.appendChild(iframe);
   const doc = iframe.contentDocument!;
   doc.open();
-  doc.write(certificatesHtml([cert]).replace("page-break-after: always;", ""));
+  doc.write(certificatesHtml([cert], opts).replace("page-break-after: always;", ""));
   doc.close();
   await new Promise((r) => setTimeout(r, 600)); // مهلة تحميل الخطوط
   const node = doc.querySelector(".cert") as HTMLElement;
