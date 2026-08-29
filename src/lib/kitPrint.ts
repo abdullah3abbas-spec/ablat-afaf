@@ -3,7 +3,7 @@
  * كل زر «اطبعي» يستدعي printHtml فوراً بلا حوارات وسيطة.
  */
 import type { KitGame, LessonKit } from "@/content/kitTypes";
-import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityHeader } from "./printTheme";
+import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "./printTheme";
 import { printHtml } from "./sheetPrint";
 
 /** غلاف صفحة الطباعة المشترك: خطوط محلية + RTL + ترويسة */
@@ -44,7 +44,7 @@ function wrap(title: string, bodyHtml: string): string {
   .footer-line { margin-top: 6mm; font-size: 10pt; color: #444; text-align: left; }
 </style>
 </head>
-<body>${bodyHtml}</body>
+<body>${identityFooter(title)}${bodyHtml}</body>
 </html>`;
 }
 

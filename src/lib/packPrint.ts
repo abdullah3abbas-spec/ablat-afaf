@@ -4,7 +4,7 @@
  * ونسخة المعلّمة بالإجابات والملاحظات في صفحات لاحقة.
  */
 import type { LessonPackContent } from "@/db/schema";
-import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityHeader } from "@/lib/printTheme";
+import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "@/lib/printTheme";
 import { printDoc } from "@/lib/reportPrint";
 
 function esc(s: string): string {
@@ -49,6 +49,7 @@ export function printLessonPack(title: string, pack: LessonPackContent, schoolNa
     .teacher { page-break-before: always; }
     .warn { color: #7A5716; }
   </style></head><body>
+  ${identityFooter(`حزمة حصة: ${title}`)}
 
   ${identityHeader(schoolName, `حزمة حصة: ${title}`, "العلوم — المستوى الخامس · جاهزة للتدريس والطباعة")}
 

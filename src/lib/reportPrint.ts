@@ -7,7 +7,7 @@ import type { Question } from "@/db/schema";
 import type { ClassAdminReport, StudentReport } from "./reportData";
 import type { ExamAnalysis } from "./examAnalysis";
 import { toEastern } from "./numerals";
-import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityHeader } from "./printTheme";
+import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "./printTheme";
 import { printHtml } from "./sheetPrint";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
@@ -147,7 +147,7 @@ export function adminReportHtml(reports: ClassAdminReport[], schoolName: string,
     })
     .join("");
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>تقرير الإدارة</title><style>${REPORT_CSS}</style></head><body>
-    ${identityHeader(schoolName, "تقرير الإدارة (العلوم)", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${esc(termName)} · ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
+    ${identityFooter("تقرير الإدارة", termName)}${identityHeader(schoolName, "تقرير الإدارة (العلوم)", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${esc(termName)} · ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
     <h2>ملخص الفصول</h2>
     <table><tr><th>الفصل</th><th class="c">الطالبات</th><th class="c">المرصود لهنّ</th><th class="c">المتوسط</th><th class="c">نسبة النجاح</th></tr>${rows}</table>
     ${charts}
@@ -165,7 +165,7 @@ export function examAnalysisHtml(title: string, analysis: ExamAnalysis, schoolNa
     )
     .join("");
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>تحليل ${esc(title)}</title><style>${REPORT_CSS}</style></head><body>
-    ${identityHeader(schoolName, "تحليل نتائج الاختبار", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${esc(title)} · عدد النتائج: ${toEastern(String(analysis.resultsCount))} · المتوسط: ${toEastern(String(analysis.average))}</div></div>
+    ${identityFooter("تحليل نتائج الاختبار")}${identityHeader(schoolName, "تحليل نتائج الاختبار", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${esc(title)} · عدد النتائج: ${toEastern(String(analysis.resultsCount))} · المتوسط: ${toEastern(String(analysis.average))}</div></div>
     <table><tr><th class="c">س</th><th>نص السؤال</th><th class="c">معامل السهولة</th><th class="c">الخطأ الجماعي</th></tr>${rows}</table>
     <h2>دروس تحتاج إعادة شرح (خطأ جماعي > ٥٠٪)</h2>
     ${analysis.reteach.length === 0 ? `<p>لا دروس متعثرة.</p>` : `<ul class="recs" style="border-color:#B3261E;background:#FDECEA">${analysis.reteach.map((r) => `<li>${esc(r.lessonTitle)} — ${toEastern(String(r.hardQuestions))} سؤال عالي الخطأ (متوسط ${toEastern(String(r.avgErrorPct))}٪)</li>`).join("")}</ul>`}
@@ -191,7 +191,7 @@ export function bankWorksheetHtml(
     })
     .join("");
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(meta.title)}</title><style>${REPORT_CSS}</style></head><body>
-    ${identityHeader(meta.schoolName, `${meta.title}${withAnswers ? " (نسخة الإجابات)" : ""}`, "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">العلوم · المستوى الخامس · ${esc(meta.unitName)}</div>
+    ${identityFooter(meta.title)}${identityHeader(meta.schoolName, `${meta.title}${withAnswers ? " (نسخة الإجابات)" : ""}`, "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">العلوم · المستوى الخامس · ${esc(meta.unitName)}</div>
     ${withAnswers ? "" : `<div style="font-size:11pt;margin-top:2mm">اسم الطالبة: .............................. · الرقم: ...... · التاريخ: ..........</div>`}</div>
     ${items}
   </body></html>`;

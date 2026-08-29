@@ -39,9 +39,7 @@ function officialHeader(exam: Exam, meta: ExamMeta, variantLabel: string, count:
   const gradingCells = Array.from({ length: count }, (_, i) => `<td class="c">${i + 1}</td>`).join("");
   const gradingEmpty = Array.from({ length: count }, () => `<td></td>`).join("");
   return `
-  <div class="state-line">دولة قطر</div>
-  <div class="ministry">وزارة التربية والتعليم والتعليم العالي</div>
-  <div class="school">${esc(meta.schoolName)}</div>
+  <img class="letterhead" src="/letterhead.png" alt="دولة قطر — وزارة التربية والتعليم والتعليم العالي — ${esc(meta.schoolName)}" />
   <table class="meta-table">
     <tr>
       <td>المادة: <b>${esc(meta.subjectName)}</b></td>
@@ -131,6 +129,7 @@ const EXAM_CSS = `
   @font-face { font-family: "Amiri"; src: url("/fonts/amiri-arabic-400.woff2") format("woff2"); font-weight: 400; }
   @font-face { font-family: "Amiri"; src: url("/fonts/amiri-arabic-700.woff2") format("woff2"); font-weight: 700; }
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-400.woff2") format("woff2"); font-weight: 400; }
+  .letterhead { width: 100%; max-height: 20mm; object-fit: contain; display: block; margin-bottom: 2mm; }
   .state-line, .ministry, .school { text-align: center; font-weight: 700; }
   .state-line { font-size: 13pt; }
   .ministry { font-size: 14pt; }

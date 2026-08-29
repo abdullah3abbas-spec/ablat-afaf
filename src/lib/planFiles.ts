@@ -89,7 +89,15 @@ import {
  * اصطلاح §5: أعمدة معكوسة يدوياً + visuallyRightToLeft.
  */
 export async function downloadMinistryPlanWord(d: MinistryPlanData): Promise<void> {
-  const { AlignmentType, Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } = await import("docx");
+  const { AlignmentType, Document, Footer, Header, ImageRun, Packer, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } = await import("docx");
+
+  // الترويسة الرسمية (شعار الوزارة + اسم المدرسة) — من أصول المدرسة المحلية
+  let letterhead: ArrayBuffer | null = null;
+  try {
+    letterhead = await (await fetch("/letterhead.png")).arrayBuffer();
+  } catch {
+    /* بلا صورة إن تعذّر — يبقى المستند سليماً */
+  }
 
   const TOTAL = 9600;
   const P = (text: string, opts?: { bold?: boolean; center?: boolean; color?: string; size?: number }) =>
@@ -223,8 +231,35 @@ export async function downloadMinistryPlanWord(d: MinistryPlanData): Promise<voi
     sections: [
       {
         properties: {},
+        // ترويسة كل الصفحات: بانر الوزارة والمدرسة الرسمي (كما في مستندات المدرسة)
+        headers: letterhead
+          ? {
+              default: new Header({
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new ImageRun({ type: "png", data: letterhead, transformation: { width: 600, height: 73 } })],
+                  }),
+                ],
+              }),
+            }
+          : undefined,
+        // تذييل بنمط الوزارة: اسم المستند والعام + رقم الصفحة
+        footers: {
+          default: new Footer({
+            children: [
+              new Paragraph({
+                bidirectional: true,
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({ text: `خطة التحضير اليومية لمادة العلوم — العام الدراسي ${d.yearLabel}   ·   صفحة `, rightToLeft: true, size: 18, color: "666666" }),
+                  new TextRun({ children: [PageNumber.CURRENT], size: 18, color: "666666" }),
+                ],
+              }),
+            ],
+          }),
+        },
         children: [
-          P(d.schoolName, { center: true, bold: true, color: "8A1538", size: 28 }),
           headerTable,
           P("", {}),
           bodyTable,

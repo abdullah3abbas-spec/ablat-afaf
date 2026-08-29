@@ -126,14 +126,14 @@ export default function TodayPage() {
       show(s.today.weekBundleEmpty, { kind: "info" });
       return;
     }
-    const { PRINT_FONTS_CSS, IDENTITY_HEADER_CSS } = await import("@/lib/printTheme");
+    const { PRINT_FONTS_CSS, IDENTITY_HEADER_CSS, identityFooter } = await import("@/lib/printTheme");
     printDoc(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>حزمة الأسبوع</title>
       <style>${PRINT_FONTS_CSS}${IDENTITY_HEADER_CSS}
       @page { size: A4; margin: 12mm; } * { margin:0; padding:0; box-sizing:border-box; }
       body { font-family: "Tajawal", sans-serif; font-size: 12pt; line-height: 1.9; color: #1E2430; }
       h2 { color: #0B534C; } ul, ol { padding-inline-start: 7mm; }
       .bundle-part { page-break-after: always; } .bundle-part:last-child { page-break-after: auto; }
-      </style></head><body>${parts.map((p) => `<div class="bundle-part">${p}</div>`).join("")}</body></html>`);
+      </style></head><body>${identityFooter("حزمة الأسبوع")}${parts.map((p) => `<div class="bundle-part">${p}</div>`).join("")}</body></html>`);
     show(s.today.weekBundlePrinted);
   }
 

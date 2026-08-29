@@ -65,8 +65,7 @@ function certPage(c: CertData): string {
       <div class="inner">
         ${starSvg("watermark")}
         <div class="cert-head">
-          <div class="emblem">${starSvg("emblem-star")}</div>
-          <div class="school-name">${esc(c.schoolName)}</div>
+          <img class="letterhead" src="/letterhead.png" alt="${esc(c.schoolName)} — وزارة التربية والتعليم والتعليم العالي، دولة قطر" />
           <div class="cert-kind">شهادة ${esc(c.template.nameAr)}</div>
           <div class="kind-rule"><span></span>${c.template.icon}<span></span></div>
         </div>
@@ -113,13 +112,8 @@ const CERT_CSS = `
                fill: var(--accent); opacity: 0.035; }
   .watermark .star-eye { fill: var(--ivory); }
   .cert-head { position: relative; }
-  .emblem { width: 21mm; height: 21mm; margin: 0 auto 2.5mm; border-radius: 50%;
-            border: 0.7mm solid var(--gold); outline: 0.25mm solid var(--gold); outline-offset: 1.1mm;
-            background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent) 82%, #fff), var(--accent) 70%);
-            display: flex; align-items: center; justify-content: center; }
-  .emblem-star { width: 13mm; height: 13mm; fill: var(--gold-soft); }
-  .emblem-star .star-eye { fill: var(--accent); }
-  .school-name { font-family: "Tajawal", sans-serif; font-weight: 700; font-size: 14.5pt; letter-spacing: 0; }
+  .letterhead { width: 170mm; max-height: 20mm; object-fit: contain; display: block; margin: 0 auto 1mm;
+                mix-blend-mode: multiply; }
   .cert-kind { font-size: 30pt; font-weight: 700; color: var(--accent); margin-top: 1mm; }
   .kind-rule { display: flex; align-items: center; justify-content: center; gap: 4mm; color: var(--gold);
                font-size: 13pt; margin-top: 1mm; }

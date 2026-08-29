@@ -4,7 +4,7 @@
  * + بطاقات القص + نص القصة بخط كبير للقراءة المسرحية.
  */
 import type { LessonEnrichment } from "@/content/enrichment";
-import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityHeader } from "./printTheme";
+import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "./printTheme";
 import { printHtml } from "./sheetPrint";
 
 function esc(s: string): string {
@@ -40,7 +40,7 @@ function wrap(title: string, bodyHtml: string): string {
   .footer-line { margin-top: 6mm; font-size: 10pt; color: #444; text-align: left; }
 </style>
 </head>
-<body>${bodyHtml}</body>
+<body>${identityFooter(title)}${bodyHtml}</body>
 </html>`;
 }
 
