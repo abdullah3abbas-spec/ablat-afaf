@@ -8,7 +8,8 @@ import type { ClassAdminReport, StudentReport } from "./reportData";
 import type { ExamAnalysis } from "./examAnalysis";
 import { toEastern } from "./numerals";
 import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "./printTheme";
-import { KID_CSS, kidFinish, kidHeader } from "./kidTheme";
+import { bookLessonByCode, type BookLessonMeta } from "@/content/bookG05S1P1";
+import { WS_PANELS } from "@/content/wsActivities";
 import { printHtml } from "./sheetPrint";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
@@ -175,46 +176,173 @@ export function examAnalysisHtml(title: string, analysis: ExamAnalysis, schoolNa
 
 // ── ورقة عمل من بنك الأسئلة ──────────────────────────────────
 
+/** صيغ المصطلح المحتملة داخل جمل الكتاب — الأطول أولاً حتى لا نقصّ داخل كلمة */
+function termVariants(term: string): string[] {
+  const v = new Set<string>([term, `ال${term}`]);
+  if (term.startsWith("آكل ")) {
+    const fem = term.replace("آكل ", "آكلة ");
+    v.add(fem);
+    v.add(`ال${fem}`);
+  }
+  if (term === "قارت") ["القوارت", "قوارت"].forEach((x) => v.add(x));
+  return [...v].sort((a, b) => b.length - a.length);
+}
+
+const WS_DOTS = '<span class="ws-dots"></span>';
+const wsAns = (s: string) => `<b class="ws-ans">${esc(s)}</b>`;
+
+/** جمل «أكملي الفراغ» من خلاصات الدرس — نحجب المصطلح ونضعه في صندوق المصطلحات */
+function wsBlankSentences(lesson: BookLessonMeta, withAnswers: boolean): string[] {
+  const out: string[] = [];
+  const used = new Set<number>();
+  for (const v of lesson.vocab) {
+    const variants = termVariants(v.term);
+    const idx = lesson.takeaways.findIndex((t, i) => !used.has(i) && variants.some((x) => t.includes(x)));
+    if (idx === -1) continue;
+    used.add(idx);
+    const t = lesson.takeaways[idx];
+    const hit = variants.find((x) => t.includes(x))!;
+    out.push(esc(t).replace(esc(hit), withAnswers ? wsAns(hit) : WS_DOTS));
+    if (out.length >= 4) break;
+  }
+  return out;
+}
+
+const WS_ORDINALS = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع", "الثامن", "التاسع", "العاشر"];
+
+/**
+ * ورقة عمل بنظام أوراق المدرسة الحقيقية:
+ * ترويسة حقول (الاسم/الصف/التاريخ) · عنوان · أسئلة مرقّمة «السؤال الأول…» متنوعة الأنماط:
+ * أكملي الفراغ بصندوق مصطلحات · نشاط مصوّر (لوحة مرسومة جاهزة) · ✓/✗ · اختيار وتوصيل وإجابات قصيرة.
+ */
 export function bankWorksheetHtml(
   questions: Question[],
   meta: { schoolName: string; title: string; unitName: string; lessonCode?: string },
   withAnswers: boolean
 ): string {
-  const last = questions.length - 1;
-  const items = questions
-    .map((q, i) => {
-      const opts = q.type === "mcq" && q.options ? `<div class="k-opts">${q.options.map((o) => `<span>${o.key}) ${esc(o.text)}</span>`).join("")}</div>` : "";
-      const orderParts = q.type === "order" && typeof q.answerKey === "string" ? q.answerKey.split("←").length : 0;
-      const space = withAnswers
-        ? `<div class="recs" style="margin-top:1.5mm"><b>الإجابة:</b> ${esc(String(q.answerKey ?? ""))}</div>`
-        : q.type === "mcq"
-          ? ""
-          : q.type === "truefalse"
-            ? `<div class="k-tf"><span><i></i> صواب ✓</span><span><i></i> خطأ ✗</span></div>`
-            : orderParts >= 3
-              ? `<div class="k-chain">${Array.from({ length: orderParts }, () => "<b></b>").join("<span>←</span>")}</div>`
-              : `<div class="k-ansline"></div>${q.marks >= 3 ? '<div class="k-ansline"></div>' : ""}`;
-      const treasure = i === last && !withAnswers;
-      return `<div class="k-station${treasure ? " treasure" : ""}">
-        <span class="k-hex">${toEastern(String(i + 1))}</span>
-        ${treasure ? '<span class="k-treasure-tag">سؤال الكنز ★</span>' : ""}
-        ${withAnswers ? "" : '<span class="k-pearl"></span>'}
-        <div style="display:flex;justify-content:space-between;gap:4mm;align-items:baseline"><div>${esc(q.text)}</div><span class="k-marks">${toEastern(String(q.marks))} ${q.marks === 1 ? "درجة" : "درجات"}</span></div>
-        ${opts}${space}
-      </div>`;
-    })
-    .join("");
-  // نسخة الإجابات تبقى بورقة أهدأ للمعلّمة — نفس القالب بلا لآلئ ولا نجمة
+  const lesson = meta.lessonCode ? bookLessonByCode(meta.lessonCode)?.lesson : undefined;
+  const panel = meta.lessonCode ? WS_PANELS[meta.lessonCode] : undefined;
+  const lessonTitle = meta.title.replace(/^ورقة عمل:\s*/, "");
+
+  const fillbank = questions.filter((q) => q.type === "fillblank");
+  const tf = questions.filter((q) => q.type === "truefalse");
+  const mcq = questions.filter((q) => q.type === "mcq");
+  const rest = questions.filter((q) => !["fillblank", "truefalse", "mcq"].includes(q.type));
+
+  const sections: string[] = [];
+  const qbar = (instruction: string) =>
+    `<div class="ws-qbar"><b>السؤال ${WS_ORDINALS[sections.length] ?? toEastern(String(sections.length + 1))}:</b> ${instruction}</div>`;
+
+  // ١ — أكملي الفراغ بصندوق المصطلحات (من مفردات الدرس وخلاصاته + أسئلة الفراغ من البنك)
+  const blanks = lesson ? wsBlankSentences(lesson, withAnswers) : [];
+  const bankBlanks = fillbank.map((q) =>
+    esc(q.text).replace(/[—ـ]{2,}|\.{4,}/g, withAnswers ? wsAns(String(q.answerKey ?? "")) : WS_DOTS)
+  );
+  const allBlanks = [...blanks, ...bankBlanks];
+  if (allBlanks.length && lesson) {
+    sections.push(`${qbar("أكملي الفراغ باستخدام المصطلحات التالية:")}
+      <div class="ws-bank">${lesson.vocab.map((v) => esc(v.term)).join('<span class="sep">–</span>')}</div>
+      <ol class="ws-blanks">${allBlanks.map((s) => `<li>${s}</li>`).join("")}</ol>`);
+  }
+
+  // ٢ — النشاط المصوّر: لوحة مرسومة جاهزة بدوائر تلوين
+  if (panel) {
+    const legend = panel.legend
+      .map((l) => `<span class="ws-key"><i style="background:${l.hex}"></i> ${esc(l.label)} ${esc(l.colorAr)}</span>`)
+      .join("");
+    sections.push(`${qbar(esc(panel.instruction))}
+      <div class="ws-legend">${legend}</div>
+      <img class="ws-panel" src="${panel.img}" alt="${esc(panel.alt)}" onerror="this.remove()"/>
+      ${withAnswers ? `<div class="ws-panel-ans">${panel.answers.map((a) => `<span>${esc(a)}</span>`).join("")}</div>` : ""}`);
+  }
+
+  // ٣ — ضعي ✓ أو ✗ (عبارات اللوحة المشتقة أولاً ثم أسئلة البنك)
+  const tfAll: { text: string; answer: boolean }[] = [
+    ...(panel?.tfExtra ?? []),
+    ...tf.map((q) => ({ text: q.text, answer: String(q.answerKey) === "true" })),
+  ];
+  if (tfAll.length) {
+    const rows = tfAll
+      .map((q) => {
+        const mark = withAnswers ? (q.answer ? "✓" : "✗") : "";
+        return `<tr><td class="box${withAnswers ? " ans" : ""}">${mark}</td><td>${esc(q.text)}</td></tr>`;
+      })
+      .join("");
+    sections.push(`${qbar("ضعي علامة ✓ أمام العبارة الصحيحة وعلامة ✗ أمام العبارة الخطأ:")}
+      <table class="ws-tf">${rows}</table>`);
+  }
+
+  // ٤ — اختاري الإجابة الصحيحة
+  if (mcq.length) {
+    const items = mcq
+      .map(
+        (q) => `<li>${esc(q.text)}
+        <div class="ws-opts">${(q.options ?? []).map((o) => `<span${withAnswers && o.key === q.answerKey ? ' class="ws-ans"' : ""}>${esc(o.key)}) ${esc(o.text)}</span>`).join("")}</div></li>`
+      )
+      .join("");
+    sections.push(`${qbar("اختاري رمز الإجابة الصحيحة:")}<ol class="ws-blanks ws-mcq">${items}</ol>`);
+  }
+
+  // ٥ — الباقي (توصيل · تعريف · تعليل …) بإجابات قصيرة
+  if (rest.length) {
+    const items = rest
+      .map((q) => {
+        const space = withAnswers
+          ? `<div class="ws-restans">${wsAns(String(q.answerKey ?? ""))}</div>`
+          : `<div class="ws-line"></div>${q.marks >= 3 ? '<div class="ws-line"></div>' : ""}`;
+        return `<li>${esc(q.text)}${space}</li>`;
+      })
+      .join("");
+    sections.push(`${qbar("أجيبي عن الأسئلة الآتية:")}<ol class="ws-blanks">${items}</ol>`);
+  }
+
   const title = withAnswers ? `${meta.title} (نسخة الإجابات)` : meta.title;
-  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(title)}</title><style>${REPORT_CSS}${KID_CSS}
-    @page { size: A4; margin: 12mm 15mm 14mm 10mm; }
-    body { padding-inline-end: 6mm; }</style></head><body>
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(title)}</title><style>${PRINT_FONTS_CSS}${IDENTITY_HEADER_CSS}${WS_CSS}</style></head><body>
     ${identityFooter(meta.title)}
-    ${kidHeader({ docTitle: withAnswers ? "نسخة الإجابات" : "ورقة عمل", lessonTitle: meta.title.replace(/^ورقة عمل:\s*/, ""), unitTitle: meta.unitName, lessonCode: meta.lessonCode, studentFields: !withAnswers })}
-    ${items}
-    ${withAnswers ? "" : kidFinish()}
+    <img class="ws-letterhead" src="/letterhead.png" alt="مدرسة زكريت الابتدائية للبنات — وزارة التربية والتعليم والتعليم العالي"/>
+    <div class="ws-fields"><span class="grow">الاسم: ${withAnswers ? "<b>نسخة الإجابات — للمعلّمة</b>" : ""}</span><span>الصف: ${esc("")}</span><span>التاريخ:</span></div>
+    <div class="ws-title">ورقة عمل: ${esc(lessonTitle)}</div>
+    ${sections.join("")}
   </body></html>`;
 }
+
+/** تنسيق ورقة العمل المدرسية — أبيض وأسود نظيف بخط Tajawal، يطابق شكل أوراق المدرسة */
+const WS_CSS = `
+  @page { size: A4; margin: 9mm 11mm 12mm 11mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Tajawal", sans-serif; font-size: 12.5pt; color: #111; direction: rtl; }
+  .ws-letterhead { display: block; width: 100%; margin-bottom: 1.5mm; }
+  .ws-fields { display: flex; gap: 4mm; border: 0.4mm solid #111; border-radius: 1.5mm; padding: 2mm 3mm; font-weight: 700; margin-bottom: 2.5mm; }
+  .ws-fields .grow { flex: 1.4; } .ws-fields span { flex: 1; }
+  .ws-fields span::after { content: " ........................."; font-weight: 400; color: #555; }
+  .ws-fields .grow b { color: #8A1538; } .ws-fields .grow:has(b)::after { content: ""; }
+  .ws-title { text-align: center; font-size: 15.5pt; font-weight: 800; color: #1D3557;
+    border: 0.5mm solid #1D3557; border-radius: 1.5mm; padding: 1.6mm 2mm; margin-bottom: 3mm; }
+  .ws-qbar { border: 0.4mm solid #111; border-radius: 1.5mm; padding: 1.6mm 3mm; font-weight: 700; margin: 3.5mm 0 2mm; background: #F6F6F6;
+    break-inside: avoid; break-after: avoid; }
+  .ws-tf tr, .ws-blanks li { break-inside: avoid; }
+  .ws-panel, .ws-legend { break-inside: avoid; }
+  .ws-qbar b { color: #8A1538; padding-inline-end: 1.5mm; }
+  .ws-bank { border: 0.4mm solid #111; border-radius: 1.5mm; width: fit-content; margin: 0 auto 2mm;
+    padding: 1.4mm 6mm; font-weight: 800; }
+  .ws-bank .sep { padding: 0 4mm; color: #666; font-weight: 400; }
+  .ws-blanks { padding-inline-start: 6.5mm; display: grid; gap: 1.8mm; }
+  .ws-blanks li { line-height: 1.9; }
+  .ws-dots::before { content: "................................"; letter-spacing: 0.6px; color: #444; }
+  .ws-ans { color: #8A1538; }
+  .ws-legend { display: flex; justify-content: center; gap: 7mm; font-weight: 700; margin-bottom: 1.6mm; }
+  .ws-key i { display: inline-block; width: 4.2mm; height: 4.2mm; border-radius: 50%; vertical-align: -0.7mm; margin-inline-end: 1.2mm; }
+  .ws-panel { display: block; width: 100%; border: 0.3mm solid #BBB; border-radius: 2mm; }
+  .ws-panel-ans { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1mm 3mm; margin-top: 1.6mm;
+    font-size: 10.5pt; font-weight: 700; color: #8A1538; }
+  .ws-tf { width: 100%; border-collapse: collapse; }
+  .ws-tf td { border: 0.35mm solid #111; padding: 1.6mm 3mm; line-height: 1.7; }
+  .ws-tf .box { width: 13mm; text-align: center; font-size: 15pt; font-weight: 800; }
+  .ws-tf .box.ans { color: #8A1538; }
+  .ws-opts { display: flex; flex-wrap: wrap; gap: 2mm 8mm; padding: 1mm 2mm 0; font-weight: 500; }
+  .ws-restans { color: #8A1538; margin-top: 1mm; }
+  .ws-line { border-bottom: 0.3mm dotted #777; height: 7.5mm; }
+`;
 
 export function printDoc(html: string): void {
   printHtml(html);
