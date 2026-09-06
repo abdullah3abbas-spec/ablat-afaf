@@ -185,6 +185,11 @@ function termVariants(term: string): string[] {
     v.add(`ال${fem}`);
   }
   if (term === "قارت") ["القوارت", "قوارت"].forEach((x) => v.add(x));
+  const daira = term.match(/^دائرة (.+) الكهربائية$/);
+  if (daira) {
+    v.add(`دوائر ${daira[1]}`);
+    v.add(`دائرة ${daira[1]}`);
+  }
   return [...v].sort((a, b) => b.length - a.length);
 }
 
@@ -239,9 +244,19 @@ export function bankWorksheetHtml(
     esc(q.text).replace(/[—ـ]{2,}|\.{4,}/g, withAnswers ? wsAns(String(q.answerKey ?? "")) : WS_DOTS)
   );
   const allBlanks = [...blanks, ...bankBlanks];
-  if (allBlanks.length && lesson) {
-    sections.push(`${qbar("أكملي الفراغ باستخدام المصطلحات التالية:")}
-      <div class="ws-bank">${lesson.vocab.map((v) => esc(v.term)).join('<span class="sep">–</span>')}</div>
+  if (allBlanks.length) {
+    // صندوق المصطلحات: مفردات الدرس + كلمات إجابات الفراغ من البنك (بلا تكرار)
+    const bankWords = new Set<string>(lesson?.vocab.map((v) => v.term) ?? []);
+    for (const q of fillbank) {
+      const a = String(q.answerKey ?? "").trim();
+      if (a && a.split(" ").length <= 3) bankWords.add(a);
+    }
+    const words = [...bankWords];
+    const box = words.length >= 2
+      ? `<div class="ws-bank">${words.map((w) => esc(w)).join('<span class="sep">–</span>')}</div>`
+      : "";
+    sections.push(`${qbar(box ? "أكملي الفراغ باستخدام المصطلحات التالية:" : "أكملي الفراغ:")}
+      ${box}
       <ol class="ws-blanks">${allBlanks.map((s) => `<li>${s}</li>`).join("")}</ol>`);
   }
 
@@ -251,7 +266,7 @@ export function bankWorksheetHtml(
       .map((l) => `<span class="ws-key"><i style="background:${l.hex}"></i> ${esc(l.label)} ${esc(l.colorAr)}</span>`)
       .join("");
     sections.push(`${qbar(esc(panel.instruction))}
-      <div class="ws-legend">${legend}</div>
+      ${legend ? `<div class="ws-legend">${legend}</div>` : ""}
       <img class="ws-panel" src="${panel.img}" alt="${esc(panel.alt)}" onerror="this.remove()"/>
       ${withAnswers ? `<div class="ws-panel-ans">${panel.answers.map((a) => `<span>${esc(a)}</span>`).join("")}</div>` : ""}`);
   }
