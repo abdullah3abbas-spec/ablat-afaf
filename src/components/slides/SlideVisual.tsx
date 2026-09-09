@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { VisualSlide } from "@/db/schema";
 import { accentFor, emojiFor } from "@/lib/slideEmoji";
+import { getBrand } from "@/lib/brand";
 
 /** خريطة الأيقونات المسموحة (تطابق ALLOWED_ICONS في البوابة) */
 const ICONS: Record<string, typeof Sun> = {
@@ -70,7 +71,7 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
             <h3 className={"font-kid font-extrabold leading-snug text-maroon " + (p ? "text-6xl lg:text-7xl" : "text-2xl")}>{slide.title}</h3>
             <div className={"rounded-pill bg-gold " + (p ? "h-1.5 w-40" : "h-1 w-20")} aria-hidden />
             <p className={"text-ink-soft " + (p ? "text-2xl" : "text-sm")}>
-              العلوم · المستوى الخامس{schoolName ? ` · ${schoolName}` : ""}
+              {getBrand().subjectName} · المستوى الخامس{schoolName ? ` · ${schoolName}` : ""}
             </p>
           </div>
         </div>

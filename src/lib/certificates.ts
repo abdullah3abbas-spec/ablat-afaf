@@ -9,6 +9,7 @@ import { db } from "@/db";
 import type { CertificateTemplate } from "@/db/schema";
 import { toEastern } from "./numerals";
 import { printHtmlNow } from "./sheetPrint";
+import { getBrand } from "./brand";
 
 export interface CertTemplateDef {
   key: CertificateTemplate;
@@ -134,8 +135,8 @@ const tinyStar = (color: string, mm = 6.5) =>
 
 /** الترويسة المنقسمة: الوزارة يمين · المدرسة شمال — قصّتان حقيقيتان من البانر الرسمي */
 const splitHeader = () => `
-  <img class="mark ministry" src="/cert-art/mark-ministry.png" alt="وزارة التربية والتعليم والتعليم العالي — دولة قطر" />
-  <img class="mark school" src="/cert-art/mark-school.png" alt="مدرسة زكريت الابتدائية للبنات" />`;
+  <img class="mark ministry" src="${getBrand().ministryMarkUrl}" alt="وزارة التربية والتعليم والتعليم العالي — دولة قطر" />
+  <img class="mark school" src="${getBrand().schoolMarkUrl}" alt="${escC(getBrand().schoolName)}" />`;
 
 const footerHtml = (c: CertData, o: CertStyleOpts) => `
   <div class="cert-footer">
@@ -166,8 +167,8 @@ function certPage(c: CertData, o: CertStyleOpts = {}): string {
     const cal = { ...MASTER_CAL_DEFAULT, ...(MASTER_CAL[c.template.key] ?? {}) };
     return `<div class="cert d-designer" style="--accent:${o.accent ?? c.template.accent}">
       <img class="bg" src="/cert-art/master-${c.template.key}.jpg" alt="شهادة ${escC(c.template.nameAr)}" />
-      <span class="m-markwrap" style="top:${cal.marksTop}%;height:${cal.marksH}%;right:8%"><img class="m-mark" src="/cert-art/mark-ministry.png" alt="وزارة التربية والتعليم والتعليم العالي" /></span>
-      <span class="m-markwrap" style="top:${cal.marksTop}%;height:${cal.marksH}%;left:8%"><img class="m-mark" src="/cert-art/mark-school.png" alt="مدرسة زكريت الابتدائية للبنات" /></span>
+      <span class="m-markwrap" style="top:${cal.marksTop}%;height:${cal.marksH}%;right:8%"><img class="m-mark" src="${getBrand().ministryMarkUrl}" alt="وزارة التربية والتعليم والتعليم العالي" /></span>
+      <span class="m-markwrap" style="top:${cal.marksTop}%;height:${cal.marksH}%;left:8%"><img class="m-mark" src="${getBrand().schoolMarkUrl}" alt="${escC(getBrand().schoolName)}" /></span>
       <div class="m-name" style="top:${cal.nameTop}%;height:${cal.nameH}%${o.nameSizePt ? `;font-size:${o.nameSizePt}pt` : ""}">${escC(c.recipientName)}</div>
       <div class="m-date" style="top:${cal.dateTop}%">حُررت بتاريخ ${escC(toEastern(c.dateStr))}</div>
       <div class="m-teacher" style="top:${cal.teacherTop}%;right:${cal.teacherRight}%;width:${cal.teacherW}%">${escC(c.teacherName ?? "")}</div>
@@ -176,7 +177,7 @@ function certPage(c: CertData, o: CertStyleOpts = {}): string {
   }
   if (design.key === "fakhera") {
     body = `
-      <img class="letterhead" src="/letterhead.png" alt="مدرسة زكريت الابتدائية للبنات — وزارة التربية والتعليم والتعليم العالي، دولة قطر" />
+      <img class="letterhead" src="${getBrand().letterheadUrl}" alt="${escC(getBrand().schoolName)} — وزارة التربية والتعليم والتعليم العالي، دولة قطر" />
       <div class="cert-kind">${kindTitle}</div>
       <svg class="flourish" viewBox="0 0 300 14" aria-hidden="true"><path d="M8 7 H118 M182 7 H292" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M150 1 l6 6 -6 6 -6 -6 Z" fill="currentColor"/><circle cx="132" cy="7" r="2" fill="currentColor"/><circle cx="168" cy="7" r="2" fill="currentColor"/></svg>
       ${middleHtml(c, o)}${footerHtml(c, o)}`;

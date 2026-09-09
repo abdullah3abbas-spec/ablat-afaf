@@ -8,6 +8,7 @@ import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } 
 import { KID_CSS, kidFinish, kidHeader, star8Svg } from "./kidTheme";
 import { toEastern } from "./numerals";
 import { printHtml } from "./sheetPrint";
+import { getBrand } from "./brand";
 
 /** رمز درس الحزمة من عنوانها الحرفي — لجلب رسمة الدرس المولّدة */
 function kitCode(kit: LessonKit): string | undefined {
@@ -67,7 +68,7 @@ interface HeaderInfo {
 }
 
 function docHeader(kind: string, kit: LessonKit, info: HeaderInfo, withStudentFields: boolean): string {
-  const meta = `العلوم · المستوى الخامس · الوحدة: ${kit.unitTitle} · الدرس: ${kit.lessonTitle}${info.className ? ` · الفصل: ${info.className}` : ""}`;
+  const meta = `${getBrand().subjectName} · المستوى الخامس · الوحدة: ${kit.unitTitle} · الدرس: ${kit.lessonTitle}${info.className ? ` · الفصل: ${info.className}` : ""}`;
   return `${identityHeader(info.schoolName, kind, meta)}
     ${withStudentFields ? `<div class="fields" style="margin-bottom:4mm"><span>اسم الطالبة: </span><span>الرقم: </span><span>التاريخ: </span></div>` : ""}`;
 }

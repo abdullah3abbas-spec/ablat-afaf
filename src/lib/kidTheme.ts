@@ -7,6 +7,7 @@
  * والتقارير خارج هذا النظام كلياً — تبقى على شكلها الرسمي.
  * Baloo Bhaijaan 2 للعناوين القصيرة فقط (≤ ٦ كلمات) — ليس خط نصوص.
  */
+import { getBrand } from "./brand";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
 
@@ -174,9 +175,9 @@ export interface KidHeadOpts {
 /** ترويسة المنتج الصفي: بانر مصغّر ← خيط سدو ← بطاقة الرحلة (+ عدسة الرسمة) */
 export function kidHeader(o: KidHeadOpts): string {
   const art = lessonArtUrl(o.lessonCode);
-  const meta = ["العلوم · المستوى الخامس", o.unitTitle, o.className ? `الفصل: ${o.className}` : ""]
+  const meta = [`${getBrand().subjectName} · المستوى الخامس`, o.unitTitle, o.className ? `الفصل: ${o.className}` : ""]
     .filter(Boolean).join(" · ");
-  return `<img class="k-banner" src="/letterhead.png" alt="مدرسة زكريت الابتدائية للبنات — وزارة التربية والتعليم والتعليم العالي"/>
+  return `<img class="k-banner" src="${getBrand().letterheadUrl}" alt="${esc(getBrand().schoolName)} — وزارة التربية والتعليم والتعليم العالي"/>
   <div class="k-sadu"></div>
   ${art ? `<div class="k-hero"><img src="${art}" alt="" onerror="this.parentElement.remove()"/></div>` : ""}
   <div class="k-trip">

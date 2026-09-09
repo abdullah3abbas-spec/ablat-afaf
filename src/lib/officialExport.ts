@@ -10,6 +10,7 @@ import { activePolicyOf } from "./policy";
 import { gradeLabel, percentOf, termTotal } from "./grades";
 import { leafComponents } from "./gradeComponents";
 import { orderColumns } from "./reportData";
+import { getBrand } from "./brand";
 
 /** تصدير كشف فصلٍ كامل بترتيب الأعمدة المعتمد */
 export async function exportOfficialSheet(classId: number, term: Term): Promise<{ ok: boolean }> {
@@ -41,7 +42,7 @@ export async function exportOfficialSheet(classId: number, term: Term): Promise<
   const wb = new ExcelJS.Workbook();
   const sheet = wb.addWorksheet(klass.name, { views: [{ rightToLeft: true }] });
 
-  sheet.addRow([`كشف درجات مادة العلوم — ${klass.name} — ${term === 1 ? "الفصل الدراسي الأول" : "الفصل الدراسي الثاني"}`]);
+  sheet.addRow([`كشف درجات مادة ${getBrand().subjectName} — ${klass.name} — ${term === 1 ? "الفصل الدراسي الأول" : "الفصل الدراسي الثاني"}`]);
   sheet.mergeCells(1, 1, 1, ordered.length);
   sheet.getCell(1, 1).font = { name: "Arial", bold: true, size: 13 };
   sheet.getCell(1, 1).alignment = { horizontal: "center" };

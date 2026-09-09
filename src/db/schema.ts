@@ -87,6 +87,13 @@ export interface Settings extends Timestamped {
   schoolName: string;
   /** اسم المعلّمة كما يظهر في ترويسة خطة التحضير الوزارية */
   teacherName?: string;
+  /** هوية مرنة — «أي أبلة، نفس المميزات»: تُقرأ عبر src/lib/brand.ts */
+  platformName?: string;
+  subjectName?: string;
+  /** صور مخصّصة تحلّ محل ترويسة وشعارات زكريت الافتراضية — Data URL محلية */
+  letterheadDataUrl?: string;
+  ministryMarkDataUrl?: string;
+  schoolMarkDataUrl?: string;
   /** أُنجزت مرشدة البداية (أول تشغيل) */
   onboardingDone?: boolean;
   currentAcademicYearId: number;

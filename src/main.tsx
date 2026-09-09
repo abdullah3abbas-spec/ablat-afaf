@@ -7,11 +7,13 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { seedIfEmpty } from "@/db";
 import { useUi } from "@/store/ui";
+import { loadBrand } from "@/lib/brand";
 import "./index.css";
 
 async function boot(): Promise<void> {
   await seedIfEmpty();
   await useUi.getState().hydrateFromDb();
+  await loadBrand();
 
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>

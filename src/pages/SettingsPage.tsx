@@ -12,6 +12,8 @@ import { downloadFullBackup, restoreFromBackup, silentBackup, daysSinceBackup, l
 import { setPin as setPinLib, removePin, isLockEnabled } from "@/lib/lock";
 import { AiClientError, DEFAULT_GATEWAY_URL, fetchHealth, type GatewayHealth } from "@/lib/aiClient";
 import { fmtNum } from "@/lib/numerals";
+import { loadBrand } from "@/lib/brand";
+import type { Settings } from "@/db/schema";
 import { useStrings } from "@/hooks/useStrings";
 import { useToast } from "@/store/toast";
 import { useUi, type FontScale } from "@/store/ui";
@@ -198,42 +200,92 @@ export default function SettingsPage() {
 }
 
 /** النسخ الاحتياطي والاستعادة (§7 · الأمر ٩) */
-/** اسم المدرسة واسم المعلّمة — يظهران في كل الترويسات والتحضير الوزاري */
+/** هوية المنصّة والمدرسة — «أي أبلة، نفس المميزات»: كل الترويسات والمطبوعات تتبع هذا القسم */
 function SchoolIdentitySection() {
   const s = useStrings();
   const show = useToast((x) => x.show);
   const settings = useLiveQuery(() => db.settings.get(1));
 
-  async function save(patch: { schoolName?: string; teacherName?: string }) {
+  async function save(patch: Partial<Settings>) {
     await db.settings.update(1, { ...patch, updatedAt: Date.now() });
+    await loadBrand();
     show(s.settings.identitySaved);
   }
+
+  /** صورة مخصّصة → Data URL محلية مصغّرة (لا شيء يغادر الجهاز) */
+  async function pickImage(field: "letterheadDataUrl" | "ministryMarkDataUrl" | "schoolMarkDataUrl", file: File | undefined) {
+    if (!file) return;
+    const url = await new Promise<string>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = field === "letterheadDataUrl" ? 1600 : 700;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+    await save({ [field]: url });
+  }
+
+  const textField = (
+    label: string,
+    value: string,
+    placeholder: string,
+    onSave: (v: string) => void
+  ) => (
+    <label className="block">
+      <span className="mb-1 block font-medium">{label}</span>
+      <input
+        type="text"
+        key={`${label}-${value}`}
+        defaultValue={value}
+        placeholder={placeholder}
+        onBlur={(e) => onSave(e.target.value.trim())}
+        className="w-full rounded-card border-2 border-line p-3 focus:border-teal"
+      />
+    </label>
+  );
+
+  const imageField = (label: string, field: "letterheadDataUrl" | "ministryMarkDataUrl" | "schoolMarkDataUrl", current?: string) => (
+    <div className="flex items-center justify-between gap-3 rounded-card border-2 border-line p-3">
+      <span className="font-medium">{label}</span>
+      <span className="flex items-center gap-2">
+        {current ? (
+          <button type="button" className="btn border-2 border-line bg-white text-maroon hover:bg-danger-bg" onClick={() => void save({ [field]: undefined })}>
+            استعيدي الافتراضية
+          </button>
+        ) : (
+          <span className="text-ink-soft">الافتراضية (زكريت)</span>
+        )}
+        <label className="btn-secondary min-h-[48px] cursor-pointer">
+          اختاري صورة
+          <input type="file" accept="image/*" className="hidden" onChange={(e) => void pickImage(field, e.target.files?.[0])} />
+        </label>
+      </span>
+    </div>
+  );
 
   return (
     <section className="card space-y-3">
       <h2 className="font-heading text-xl font-bold">{s.settings.identityTitle}</h2>
-      <p className="text-ink-soft">{s.settings.identityHint}</p>
+      <p className="text-ink-soft">
+        المنصّة مرنة: غيّري الأسماء والمادة والترويسة من هنا فتتبعها كل الشاشات والمطبوعات — لأبلة عفاف أو أي معلّمة أخرى.
+      </p>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 block font-medium">{s.settings.school}</span>
-          <input
-            type="text"
-            key={`school-${settings?.schoolName ?? ""}`}
-            defaultValue={settings?.schoolName ?? ""}
-            onBlur={(e) => void save({ schoolName: e.target.value.trim() })}
-            className="w-full rounded-card border-2 border-line p-3 focus:border-teal"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-1 block font-medium">{s.settings.teacher}</span>
-          <input
-            type="text"
-            key={`teacher-${settings?.teacherName ?? ""}`}
-            defaultValue={settings?.teacherName ?? "عفاف حسين"}
-            onBlur={(e) => void save({ teacherName: e.target.value.trim() })}
-            className="w-full rounded-card border-2 border-line p-3 focus:border-teal"
-          />
-        </label>
+        {textField(s.settings.school, settings?.schoolName ?? "", "مدرسة زكريت الابتدائية للبنات", (v) => void save({ schoolName: v }))}
+        {textField(s.settings.teacher, settings?.teacherName ?? "عفاف حسين", "عفاف حسين", (v) => void save({ teacherName: v }))}
+        {textField("اسم المنصّة", settings?.platformName ?? "", "منصّة أبلة عفاف", (v) => void save({ platformName: v || undefined }))}
+        {textField("المادة", settings?.subjectName ?? "", "العلوم", (v) => void save({ subjectName: v || undefined }))}
+      </div>
+      <div className="grid gap-3">
+        {imageField("ترويسة المطبوعات (صورة بعرض الصفحة)", "letterheadDataUrl", settings?.letterheadDataUrl)}
+        {imageField("شعار الوزارة (يمين الشهادة)", "ministryMarkDataUrl", settings?.ministryMarkDataUrl)}
+        {imageField("شعار المدرسة (يسار الشهادة)", "schoolMarkDataUrl", settings?.schoolMarkDataUrl)}
       </div>
     </section>
   );

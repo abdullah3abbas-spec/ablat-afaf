@@ -6,6 +6,7 @@
 import type { LessonEnrichment } from "@/content/enrichment";
 import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "./printTheme";
 import { printHtml } from "./sheetPrint";
+import { getBrand } from "./brand";
 
 function esc(s: string): string {
   return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -48,7 +49,7 @@ function header(e: LessonEnrichment, schoolName: string, lessonTitle: string): s
   return identityHeader(
     schoolName,
     `إثراء الحصة: ${e.title}`,
-    `العلوم · المستوى الخامس · الدرس ${e.lessonCode}: ${lessonTitle} · الوسيلة: ${e.vehicle} · ${e.minutes} دقيقة`
+    `${getBrand().subjectName} · المستوى الخامس · الدرس ${e.lessonCode}: ${lessonTitle} · الوسيلة: ${e.vehicle} · ${e.minutes} دقيقة`
   );
 }
 

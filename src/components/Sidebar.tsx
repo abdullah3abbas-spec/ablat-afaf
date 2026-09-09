@@ -11,6 +11,7 @@ import { DEFAULT_SCHOOL_NAME } from "@/db/constants";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import SchoolEmblem from "./SchoolEmblem";
+import { useBrandStore } from "@/lib/brand";
 
 const SECTIONS: { to: string; key: "today" | "prep" | "teach" | "students" | "follow"; prefixes: string[] }[] = [
   { to: "/", key: "today", prefixes: [] },
@@ -51,7 +52,7 @@ export default function Sidebar() {
               {schoolName?.trim() || DEFAULT_SCHOOL_NAME}
             </div>
             <div className="mt-0.5 text-sm leading-snug text-ink-soft">
-              {s.appName}
+              {useBrandStore((x) => x.brand.platformName)}
               {year ? ` · ${year.name}` : ""} · {termLabel}
             </div>
           </div>

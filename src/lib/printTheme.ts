@@ -6,6 +6,7 @@
  * يتكرران أسفل كل صفحة.
  * الأصول محلية في public/‏ (letterhead.png) — لا CDN (§3).
  */
+import { getBrand } from "./brand";
 
 /** خطوط الطباعة المحلية المشتركة */
 export const PRINT_FONTS_CSS = `
@@ -41,7 +42,8 @@ function esc(s: string): string {
  * (schoolName يُتجاهل هنا — الاسم داخل الترويسة الرسمية نفسها.)
  */
 export function identityHeader(_schoolName: string, docTitle: string, metaLine: string): string {
-  return `<div class="z-official"><img src="/letterhead.png" alt="مدرسة زكريت الابتدائية للبنات — وزارة التربية والتعليم والتعليم العالي، دولة قطر" /></div>
+  const b = getBrand();
+  return `<div class="z-official"><img src="${b.letterheadUrl}" alt="${esc(b.schoolName)} — وزارة التربية والتعليم والتعليم العالي، دولة قطر" /></div>
   <div class="z-docline">
     <span class="z-doctitle">${esc(docTitle)}</span>
     <span class="z-docmeta">${esc(metaLine)}</span>
@@ -53,6 +55,7 @@ export function identityHeader(_schoolName: string, docTitle: string, metaLine: 
  * «{اسم المستند} لمادة العلوم — العام الدراسي {…}».
  */
 export function identityFooter(docLabel: string, yearName = ""): string {
-  const right = `${docLabel} لمادة العلوم${yearName ? ` — العام الدراسي ${yearName}` : ""}`;
-  return `<div class="z-pagefoot"><span>${esc(right)}</span><span>مدرسة زكريت الابتدائية للبنات</span></div>`;
+  const b = getBrand();
+  const right = `${docLabel} لمادة ${b.subjectName}${yearName ? ` — العام الدراسي ${yearName}` : ""}`;
+  return `<div class="z-pagefoot"><span>${esc(right)}</span><span>${esc(b.schoolName)}</span></div>`;
 }

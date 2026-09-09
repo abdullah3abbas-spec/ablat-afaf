@@ -15,6 +15,7 @@ import { parentCardHtml, adminReportHtml, bankWorksheetHtml, barChartSvg, printD
 import { exportOfficialSheet } from "./officialExport";
 import { remedialGroups, levelDistribution } from "./analytics";
 import { kitByLessonTitle, EMERGENCY_KIT } from "@/content/lessonKits";
+import { getBrand } from "./brand";
 
 async function settings() {
   return db.settings.get(1);
@@ -251,7 +252,7 @@ export async function genVisitFile(classId: number, lessonId?: number): Promise<
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>ملف الزيارة الصفية — ${esc(klass.name)}</title><style>${VISIT_CSS}</style></head><body>
     <div class="cover">
       <h1>ملف الزيارة الصفية</h1>
-      <div class="meta">${esc(school)} · العلوم · ${esc(klass.name)} · درس «${esc(lesson.title)}» · ${dateStr}</div>
+      <div class="meta">${esc(school)} · ${getBrand().subjectName} · ${esc(klass.name)} · درس «${esc(lesson.title)}» · ${dateStr}</div>
     </div>
     <section><h2>١) خطة الدرس ومعاييره</h2>${planHtml}</section>
     <section><h2>٢) أوراق العمل المتمايزة</h2>${diffHtml}</section>
@@ -290,7 +291,7 @@ export function detectRequestType(text: string): RequestType {
 
 function printSimpleDoc(title: string, school: string, bodyHtml: string): void {
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(title)}</title><style>${VISIT_CSS}</style></head><body>
-    <div class="cover"><h1>${esc(title)}</h1><div class="meta">${esc(school)} · العلوم · ${new Date().toLocaleDateString("en-GB")}</div></div>
+    <div class="cover"><h1>${esc(title)}</h1><div class="meta">${esc(school)} · ${getBrand().subjectName} · ${new Date().toLocaleDateString("en-GB")}</div></div>
     ${bodyHtml}
     <div class="sign"><span>توقيع المعلّمة: ................</span><span>الاعتماد: ................</span></div>
   </body></html>`;
@@ -428,7 +429,7 @@ export async function genWeeklyMessage(extraNote?: string): Promise<boolean> {
     <p class="muted" style="text-align:center;margin-top:5mm">نتمنى لبناتنا أسبوعاً موفّقاً · معلّمة العلوم</p>`;
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>الرسالة الأسبوعية</title><style>${VISIT_CSS}
     .cover h1{font-size:22pt}</style></head><body>
-    <div class="cover"><h1>الرسالة الأسبوعية لأولياء الأمور</h1><div class="meta">${esc(school)} · مادة العلوم · ${dateStr}</div></div>
+    <div class="cover"><h1>الرسالة الأسبوعية لأولياء الأمور</h1><div class="meta">${esc(school)} · مادة ${getBrand().subjectName} · ${dateStr}</div></div>
     ${body}</body></html>`;
   printDoc(html);
   return true;
@@ -459,7 +460,7 @@ export async function genDifferentiatedWorksheet(opts: { unitId?: number; lesson
 
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(topic)} — ٣ نسخ</title><style>${VISIT_CSS}
     .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
-    <div class="cover"><h1>${esc(topic)}</h1><div class="meta">${esc(school)} · العلوم · ثلاث نسخ متمايزة</div></div>
+    <div class="cover"><h1>${esc(topic)}</h1><div class="meta">${esc(school)} · ${getBrand().subjectName} · ثلاث نسخ متمايزة</div></div>
     ${section("support")}${section("basic")}${section("enrichment")}</body></html>`;
   printDoc(html);
   return all.length;
@@ -522,7 +523,7 @@ export async function genRemedialPlan(classId: number, term: Term, onlyKey?: str
     .join("");
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>الخطة العلاجية</title><style>${VISIT_CSS}
     .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
-    <div class="cover"><h1>الخطة العلاجية المحدّدة</h1><div class="meta">${esc(school)} · العلوم · ${esc(klass?.name ?? "")}</div></div>
+    <div class="cover"><h1>الخطة العلاجية المحدّدة</h1><div class="meta">${esc(school)} · ${getBrand().subjectName} · ${esc(klass?.name ?? "")}</div></div>
     ${sections}<div class="sign"><span>توقيع المعلّمة: ................</span><span>الاعتماد: ................</span></div></body></html>`;
   printDoc(html);
   return true;
@@ -550,7 +551,7 @@ export async function genSubstituteFile(): Promise<boolean> {
 
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>حزمة المعلّمة البديلة</title><style>${VISIT_CSS}
     .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
-    <div class="cover"><h1>حزمة المعلّمة البديلة</h1><div class="meta">${esc(school)} · مادة العلوم · ${new Date().toLocaleDateString("en-GB")}</div></div>
+    <div class="cover"><h1>حزمة المعلّمة البديلة</h1><div class="meta">${esc(school)} · مادة ${getBrand().subjectName} · ${new Date().toLocaleDateString("en-GB")}</div></div>
     <section><h2>تعليمات عامة</h2><div class="box"><p>شكراً لتعاونك. أدناه دروس اليوم بخططها وأوراق عملها، وملاحظات كل فصل، ونشاط بديل احتياطي إن بقي وقت.</p></div></section>
     ${lessonSections}
     <section class="page-break"><h2>ملاحظات الفصول</h2><ul>${notesHtml}</ul></section>

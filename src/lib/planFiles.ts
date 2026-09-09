@@ -53,7 +53,7 @@ export async function downloadPlanWord(plan: LessonPlan, meta: PlanMeta): Promis
 
   const children: unknown[] = [
     new Paragraph({ bidirectional: true, alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [new TextRun({ text: meta.schoolName, rightToLeft: true, bold: true, size: 28, color: "8A1538" })] }),
-    new Paragraph({ bidirectional: true, alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: `التحضير اليومي — العلوم · المستوى الخامس · ${meta.unitTitle} · ${meta.lessonTitle} · ${meta.dateStr}`, rightToLeft: true })] }),
+    new Paragraph({ bidirectional: true, alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: `التحضير اليومي — ${getBrand().subjectName} · المستوى الخامس · ${meta.unitTitle} · ${meta.lessonTitle} · ${meta.dateStr}`, rightToLeft: true })] }),
     new Table({
       visuallyRightToLeft: true,
       columnWidths: [7200, 2200],
@@ -73,6 +73,7 @@ export async function downloadPlanWord(plan: LessonPlan, meta: PlanMeta): Promis
 // ── خطة التحضير اليومية بنموذج الوزارة الحرفي (٢٠٢٥) ─────────
 
 import type { MinistryPlanData } from "./ministryPlan";
+import { getBrand } from "./brand";
 import {
   MINISTRY_COMPETENCIES,
   MINISTRY_PRO_STANDARDS,
@@ -252,7 +253,7 @@ export async function downloadMinistryPlanWord(d: MinistryPlanData): Promise<voi
                 bidirectional: true,
                 alignment: AlignmentType.CENTER,
                 children: [
-                  new TextRun({ text: `خطة التحضير اليومية لمادة العلوم — العام الدراسي ${d.yearLabel}   ·   صفحة `, rightToLeft: true, size: 18, color: "666666" }),
+                  new TextRun({ text: `خطة التحضير اليومية لمادة ${getBrand().subjectName} — العام الدراسي ${d.yearLabel}   ·   صفحة `, rightToLeft: true, size: 18, color: "666666" }),
                   new TextRun({ children: [PageNumber.CURRENT], size: 18, color: "666666" }),
                 ],
               }),

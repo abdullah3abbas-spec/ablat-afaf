@@ -11,6 +11,7 @@ import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } 
 import { bookLessonByCode, type BookLessonMeta } from "@/content/bookG05S1P1";
 import { WS_PANELS } from "@/content/wsActivities";
 import { printHtml } from "./sheetPrint";
+import { getBrand } from "@/lib/brand";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
 
@@ -101,7 +102,7 @@ export function parentCardHtml(reports: StudentReport[], schoolName: string, ter
         )
         .join("");
       return `<div class="page">
-      ${identityHeader(schoolName, "بطاقة متابعة الطالبة", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">العلوم · ${esc(termName)} · الفصل: ${esc(r.className)} · التاريخ: ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
+      ${identityHeader(schoolName, "بطاقة متابعة الطالبة", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${getBrand().subjectName} · ${esc(termName)} · الفصل: ${esc(r.className)} · التاريخ: ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
       <h2>الطالبة: ${esc(r.student.name)}</h2>
       <div class="tiles">
         <div class="tile"><b>${toEastern(String(r.total))} / ${toEastern(String(r.outOf))}</b><span>المجموع</span></div>
@@ -314,7 +315,7 @@ export function bankWorksheetHtml(
   const title = withAnswers ? `${meta.title} (نسخة الإجابات)` : meta.title;
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(title)}</title><style>${PRINT_FONTS_CSS}${IDENTITY_HEADER_CSS}${WS_CSS}</style></head><body>
     ${identityFooter(meta.title)}
-    <img class="ws-letterhead" src="/letterhead.png" alt="مدرسة زكريت الابتدائية للبنات — وزارة التربية والتعليم والتعليم العالي"/>
+    <img class="ws-letterhead" src="${getBrand().letterheadUrl}" alt="${esc(getBrand().schoolName)} — وزارة التربية والتعليم والتعليم العالي"/>
     <div class="ws-fields"><span class="grow">الاسم: ${withAnswers ? "<b>نسخة الإجابات — للمعلّمة</b>" : ""}</span><span>الصف: ${esc("")}</span><span>التاريخ:</span></div>
     <div class="ws-title">ورقة عمل: ${esc(lessonTitle)}</div>
     ${sections.join("")}
