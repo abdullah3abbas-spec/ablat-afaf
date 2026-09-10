@@ -26,14 +26,17 @@ const REPORT_CSS = `
   .head { text-align: center; border-bottom: 0.5mm solid #8A1538; padding-bottom: 3mm; margin-bottom: 4mm; }
   .head h1 { font-size: 15pt; color: #8A1538; }
   .head .meta { font-size: 10.5pt; color: #444; }
-  h2 { font-size: 12.5pt; color: #0B534C; margin: 4mm 0 2mm; }
+  h2 { font-family: "Cairo", "Tajawal", sans-serif; font-size: 12.5pt; color: #0B534C; margin: 4mm 0 2mm; }
   table { width: 100%; border-collapse: collapse; }
-  th, td { border: 0.3mm solid #444; padding: 1.5mm 2.5mm; text-align: right; }
-  th { background: #F5EFE4; } .c { text-align: center; }
+  th, td { border: 0.28mm solid #C9B98F; padding: 1.6mm 2.6mm; text-align: right; }
+  th { background: #F7F1E3; font-family: "Cairo", "Tajawal", sans-serif; font-size: 10.5pt; color: #5C4A1E; }
+  tr:nth-child(even) td { background: #FDFBF4; }
+  .c { text-align: center; }
   .tiles { display: flex; gap: 4mm; margin: 3mm 0; }
-  .tile { flex: 1; border: 0.4mm solid #E6DFD4; border-radius: 2.5mm; padding: 3mm; text-align: center; }
-  .tile b { display: block; font-size: 17pt; }
-  .tile span { font-size: 10pt; color: #555; }
+  .tile { flex: 1; border: 0.35mm solid #E2D7C0; border-radius: 3mm; padding: 3mm; text-align: center; background: #FEFCF7; }
+  .tile b { display: block; font-family: "Cairo", "Tajawal", sans-serif; font-size: 17pt; color: #690E29; }
+  .tile span { font-size: 10pt; color: #6B5B40; }
+  .tile.hero { background: #FCF3E2; border-color: #C08A2E; }
   .recs { border: 0.5mm solid #0F6B62; border-radius: 2.5mm; background: #E6F2F0; padding: 3mm 5mm; }
   .recs li { margin-inline-start: 5mm; }
   .footer-sign { display: flex; justify-content: space-between; margin-top: 8mm; font-size: 11pt; }
@@ -101,11 +104,13 @@ export function parentCardHtml(reports: StudentReport[], schoolName: string, ter
             `<tr><td>${esc(c.name)}</td><td class="c">${c.mark === null ? "—" : toEastern(String(c.mark))}</td><td class="c">${toEastern(String(c.max))}</td></tr>`
         )
         .join("");
-      return `<div class="page">
+      return `<div class="page pcard">
+      <img class="sprig s1" src="/report-art/sprig.jpg" alt="" onerror="this.remove()"/>
+      <img class="sprig s2" src="/report-art/sprig.jpg" alt="" onerror="this.remove()"/>
       ${identityHeader(schoolName, "بطاقة متابعة الطالبة", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${getBrand().subjectName} · ${esc(termName)} · الفصل: ${esc(r.className)} · التاريخ: ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
-      <h2>الطالبة: ${esc(r.student.name)}</h2>
+      <div class="p-name"><span>الطالبة</span><b>${esc(r.student.name)}</b></div>
       <div class="tiles">
-        <div class="tile"><b>${toEastern(String(r.total))} / ${toEastern(String(r.outOf))}</b><span>المجموع</span></div>
+        <div class="tile hero"><b>${toEastern(String(r.total))} / ${toEastern(String(r.outOf))}</b><span>المجموع</span></div>
         <div class="tile"><b>${toEastern(String(r.pct))}٪</b><span>النسبة</span></div>
         <div class="tile"><b>${esc(r.label)}</b><span>التقدير</span></div>
         <div class="tile"><b>${esc(r.points.levelName || "—")}</b><span>مستوى التحفيز</span></div>
@@ -122,12 +127,34 @@ export function parentCardHtml(reports: StudentReport[], schoolName: string, ter
       ${r.notes.length > 0 ? `<h2>ملاحظات المعلّمة</h2><ul class="recs" style="border-color:#C08A2E;background:#FCF3E2">${r.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
       <h2>التوصيات</h2>
       <ul class="recs">${r.recommendations.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
-      <div class="footer-sign"><span>توقيع المعلّمة: ................</span><span>اطلاع ولية الأمر: ................</span></div>
+      <div class="footer-sign">
+        <span class="fs"><i>توقيع المعلّمة</i><b class="ruqaa">${esc("أ. " + getBrand().teacherName)}</b></span>
+        <span class="fs"><i>اطلاع ولية الأمر</i><b class="line">&nbsp;</b></span>
+      </div>
     </div>`;
     })
     .join("");
-  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>بطاقات المتابعة</title><style>${REPORT_CSS}</style></head><body>${pages}</body></html>`;
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>بطاقات المتابعة</title><style>${REPORT_CSS}${PARENT_CSS}</style></head><body>${pages}</body></html>`;
 }
+
+/** لمسات بطاقة ولية الأمر: أغصان مائية بالأركان (دمج ضربي فوق الورق)،
+ *  اسم الطالبة كعنوان تشريفي، وتوقيع المعلّمة بخط الرقعة */
+const PARENT_CSS = `
+  @font-face { font-family: "Ruqaa"; src: url("/fonts/ruqaa-arabic-400.woff2") format("woff2"); font-weight: 400; }
+  .pcard { position: relative; overflow: hidden; }
+  .sprig { position: absolute; width: 44mm; opacity: .92; mix-blend-mode: multiply; pointer-events: none; }
+  .sprig.s1 { top: 27mm; left: -5mm; }
+  .sprig.s2 { bottom: -3mm; right: -5mm; transform: rotate(180deg); }
+  .p-name { display: flex; align-items: baseline; gap: 4mm; margin: 2mm 0 3mm;
+    border-bottom: 0.35mm solid #C08A2E; padding-bottom: 2mm; }
+  .p-name span { font-size: 11pt; color: #7A5716; font-weight: 700; }
+  .p-name b { font-family: "Cairo", "Tajawal", sans-serif; font-size: 19pt; color: #690E29; }
+  .footer-sign .fs { display: inline-flex; flex-direction: column; gap: 1mm; text-align: center; }
+  .footer-sign .fs i { font-style: normal; font-size: 10.5pt; color: #555; }
+  .footer-sign .fs b.ruqaa { font-family: "Ruqaa", "Amiri", serif; font-weight: 400; font-size: 15pt;
+    color: #4A3520; transform: rotate(-2deg); border-bottom: 0.3mm solid #8A8065; padding: 0 6mm 1mm; }
+  .footer-sign .fs b.line { border-bottom: 0.3mm solid #8A8065; min-width: 42mm; }
+`;
 
 // ── تقرير الإدارة ─────────────────────────────────────────────
 

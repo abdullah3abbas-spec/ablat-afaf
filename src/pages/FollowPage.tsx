@@ -57,9 +57,9 @@ export default function FollowPage() {
               <Link
                 key={it.to}
                 to={it.to}
-                className="card flex min-h-[76px] flex-col items-center justify-center gap-1 text-center font-bold transition-colors hover:border-teal hover:bg-teal-bg"
+                className="card flex min-h-[76px] flex-col items-center justify-center gap-1 text-center font-bold transition-colors hover:border-marina/50 hover:bg-marina-bg"
               >
-                <it.icon className="size-7 text-teal-dark" aria-hidden />
+                <it.icon className="size-7 text-marina" aria-hidden />
                 {it.label}
               </Link>
             ))}

@@ -22,6 +22,16 @@ export default {
           DEFAULT: "rgb(var(--c-maroon) / <alpha-value>)",
           dark: "rgb(var(--c-maroon-dark) / <alpha-value>)",
           deep: "rgb(var(--c-maroon-deep) / <alpha-value>)",
+          bg: "rgb(var(--c-maroon-bg) / <alpha-value>)",
+        },
+        // ألوان أقسام «فين أنا؟» — أخضر النخيل (طالباتي) وأزرق المرفأ (تابعي)
+        green: {
+          dark: "rgb(var(--c-green-dark) / <alpha-value>)",
+          bg: "rgb(var(--c-green-bg) / <alpha-value>)",
+        },
+        marina: {
+          DEFAULT: "rgb(var(--c-marina) / <alpha-value>)",
+          bg: "rgb(var(--c-marina-bg) / <alpha-value>)",
         },
         // التركوازي — لون الإجراء الأساسي
         teal: {

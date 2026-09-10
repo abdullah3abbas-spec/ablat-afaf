@@ -5,7 +5,7 @@
  */
 import { Link, useLocation } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { BookOpen, ClipboardCheck, Presentation, Settings, Sun, Users } from "lucide-react";
+import { SECTIONS, SETTINGS_ICON } from "@/lib/wayfinding";
 import { db } from "@/db";
 import { DEFAULT_SCHOOL_NAME } from "@/db/constants";
 import { useStrings } from "@/hooks/useStrings";
@@ -13,23 +13,6 @@ import { useUi } from "@/store/ui";
 import SchoolEmblem from "./SchoolEmblem";
 import { useBrandStore } from "@/lib/brand";
 
-const SECTIONS: { to: string; key: "today" | "prep" | "teach" | "students" | "follow"; prefixes: string[] }[] = [
-  { to: "/", key: "today", prefixes: [] },
-  {
-    to: "/prep",
-    key: "prep",
-    prefixes: ["/prep", "/library", "/pack", "/slides", "/ask", "/exams", "/worksheets", "/questions", "/curriculum", "/resources", "/studio"],
-  },
-  { to: "/teach", key: "teach", prefixes: ["/teach", "/class", "/lab", "/tools"] },
-  { to: "/classes", key: "students", prefixes: ["/classes", "/students", "/attendance", "/points"] },
-  {
-    to: "/follow",
-    key: "follow",
-    prefixes: ["/follow", "/manage", "/grades", "/reports", "/certificates", "/analytics", "/requests", "/search"],
-  },
-];
-
-const ICONS = { today: Sun, prep: BookOpen, teach: Presentation, students: Users, follow: ClipboardCheck } as const;
 
 export default function Sidebar() {
   const s = useStrings();
@@ -62,23 +45,22 @@ export default function Sidebar() {
 
       {/* التنقّل */}
       <nav aria-label={s.a11y.mainNav} className="flex-1 space-y-1.5 overflow-y-auto px-3">
-        {SECTIONS.map(({ to, key, prefixes }) => {
-          const Icon = ICONS[key];
-          const active = to === "/" ? pathname === "/" : prefixes.some((p) => pathname.startsWith(p));
+        {SECTIONS.map((sec) => {
+          const active = sec.to === "/" ? pathname === "/" : sec.prefixes.some((p) => pathname.startsWith(p));
           return (
             <Link
-              key={key}
-              to={to}
+              key={sec.key}
+              to={sec.to}
               aria-current={active ? "page" : undefined}
               className={
-                "flex min-h-[52px] items-center gap-3 rounded-2xl px-4 text-lg transition-colors " +
+                "flex min-h-[52px] items-center gap-3 rounded-2xl px-4 text-lg transition-all " +
                 (active
-                  ? "bg-maroon font-bold text-white shadow-[0_2px_8px_rgba(74,9,29,.25)]"
+                  ? `${sec.solid} font-bold shadow-[0_2px_10px_rgb(0_0_0/.18)]`
                   : "font-medium text-ink hover:bg-cream")
               }
             >
-              <Icon className="size-6 shrink-0" aria-hidden />
-              {s.nav[key]}
+              <sec.icon className={"size-6 shrink-0 " + (active ? "" : sec.tint)} aria-hidden />
+              {s.nav[sec.key]}
             </Link>
           );
         })}
@@ -94,7 +76,7 @@ export default function Sidebar() {
             (settingsActive ? "bg-maroon font-bold text-white" : "font-medium text-ink-soft hover:bg-cream hover:text-ink")
           }
         >
-          <Settings className="size-6 shrink-0" aria-hidden />
+          <SETTINGS_ICON className="size-6 shrink-0" aria-hidden />
           {s.settings.title}
         </Link>
       </div>

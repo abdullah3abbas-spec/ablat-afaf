@@ -40,10 +40,10 @@ export default function TeachPage() {
       {/* المختبر التفاعلي */}
       <Link
         to="/lab"
-        className="card flex min-h-[88px] items-center gap-4 border-2 border-teal transition-colors hover:bg-teal-bg"
+        className="card flex min-h-[88px] items-center gap-4 border-2 border-maroon/40 transition-colors hover:bg-maroon-bg"
       >
-        <span className="flex size-14 shrink-0 items-center justify-center rounded-card bg-teal-bg">
-          <FlaskConical className="size-7 text-teal-dark" aria-hidden />
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-card bg-maroon-bg">
+          <FlaskConical className="size-7 text-maroon" aria-hidden />
         </span>
         <span>
           <span className="block text-lg font-bold">{s.teach.labCard.label}</span>
