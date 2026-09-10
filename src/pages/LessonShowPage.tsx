@@ -16,6 +16,7 @@ import { useToast } from "@/store/toast";
 import SlideVisual from "@/components/slides/SlideVisual";
 import SendPreviewDialog from "@/components/SendPreviewDialog";
 import { saveArt, useArtStore } from "@/lib/artStore";
+import { SLIDE_ART } from "@/content/slideArtManifest";
 import { generateImage } from "@/lib/aiClient";
 import { Sparkles } from "lucide-react";
 import ExportBar from "@/components/slides/ExportBar";
@@ -46,8 +47,8 @@ export default function LessonShowPage() {
       ...builtRaw,
       slides: builtRaw.slides.map((s2, i) => {
         if (s2.image?.dataUrl?.startsWith("data:")) return s2;
-        const stored = slideArtMap[`${lesson.code}#${i}`];
-        return stored ? { ...s2, image: { prompt: s2.title, dataUrl: stored } } : s2;
+        const art = slideArtMap[`${lesson.code}#${i}`] ?? SLIDE_ART[`${lesson.code}#${i}`];
+        return art ? { ...s2, image: { prompt: s2.title, dataUrl: art } } : s2;
       }),
     };
   }, [builtRaw, lesson?.code, slideArtMap]);
@@ -59,7 +60,7 @@ export default function LessonShowPage() {
     if (!builtRaw || !lesson?.code) return [];
     return builtRaw.slides
       .map((s2, i) => ({ s2, i }))
-      .filter(({ s2, i }) => s2.layout !== "cover" && s2.bullets?.length && !slideArtMap[`${lesson.code}#${i}`])
+      .filter(({ s2, i }) => s2.layout !== "cover" && s2.bullets?.length && !slideArtMap[`${lesson.code}#${i}`] && !SLIDE_ART[`${lesson.code}#${i}`])
       .map(({ s2, i }) => ({
         i,
         prompt: `مشهد واحد يوضّح للأطفال «${s2.title}»${s2.bullets?.[0] ? `: ${s2.bullets[0]}` : ""} — مشهد قصصي واحد متصل، من غير تقسيم الصورة لأقسام، ومن غير أي لافتات أو أشرطة أو كلمات مرسومة.`,
