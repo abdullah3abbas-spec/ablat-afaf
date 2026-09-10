@@ -132,31 +132,61 @@ export async function genWeakStudents(opts: { classId?: number; unitId?: number;
 const esc = (s: string) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 const VISIT_CSS = `
-  @page { size: A4; margin: 12mm; }
+  @page { size: A4; margin: 12mm 12mm 15mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-400.woff2") format("woff2"); font-weight: 400; }
   @font-face { font-family: "Tajawal"; src: url("/fonts/tajawal-arabic-700.woff2") format("woff2"); font-weight: 700; }
   @font-face { font-family: "Cairo"; src: url("/fonts/cairo-arabic-700.woff2") format("woff2"); font-weight: 700; }
-  body { font-family: "Tajawal", sans-serif; font-size: 12pt; line-height: 1.8; color: #111; }
-  .cover { text-align: center; border-bottom: 0.8mm solid #8A1538; padding-bottom: 4mm; margin-bottom: 5mm; }
-  .cover h1 { font-family: "Cairo"; font-size: 20pt; color: #8A1538; }
-  .cover .meta { color: #555; margin-top: 1mm; }
-  h2 { font-family: "Cairo"; font-size: 14pt; color: #0B534C; margin: 5mm 0 2mm; border-inline-start: 1.5mm solid #0B534C; padding-inline-start: 3mm; page-break-after: avoid; }
-  .box { border: 0.3mm solid #ccc; border-radius: 2mm; padding: 3mm 4mm; margin-bottom: 3mm; }
+  @font-face { font-family: "Ruqaa"; src: url("/fonts/ruqaa-arabic-400.woff2") format("woff2"); font-weight: 400; }
+  body { font-family: "Tajawal", sans-serif; font-size: 12pt; line-height: 1.8; color: #211D14; }
+  /* غصن مائي ثابت أسفل يسار كل صفحة — قرطاسية المنصّة */
+  .wm { position: fixed; bottom: -6mm; right: auto; left: -6mm; width: 40mm;
+        transform: rotate(180deg) scaleX(-1); mix-blend-mode: multiply; opacity: .85; }
+  .cover { margin-bottom: 5mm; }
+  .cover .lh { display: block; width: 100%; max-height: 21mm; object-fit: contain; margin-bottom: 2mm; }
+  .cover .c-row { display: flex; align-items: baseline; justify-content: space-between; gap: 6mm;
+    border-bottom: 0.45mm solid #C08A2E; padding-bottom: 2mm; }
+  .cover h1 { font-family: "Cairo", "Tajawal", sans-serif; font-size: 19pt; color: #8A1538; }
+  .cover .meta { color: #6B5B40; font-size: 10.5pt; }
+  h2 { font-family: "Cairo", "Tajawal", sans-serif; font-size: 13.5pt; color: #0B534C; margin: 5mm 0 2mm;
+    border-inline-start: 1.4mm solid #C08A2E; padding-inline-start: 3mm; page-break-after: avoid; }
+  .box { border: 0.3mm solid #DCCFB2; border-radius: 3mm; padding: 3mm 4mm; margin-bottom: 3mm; background: #FEFCF7; }
   ul, ol { margin-inline-start: 6mm; }
   .diff { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3mm; }
-  .diff .col { border: 0.3mm solid #bbb; border-radius: 2mm; padding: 2.5mm; page-break-inside: avoid; }
-  .diff h3 { font-size: 11.5pt; color: #8A1538; margin-bottom: 1.5mm; }
+  .diff .col { border: 0.3mm solid #DCCFB2; border-radius: 3mm; padding: 2.5mm; background: #FEFCF7; page-break-inside: avoid; }
+  .diff h3 { font-family: "Cairo", "Tajawal", sans-serif; font-size: 11.5pt; color: #8A1538; margin-bottom: 1.5mm; }
   .stat-row { display: flex; gap: 4mm; flex-wrap: wrap; }
-  .stat { flex: 1; min-width: 40mm; text-align: center; border: 0.3mm solid #ccc; border-radius: 2mm; padding: 2.5mm; }
-  .stat b { font-size: 18pt; color: #0B534C; display: block; }
+  .stat { flex: 1; min-width: 40mm; text-align: center; border: 0.35mm solid #E2D7C0; border-radius: 3mm; padding: 2.5mm; background: #FEFCF7; }
+  .stat b { font-family: "Cairo", "Tajawal", sans-serif; font-size: 18pt; color: #690E29; display: block; }
   table { width: 100%; border-collapse: collapse; }
-  th, td { border: 0.3mm solid #999; padding: 1.5mm 2mm; text-align: center; }
-  .sample { border: 0.4mm dashed #999; border-radius: 2mm; height: 45mm; display: flex; align-items: center; justify-content: center; color: #999; }
+  th, td { border: 0.28mm solid #C9B98F; padding: 1.6mm 2.2mm; text-align: center; }
+  th { background: #F7F1E3; font-family: "Cairo", "Tajawal", sans-serif; font-size: 10.5pt; color: #5C4A1E; }
+  tr:nth-child(even) td { background: #FDFBF4; }
+  .sample { border: 0.4mm dashed #C9B98F; border-radius: 3mm; height: 45mm; display: flex; align-items: center; justify-content: center; color: #8A8065; background: #FEFCF7; }
   .sign { display: flex; justify-content: space-between; margin-top: 8mm; }
-  .muted { color: #777; }
+  .sign .fs { display: inline-flex; flex-direction: column; gap: 1mm; text-align: center; }
+  .sign .fs i { font-style: normal; font-size: 10.5pt; color: #555; }
+  .sign .fs b.ruqaa { font-family: "Ruqaa", "Amiri", serif; font-weight: 400; font-size: 15pt;
+    color: #4A3520; transform: rotate(-2deg); border-bottom: 0.3mm solid #8A8065; padding: 0 6mm 1mm; }
+  .sign .fs b.line { border-bottom: 0.3mm solid #8A8065; min-width: 42mm; }
+  .muted { color: #776850; }
   section { page-break-inside: avoid; }
 `;
+
+/** غلاف موحّد لكل مستندات المعلّمة: ترويسة رسمية + سطر العنوان + غصن القرطاسية */
+function docCover(title: string, metaLine: string): string {
+  return `<img class="wm" src="/report-art/sprig.jpg" alt="" onerror="this.remove()"/>
+  <div class="cover"><img class="lh" src="${getBrand().letterheadUrl}" alt="${esc(getBrand().schoolName)}"/>
+  <div class="c-row"><h1>${esc(title)}</h1><span class="meta">${esc(metaLine)}</span></div></div>`;
+}
+
+/** سطر توقيع موحّد: المعلّمة بخط الرقعة + خانة الطرف الآخر */
+function ruqaaSign(other = "الاعتماد"): string {
+  return `<div class="sign">
+    <span class="fs"><i>توقيع المعلّمة</i><b class="ruqaa">${esc("أ. " + getBrand().teacherName)}</b></span>
+    <span class="fs"><i>${esc(other)}</i><b class="line">&nbsp;</b></span>
+  </div>`;
+}
 
 /**
  * ملف الزيارة الصفية — مستند واحد يجمع كل ما تحتاجه المعلّمة للزيارة.
@@ -250,10 +280,7 @@ export async function genVisitFile(classId: number, lessonId?: number): Promise<
 
   const dateStr = new Date().toLocaleDateString("en-GB");
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>ملف الزيارة الصفية — ${esc(klass.name)}</title><style>${VISIT_CSS}</style></head><body>
-    <div class="cover">
-      <h1>ملف الزيارة الصفية</h1>
-      <div class="meta">${esc(school)} · ${getBrand().subjectName} · ${esc(klass.name)} · درس «${esc(lesson.title)}» · ${dateStr}</div>
-    </div>
+    ${docCover("ملف الزيارة الصفية", `${school} · ${getBrand().subjectName} · ${klass.name} · درس «${lesson.title}» · ${dateStr}`)}
     <section><h2>١) خطة الدرس ومعاييره</h2>${planHtml}</section>
     <section><h2>٢) أوراق العمل المتمايزة</h2>${diffHtml}</section>
     <section><h2>٣) أدلة التقويم</h2>${assessHtml}</section>
@@ -263,7 +290,7 @@ export async function genVisitFile(classId: number, lessonId?: number): Promise<
     <section><h2>٧) عيّنات من أعمال الطالبات</h2>
       <div class="stat-row"><div class="sample">تُلصق هنا عيّنة (١)</div><div class="sample">تُلصق هنا عيّنة (٢)</div></div>
     </section>
-    <div class="sign"><span>توقيع المعلّمة: ................</span><span>ملاحظات الزائرة: ................</span></div>
+    ${ruqaaSign("ملاحظات الزائرة")}
   </body></html>`;
 
   printDoc(html);
@@ -291,9 +318,9 @@ export function detectRequestType(text: string): RequestType {
 
 function printSimpleDoc(title: string, school: string, bodyHtml: string): void {
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(title)}</title><style>${VISIT_CSS}</style></head><body>
-    <div class="cover"><h1>${esc(title)}</h1><div class="meta">${esc(school)} · ${getBrand().subjectName} · ${new Date().toLocaleDateString("en-GB")}</div></div>
+    ${docCover(title, `${school} · ${getBrand().subjectName} · ${new Date().toLocaleDateString("en-GB")}`)}
     ${bodyHtml}
-    <div class="sign"><span>توقيع المعلّمة: ................</span><span>الاعتماد: ................</span></div>
+    ${ruqaaSign("الاعتماد")}
   </body></html>`;
   printDoc(html);
 }
@@ -403,7 +430,8 @@ async function nextWeekLessons(): Promise<{ title: string; unitTitle: string }[]
  * ١) الرسالة الأسبوعية — صفحة واحدة أنيقة بترويسة المدرسة، للطباعة أو
  * الإرسال صورةً في الواتساب. تُراجعها المعلّمة وتضيف سطراً إن أرادت.
  */
-export async function genWeeklyMessage(extraNote?: string): Promise<boolean> {
+/** يبني HTML الرسالة الأسبوعية — مفصول عن الطباعة ليكون قابلاً للمعاينة والاختبار */
+export async function weeklyMessageHtml(extraNote?: string): Promise<string> {
   const st = await settings();
   const school = st?.schoolName ?? "";
   const lessons = await nextWeekLessons();
@@ -426,12 +454,17 @@ export async function genWeeklyMessage(extraNote?: string): Promise<boolean> {
     <section><h2>📝 الواجبات</h2><div class="box"><p>${homework}</p></div></section>
     <section><h2>🗓️ التقييمات القادمة</h2><div class="box">${examsHtml}</div></section>
     ${extraNote?.trim() ? `<section><h2>✍️ رسالة المعلّمة</h2><div class="box"><p>${esc(extraNote.trim())}</p></div></section>` : ""}
-    <p class="muted" style="text-align:center;margin-top:5mm">نتمنى لبناتنا أسبوعاً موفّقاً · معلّمة العلوم</p>`;
+    <p class="muted" style="text-align:center;margin-top:5mm">نتمنى لبناتنا أسبوعاً موفّقاً</p>`;
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>الرسالة الأسبوعية</title><style>${VISIT_CSS}
     .cover h1{font-size:22pt}</style></head><body>
-    <div class="cover"><h1>الرسالة الأسبوعية لأولياء الأمور</h1><div class="meta">${esc(school)} · مادة ${getBrand().subjectName} · ${dateStr}</div></div>
-    ${body}</body></html>`;
-  printDoc(html);
+    ${docCover("الرسالة الأسبوعية لأولياء الأمور", `${school} · مادة ${getBrand().subjectName} · ${dateStr}`)}
+    ${body}
+    ${ruqaaSign("اطلاع الإدارة")}</body></html>`;
+  return html;
+}
+
+export async function genWeeklyMessage(extraNote?: string): Promise<boolean> {
+  printDoc(await weeklyMessageHtml(extraNote));
   return true;
 }
 
@@ -460,7 +493,7 @@ export async function genDifferentiatedWorksheet(opts: { unitId?: number; lesson
 
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(topic)} — ٣ نسخ</title><style>${VISIT_CSS}
     .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
-    <div class="cover"><h1>${esc(topic)}</h1><div class="meta">${esc(school)} · ${getBrand().subjectName} · ثلاث نسخ متمايزة</div></div>
+    ${docCover(topic, `${school} · ${getBrand().subjectName} · ثلاث نسخ متمايزة`)}
     ${section("support")}${section("basic")}${section("enrichment")}</body></html>`;
   printDoc(html);
   return all.length;
@@ -490,7 +523,7 @@ export async function genPerStudentWorksheets(classId: number, opts: { unitId?: 
     const list = (pool.length ? pool : all).slice(0, 6);
     const items = list.map((q, i) => `<div style="margin-bottom:4mm"><b>${i + 1})</b> ${esc(q.text)} <span class="muted">(${q.marks})</span>${q.type === "mcq" && q.options ? `<div style="padding-inline-start:8mm">${q.options.map((o) => `<span style="margin-inline-end:9mm">${o.key}) ${esc(o.text)}</span>`).join("")}</div>` : '<div style="border-bottom:.3mm dotted #888;height:9mm;margin-top:1mm"></div>'}</div>`).join("");
     // لا علامة على المستوى إطلاقاً — فقط اسمها
-    pages.push(`<section class="page-break"><div class="cover" style="border-bottom:.6mm solid #0B534C"><h1 style="font-size:18pt">${esc(topic)}</h1><div class="meta">${esc(school)} · العلوم</div></div>
+    pages.push(`<section class="page-break"><div class="cover" style="border-bottom:.6mm solid #0B534C"><h1 style="font-size:18pt">${esc(topic)}</h1><div class="meta">${esc(school)} · ${getBrand().subjectName}</div></div>
       <div style="font-size:13pt;margin:3mm 0"><b>الطالبة:</b> ${esc(stu.name)} · التاريخ: ..........</div>${items}</section>`);
   }
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>${esc(topic)} — نسخة لكل طالبة</title><style>${VISIT_CSS}
@@ -523,7 +556,7 @@ export async function genRemedialPlan(classId: number, term: Term, onlyKey?: str
     .join("");
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>الخطة العلاجية</title><style>${VISIT_CSS}
     .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
-    <div class="cover"><h1>الخطة العلاجية المحدّدة</h1><div class="meta">${esc(school)} · ${getBrand().subjectName} · ${esc(klass?.name ?? "")}</div></div>
+    ${docCover("الخطة العلاجية المحدّدة", `${school} · ${getBrand().subjectName} · ${klass?.name ?? ""}`)}
     ${sections}<div class="sign"><span>توقيع المعلّمة: ................</span><span>الاعتماد: ................</span></div></body></html>`;
   printDoc(html);
   return true;
@@ -533,7 +566,8 @@ export async function genRemedialPlan(classId: number, term: Term, onlyKey?: str
  * ٤) زر «أنا غائبة اليوم»: حزمة كاملة للمعلّمة البديلة — دروس اليوم بخططها
  * وأوراق عملها وكرت الخروج، ملاحظات كل فصل، ونشاط بديل احتياطي.
  */
-export async function genSubstituteFile(): Promise<boolean> {
+/** يبني HTML حزمة المعلّمة البديلة — مفصول عن الطباعة */
+export async function substituteFileHtml(): Promise<string> {
   const school = await schoolName();
   const lessons = await nextWeekLessons(); // الدروس القادمة = دروس اليوم للبديلة
   const classes = (await db.classes.toArray()).filter((c) => !c.deletedAt);
@@ -551,12 +585,17 @@ export async function genSubstituteFile(): Promise<boolean> {
 
   const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>حزمة المعلّمة البديلة</title><style>${VISIT_CSS}
     .page-break{page-break-before:always}section:first-of-type{page-break-before:auto}</style></head><body>
-    <div class="cover"><h1>حزمة المعلّمة البديلة</h1><div class="meta">${esc(school)} · مادة ${getBrand().subjectName} · ${new Date().toLocaleDateString("en-GB")}</div></div>
+    ${docCover("حزمة المعلّمة البديلة", `${school} · مادة ${getBrand().subjectName} · ${new Date().toLocaleDateString("en-GB")}`)}
     <section><h2>تعليمات عامة</h2><div class="box"><p>شكراً لتعاونك. أدناه دروس اليوم بخططها وأوراق عملها، وملاحظات كل فصل، ونشاط بديل احتياطي إن بقي وقت.</p></div></section>
     ${lessonSections}
     <section class="page-break"><h2>ملاحظات الفصول</h2><ul>${notesHtml}</ul></section>
     <section><h2>النشاط البديل الاحتياطي</h2>${backup}</section>
+    ${ruqaaSign("شكر البديلة")}
     </body></html>`;
-  printDoc(html);
+  return html;
+}
+
+export async function genSubstituteFile(): Promise<boolean> {
+  printDoc(await substituteFileHtml());
   return true;
 }
