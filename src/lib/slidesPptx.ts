@@ -7,10 +7,10 @@
  */
 import type { Presentation, VisualSlide } from "@/db/schema";
 
-const MAROON = "8A1538";
+const MAROON = "A34460";
 const MAROON_DEEP = "4A091D";
-const TEAL = "0F6B62";
-const GOLD = "C08A2E";
+const TEAL = "12796F";
+const GOLD = "C7952F";
 const GOLD_SOFT = "E5C98F";
 const INK = "1E2430";
 const IVORY = "FBF6EF";
@@ -184,7 +184,7 @@ export async function buildSlidesPptx(p: Presentation, schoolName: string): Prom
       });
       slide.addShape("ellipse" as Parameters<Slide["addShape"]>[0], { x: W - 1.35, y: iy - 0.3, w: 0.6, h: 0.6, fill: { color: GOLD } });
       slide.addText("؟", { x: W - 1.35, y: iy - 0.33, w: 0.6, h: 0.6, align: "center", valign: "middle", fontSize: 22, bold: true, color: "FFFFFF", ...rtl });
-      slide.addText(sl.interaction.prompt, { x: 0.9, y: iy + 0.12, w: W - 2.1, h: 1.1, align: "right", valign: "middle", fontSize: 19, bold: true, color: "7A5716", ...rtl });
+      slide.addText(sl.interaction.prompt, { x: 0.9, y: iy + 0.12, w: W - 2.1, h: 1.1, align: "right", valign: "middle", fontSize: 19, bold: true, color: "7C5A14", ...rtl });
     }
 
     if (sl.source) {

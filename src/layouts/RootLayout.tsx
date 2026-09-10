@@ -13,9 +13,10 @@ import WelcomeTour from "@/components/WelcomeTour";
 export default function RootLayout() {
   const { pathname } = useLocation();
   return (
-    <div className="min-h-dvh md:flex">
+    <div className="app-canvas min-h-dvh md:flex md:gap-0 md:p-3 md:pe-3">
       <Sidebar />
-      <div className="min-w-0 flex-1">
+      {/* اللوح العاجي العائم — ورقة المحتوى فوق القماش المائي */}
+      <div className="app-sheet min-w-0 flex-1 md:ms-3">
         <TopBar />
         {/* pb-32 موبايل: مساحة الشريط السفلي الثابت */}
         <main className="mx-auto w-full max-w-5xl px-4 pb-32 pt-6 md:px-8 md:pb-14">

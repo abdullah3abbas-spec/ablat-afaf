@@ -24,7 +24,7 @@ const ICONS: Record<string, typeof Sun> = {
 /** خيط السدو — نفس نقش الهوية (repeating-conic) بلا أصول خارجية */
 const SADU_STYLE: React.CSSProperties = {
   background:
-    "repeating-conic-gradient(from 45deg at 50% 50%, #C08A2E 0 25%, transparent 0 50%) 0 0 / 12px 12px, linear-gradient(to left, #8A1538, #0F6B62)",
+    "repeating-conic-gradient(from 45deg at 50% 50%, #C7952F 0 25%, transparent 0 50%) 0 0 / 12px 12px, linear-gradient(to left, #A34460, #12796F)",
 };
 
 interface Props {
@@ -48,10 +48,14 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
   if (slide.layout === "cover") {
     const art = slide.image?.dataUrl;
     return (
-      <div className={"relative overflow-hidden rounded-card border-2 border-line bg-cream text-ink " + (p ? "px-10 py-10" : "px-5 py-5")}>
+      <div className={"relative isolate overflow-hidden rounded-card border-2 border-line bg-cream text-ink " + (p ? "px-10 py-10" : "px-5 py-5")}>
         {/* خيط السدو — توقيع الهوية أعلى الغلاف وأسفله */}
         <div aria-hidden className={"absolute inset-x-0 top-0 " + (p ? "h-3" : "h-1.5")} style={SADU_STYLE} />
         <div aria-hidden className={"absolute inset-x-0 bottom-0 " + (p ? "h-3" : "h-1.5")} style={SADU_STYLE} />
+        {/* الغصن المائي المرسوم — نفس عائلة فن المنصّة */}
+        <img aria-hidden src="/report-art/sprig.jpg" alt=""
+          className={"pointer-events-none absolute rotate-180 opacity-90 mix-blend-multiply " + (p ? "-bottom-12 -end-8 w-56" : "-bottom-4 -end-3 w-20")}
+          onError={(e) => e.currentTarget.remove()} />
         <div className={"relative flex items-center " + (p ? "gap-10" : "gap-4")}>
           {/* رسمة الدرس — إطار بولارويد مائل بشريط لاصق ذهبي */}
           {art ? (
@@ -237,7 +241,7 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
 }
 
 /** ألوان الفئات — لوحة هوية محدودة يمكن تمييزها (dataviz) */
-const CHART_COLORS = ["#0F6B62", "#C08A2E", "#8A1538", "#2E7D4F", "#1E3A5F", "#7A5716"];
+const CHART_COLORS = ["#12796F", "#C7952F", "#A34460", "#2E7D4F", "#41528F", "#7C5A14"];
 
 /** أعمدة: لون واحد تركوازي، قيم مباشرة بلون الحبر، أطراف مدوّرة، RTL */
 function BarsChart({ items, unit, present }: { items: { label: string; value: number }[]; unit?: string; present: boolean }) {
@@ -258,8 +262,8 @@ function BarsChart({ items, unit, present }: { items: { label: string; value: nu
         const y = padTop + plotH - h;
         return (
           <g key={i}>
-            <rect x={x} y={y} width={barW} height={h} rx={8} fill="#0F6B62" />
-            <rect x={x} y={y + Math.min(10, h)} width={barW} height={Math.max(0, h - 10)} fill="#0F6B62" />
+            <rect x={x} y={y} width={barW} height={h} rx={8} fill="#12796F" />
+            <rect x={x} y={y + Math.min(10, h)} width={barW} height={Math.max(0, h - 10)} fill="#12796F" />
             <text x={x + barW / 2} y={y - 8} textAnchor="middle" fill="#1E2430" fontWeight="bold" fontSize={present ? 19 : 15} fontFamily="Tajawal, sans-serif">
               {d.value}{unit ?? ""}
             </text>
@@ -324,7 +328,7 @@ function CycleDiagram({ steps, present }: { steps: string[]; present: boolean })
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
     return { label, x: c + r * Math.cos(angle), y: c + r * Math.sin(angle) };
   });
-  const stroke = "#0F6B62";
+  const stroke = "#12796F";
   const nodeFill = "#E6F2F0";
   const text = "#1E2430";
 
@@ -332,7 +336,7 @@ function CycleDiagram({ steps, present }: { steps: string[]; present: boolean })
     <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={steps.join(" ثم ")} className={"mx-auto w-full " + (present ? "max-w-lg" : "max-w-xs")}>
       <defs>
         <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#C08A2E" />
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#C7952F" />
         </marker>
       </defs>
       {nodes.map((node, i) => {
@@ -346,7 +350,7 @@ function CycleDiagram({ steps, present }: { steps: string[]; present: boolean })
         const x2 = node.x + dx * t1, y2 = node.y + dy * t1;
         const mx = (x1 + x2) / 2 + (c - (x1 + x2) / 2) * -0.25;
         const my = (y1 + y2) / 2 + (c - (y1 + y2) / 2) * -0.25;
-        return <path key={i} d={`M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`} fill="none" stroke="#C08A2E" strokeWidth="3.5" markerEnd="url(#arr)" />;
+        return <path key={i} d={`M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`} fill="none" stroke="#C7952F" strokeWidth="3.5" markerEnd="url(#arr)" />;
       })}
       {nodes.map((node, i) => (
         <g key={i}>

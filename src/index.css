@@ -348,6 +348,40 @@
   }
   @media (min-width: 768px) { .door-art { width: 8rem; height: 8rem; } }
 
+  /* ═══ القشرة v3 — قماش مائي + لوح عاجي عائم + شريط حبري ═══ */
+  .app-canvas {
+    background:
+      radial-gradient(900px 500px at 8% -10%, rgb(var(--c-maroon) / 0.07), transparent 60%),
+      radial-gradient(1000px 600px at 100% 0%, rgb(var(--c-teal) / 0.08), transparent 55%),
+      radial-gradient(800px 500px at 50% 110%, rgb(var(--c-gold) / 0.09), transparent 60%),
+      linear-gradient(180deg, #F3ECDF, #F8F3E9);
+    background-attachment: fixed;
+  }
+  .app-sheet { background: transparent; }
+  @media (min-width: 768px) {
+    .app-sheet {
+      /* بلا backdrop-filter — يكسر دمج الفن المائي الضربي داخل اللوح */
+      background: rgb(253 251 245 / 0.88);
+      border: 1px solid rgb(var(--c-line) / 0.85);
+      border-radius: 26px;
+      box-shadow:
+        0 1px 2px rgb(var(--c-maroon-deep) / 0.05),
+        0 18px 50px rgb(var(--c-maroon-deep) / 0.09);
+      overflow: clip;
+      isolation: isolate; /* يحصر دمج الفن المائي الضربي داخل اللوح فيعمل فوق خلفيته */
+      min-height: calc(100dvh - 1.5rem);
+    }
+    .app-sheet header.sticky { border-radius: 26px 26px 0 0; }
+  }
+
+  /* الشريط الجانبي الحبري — العلامة الكبرى للقشرة الجديدة */
+  .sidebar-ink {
+    background:
+      radial-gradient(420px 260px at 85% -60px, rgb(var(--c-teal) / 0.28), transparent 60%),
+      radial-gradient(380px 300px at 0% 110%, rgb(var(--c-maroon) / 0.22), transparent 55%),
+      linear-gradient(180deg, #20303A, #17232B);
+  }
+
   /* دخول الصفحة — لحظة واحدة منسّقة لا أكثر */
   @media (prefers-reduced-motion: no-preference) {
     /* بلا fill-mode: الحالة الأساسية ظاهرة دائماً، والحركة لحظة عابرة فقط */

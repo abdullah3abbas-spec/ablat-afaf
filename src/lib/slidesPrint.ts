@@ -66,25 +66,25 @@ export function printSlides(p: Presentation, schoolName: string): void {
     * { box-sizing: border-box; margin: 0; }
     body { font-family: Tajawal, Arial, sans-serif; color: #1E2430; }
     .pg { page-break-after: always; min-height: 180mm; padding: 8mm; border: 1.5pt solid #E6DFD4; border-radius: 6pt; position: relative; }
-    .pg.cover { background: #8A1538; color: #fff; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+    .pg.cover { background: #A34460; color: #fff; display: flex; flex-direction: column; justify-content: center; text-align: center; }
     .pg.cover h2 { font-size: 40pt; color: #fff; }
     header { font-size: 9pt; color: #4A5568; margin-bottom: 4mm; }
     .cover header { color: #E8D5A3; }
-    h2 { font-size: 24pt; color: #8A1538; margin-bottom: 5mm; }
+    h2 { font-size: 24pt; color: #A34460; margin-bottom: 5mm; }
     .bl { font-size: 15pt; line-height: 2; padding-inline-start: 8mm; }
     .cmp { width: 100%; border-collapse: collapse; font-size: 13pt; }
-    .cmp th { background: #0F6B62; color: #fff; padding: 3mm; }
+    .cmp th { background: #12796F; color: #fff; padding: 3mm; }
     .cmp td { border: 1pt solid #E6DFD4; padding: 3mm; }
     .seq { display: flex; flex-wrap: wrap; align-items: center; gap: 3mm; font-size: 12pt; }
-    .step { border: 1.5pt solid #0F6B62; border-radius: 4pt; padding: 2.5mm 4mm; background: #FBF8F3; }
-    .step b { color: #C08A2E; }
-    .arr { color: #C08A2E; font-size: 16pt; }
-    .loop { color: #0F6B62; font-size: 10pt; }
+    .step { border: 1.5pt solid #12796F; border-radius: 4pt; padding: 2.5mm 4mm; background: #FBF8F3; }
+    .step b { color: #C7952F; }
+    .arr { color: #C7952F; font-size: 16pt; }
+    .loop { color: #12796F; font-size: 10pt; }
     .lab { text-align: center; }
-    .lab .center { display: inline-block; border: 2.5pt solid #C08A2E; border-radius: 50%; padding: 6mm 10mm; font-size: 16pt; font-weight: bold; margin-bottom: 4mm; }
+    .lab .center { display: inline-block; border: 2.5pt solid #C7952F; border-radius: 50%; padding: 6mm 10mm; font-size: 16pt; font-weight: bold; margin-bottom: 4mm; }
     .lab .tags span { display: inline-block; border: 1pt solid #E6DFD4; border-radius: 99pt; padding: 1.5mm 4mm; margin: 1mm; font-size: 12pt; }
     .ic { list-style: none; font-size: 14pt; line-height: 2; }
-    .inter { background: #FCF3E2; border: 1.5pt solid #C08A2E; border-radius: 4pt; padding: 4mm; font-size: 16pt; font-weight: bold; color: #7A5716; margin-top: 4mm; }
+    .inter { background: #FCF3E2; border: 1.5pt solid #C7952F; border-radius: 4pt; padding: 4mm; font-size: 16pt; font-weight: bold; color: #7C5A14; margin-top: 4mm; }
     .notes { position: absolute; bottom: 12mm; right: 8mm; left: 8mm; border-top: 1pt dashed #E6DFD4; padding-top: 2mm; font-size: 8.5pt; color: #4A5568; }
     .cover .notes { color: #E8D5A3; border-color: rgba(255,255,255,.3); }
     footer { position: absolute; bottom: 5mm; left: 8mm; font-size: 8pt; color: #4A5568; }
