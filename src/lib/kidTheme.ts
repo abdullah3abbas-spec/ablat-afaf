@@ -8,13 +8,14 @@
  * Baloo Bhaijaan 2 للعناوين القصيرة فقط (≤ ٦ كلمات) — ليس خط نصوص.
  */
 import { getBrand } from "./brand";
+import { storedLessonArt } from "./artStore";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
 
-/** رسمة الدرس المولّدة (GPT، من محتوى الوزارة، بلا نص داخلها) — أصل محلي */
+/** رسمة الدرس — المولّدة ذاتياً من البوابة أولاً، ثم الأصل الثابت المرفق */
 export function lessonArtUrl(lessonCode?: string): string | null {
   if (!lessonCode || !/^\d+\.\d+$/.test(lessonCode)) return null;
-  return `/lesson-art/${lessonCode.replace(".", "-")}.jpg`;
+  return storedLessonArt(lessonCode) ?? `/lesson-art/${lessonCode.replace(".", "-")}.jpg`;
 }
 
 export const KID_FONTS_CSS = `

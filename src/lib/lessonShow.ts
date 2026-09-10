@@ -12,6 +12,7 @@ import { BOOK_UNITS, bookLessonByCode, type BookLessonMeta, type BookUnitMeta } 
 import { enrichmentByCode, type LessonEnrichment } from "@/content/enrichment";
 import { CLASSROOM_RULES, LESSON_VALUES_POOL, MINISTRY_HOMEWORK_CHANNEL } from "@/content/ministryTemplates";
 import { formatAnswer, pickGameQuestions } from "./classMode";
+import { lessonArtUrl } from "./kidTheme";
 
 /** الدرس السابق في ترتيب الكتاب — لمراجعة «تعلمنا في الدرس السابق» */
 export function previousBookLesson(code: string): BookLessonMeta | undefined {
@@ -114,7 +115,7 @@ export function buildLessonShow(
     title: lesson.title,
     bullets: [`${unit.title} · الدرس ${lesson.code}`, pagesLabel],
     // رسمة الدرس المولّدة (أصل محلي) — الغلاف يعرضها بإطار بولارويد
-    image: { prompt: lesson.title, dataUrl: `/lesson-art/${lessonCode.replace(".", "-")}.jpg` },
+    image: { prompt: lesson.title, dataUrl: lessonArtUrl(lessonCode) ?? `/lesson-art/${lessonCode.replace(".", "-")}.jpg` },
     note: { say: `رحّبي بالطالبات. حصة اليوم: «${lesson.title}» — ${pagesLabel}.` },
     source: pagesLabel,
   });

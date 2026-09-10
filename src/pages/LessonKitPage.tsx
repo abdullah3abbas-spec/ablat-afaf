@@ -24,6 +24,10 @@ import { db } from "@/db";
 import { kitByLessonTitle } from "@/content/lessonKits";
 import { bookLessonByCode } from "@/content/bookG05S1P1";
 import { enrichmentByCode } from "@/content/enrichment";
+import { lessonArtUrl } from "@/lib/kidTheme";
+import { saveLessonArt, useArtStore } from "@/lib/artStore";
+import { AiClientError, generateImage } from "@/lib/aiClient";
+import SendPreviewDialog from "@/components/SendPreviewDialog";
 import type { LessonKit } from "@/content/kitTypes";
 import { elementHtml, printElement, type KitElementKind } from "@/lib/kitPrint";
 import { printEnrichmentCards, printEnrichmentSheet } from "@/lib/enrichmentPrint";
@@ -49,6 +53,42 @@ export default function LessonKitPage() {
   const [previewHtml, setPreviewHtml] = useState<{ title: string; html: string } | null>(null);
 
   const lesson = useLiveQuery(() => db.lessons.get(lessonId), [lessonId]);
+  const storedArt = useArtStore((x) => (lesson?.code ? x.lessonArt[lesson.code] : undefined));
+  const artUrl = lesson?.code ? storedArt ?? lessonArtUrl(lesson.code) : null;
+  const [artPreview, setArtPreview] = useState(false);
+  const [artBusy, setArtBusy] = useState(false);
+
+  const artPrompt = (() => {
+    if (!lesson?.code) return "";
+    const bk = bookLessonByCode(lesson.code);
+    const idea = bk?.lesson.takeaways?.[0] ?? bk?.lesson.objectives?.[0] ?? lesson.title;
+    return `رسمة درس «${lesson.title}» لطالبات الصف الخامس: مشهد واحد واضح يجسّد الفكرة: ${idea}`;
+  })();
+
+  const artDialog = artPreview && lesson?.code ? (
+    <SendPreviewDialog
+      kind="generation"
+      title={s.lessonArt.sendTitle}
+      content={artPrompt}
+      onApproved={() => void generateArtApproved()}
+      onClose={() => setArtPreview(false)}
+    />
+  ) : null;
+
+  async function generateArtApproved() {
+    if (!lesson?.code) return;
+    setArtPreview(false);
+    setArtBusy(true);
+    try {
+      const r = await generateImage(artPrompt, { style: "flat", aspect: "4:3" });
+      await saveLessonArt(lesson.code, r.dataUrl);
+      show(s.lessonArt.done);
+    } catch (e) {
+      show(e instanceof AiClientError ? e.messageAr : s.lessonArt.failed, { kind: "danger" });
+    } finally {
+      setArtBusy(false);
+    }
+  }
   const kit = lesson ? kitByLessonTitle(lesson.title) : undefined;
   const setLastLesson = useUi((x) => x.setLastLesson);
 
@@ -96,6 +136,22 @@ export default function LessonKitPage() {
           <p className="text-ink-soft">
             {book.unit.title} · {b.standardsLine(book.lesson.outcomeCodes.join(" · "))}
           </p>
+          {/* رسمة الدرس — تظهر الحالية مع توليد ذاتي عبر البوابة (شاشة «ما سيُرسل» إلزامية) */}
+          <div className="flex flex-wrap items-center gap-3 rounded-card border border-line bg-cream/60 p-3">
+            {artUrl ? (
+              <img src={artUrl} alt="" className="h-20 w-24 rounded-card object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+            ) : (
+              <span className="grid h-20 w-24 place-items-center rounded-card bg-white text-ink-soft">{s.lessonArt.none}</span>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">{s.lessonArt.title}</p>
+              <p className="text-sm text-ink-soft">{s.lessonArt.hint}</p>
+            </div>
+            <button type="button" disabled={artBusy} onClick={() => setArtPreview(true)} className="btn-secondary disabled:opacity-60">
+              <Sparkles className="size-5" aria-hidden />
+              {artBusy ? s.lessonArt.busy : s.lessonArt.button}
+            </button>
+          </div>
           <div>
             <h2 className="font-heading text-lg font-bold text-teal-dark">{b.objectives}</h2>
             <ul className="mt-1 list-disc space-y-1 ps-6">
@@ -242,6 +298,7 @@ export default function LessonKitPage() {
             </button>
           </div>
         </div>
+        {artDialog}
       </div>
     );
   }
@@ -402,6 +459,7 @@ export default function LessonKitPage() {
           />
         </Modal>
       )}
+      {artDialog}
     </div>
   );
 }

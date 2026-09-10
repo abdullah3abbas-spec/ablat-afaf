@@ -842,3 +842,15 @@ export interface LessonPackRecord extends Timestamped, SoftDeletable {
   /** أرقام أسئلة البنك التي أُدخلت عند الاعتماد — للتراجع */
   insertedQuestionIds?: number[];
 }
+
+// ── artAssets — فن مولّد ذاتياً عبر البوابة، محفوظ محلياً ─────────
+
+/** أصل فني مولّد (رسمة درس…) — Data URL محلية، لا شيء يغادر الجهاز */
+export interface ArtAsset extends Timestamped {
+  id?: number;
+  /** نوع الأصل — حالياً «lessonArt» */
+  kind: "lessonArt";
+  /** رمز الدرس «1.1» */
+  code: string;
+  dataUrl: string;
+}

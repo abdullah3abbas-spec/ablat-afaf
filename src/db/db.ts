@@ -49,6 +49,7 @@ import type {
   Subject,
   Unit,
   Worksheet,
+  ArtAsset,
 } from "./schema";
 
 export class ManassatDB extends Dexie {
@@ -85,6 +86,7 @@ export class ManassatDB extends Dexie {
   requests!: Table<TeacherRequest, number>;
   presentations!: Table<Presentation, number>;
   lessonPacks!: Table<LessonPackRecord, number>;
+  artAssets!: Table<ArtAsset, number>;
 
   constructor() {
     super("manassat-abla-afaf");
@@ -275,6 +277,11 @@ export class ManassatDB extends Dexie {
       await tx.table("settings").toCollection().modify((st: { aiConnectionEnabled?: boolean; aiGatewayToken?: string }) => {
         if (!st.aiGatewayToken?.trim()) st.aiConnectionEnabled = true;
       });
+    });
+
+    // v14 — أصول الفن المولّدة ذاتياً (رسمات الدروس): جدول محلي بفهرس مركّب فريد
+    this.version(14).stores({
+      artAssets: "++id, kind, &[kind+code]",
     });
   }
 }

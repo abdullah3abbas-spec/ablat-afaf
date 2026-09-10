@@ -8,12 +8,14 @@ import App from "./App";
 import { seedIfEmpty } from "@/db";
 import { useUi } from "@/store/ui";
 import { loadBrand } from "@/lib/brand";
+import { loadArt } from "@/lib/artStore";
 import "./index.css";
 
 async function boot(): Promise<void> {
   await seedIfEmpty();
   await useUi.getState().hydrateFromDb();
   await loadBrand();
+  await loadArt();
 
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>

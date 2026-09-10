@@ -5,7 +5,7 @@
 import type { KitGame, LessonKit } from "@/content/kitTypes";
 import { bookLessonByTitle } from "@/content/bookG05S1P1";
 import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "./printTheme";
-import { KID_CSS, kidFinish, kidHeader, star8Svg } from "./kidTheme";
+import { lessonArtUrl, KID_CSS, kidFinish, kidHeader, star8Svg } from "./kidTheme";
 import { toEastern } from "./numerals";
 import { printHtml } from "./sheetPrint";
 import { getBrand } from "./brand";
@@ -158,7 +158,7 @@ export function experimentHtml(kit: LessonKit, info: HeaderInfo): string {
 // ── كرت الخروج ────────────────────────────────────────────────
 
 export function exitCardsHtml(kit: LessonKit, info: HeaderInfo, copies = 6): string {
-  const art = kitCode(kit) ? `<img src="/lesson-art/${kitCode(kit)!.replace(".", "-")}.jpg" alt="" onerror="this.remove()"/>` : "";
+  const art = kitCode(kit) ? `<img src="${lessonArtUrl(kitCode(kit)!) ?? ""}" alt="" onerror="this.remove()"/>` : "";
   const qs = kit.exitCard.map((q, i) => `<div class="k-tq">${toEastern(String(i + 1))}) ${esc(q)}</div><div class="k-tans"></div>`).join("");
   const one = `<div class="k-ticket">
     <div class="k-stub">${art}اسمي:<div class="k-nameline"></div>الرقم: ....</div>
