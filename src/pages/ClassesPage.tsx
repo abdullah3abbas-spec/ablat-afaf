@@ -89,10 +89,13 @@ export default function ClassesPage() {
           <School className="size-7" aria-hidden />
           {s.classes.title}
         </h1>
-        <button type="button" onClick={() => { setName(""); setAdding(true); }} className="btn-primary">
-          <Plus className="size-5" aria-hidden />
-          {s.classes.addClass}
-        </button>
+        <span className="flex items-center gap-3">
+          <button type="button" onClick={() => { setName(""); setAdding(true); }} className="btn-primary">
+            <Plus className="size-5" aria-hidden />
+            {s.classes.addClass}
+          </button>
+          <img src="/app-art/door-students.jpg" alt="" className="door-art -my-4 hidden sm:block" onError={(e) => e.currentTarget.remove()} />
+        </span>
       </div>
 
       {cards === undefined ? (

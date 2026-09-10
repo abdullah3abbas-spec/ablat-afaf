@@ -16,7 +16,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label={s.a11y.mainNav}
-      className="fixed inset-x-0 bottom-0 z-10 border-t border-line/70 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-nav backdrop-blur-sm md:hidden"
+      className="fixed inset-x-3 z-10 rounded-[26px] border border-line/70 bg-white/90 shadow-[0_10px_34px_rgb(74_9_29/0.16)] backdrop-blur-md md:hidden" style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
     >
       <div className="mx-auto grid max-w-3xl grid-cols-5 gap-1 px-2 py-1.5">
         {SECTIONS.map((sec) => {

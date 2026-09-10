@@ -44,9 +44,12 @@ export default function FollowPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="font-heading text-3xl font-bold text-maroon">{s.follow.title}</h1>
-        <p className="mt-1 text-lg text-ink-soft">{s.follow.subtitle}</p>
+      <header className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-3xl font-bold text-maroon">{s.follow.title}</h1>
+          <p className="mt-1 text-lg text-ink-soft">{s.follow.subtitle}</p>
+        </div>
+        <img src="/app-art/door-follow.jpg" alt="" className="door-art -my-4" onError={(e) => e.currentTarget.remove()} />
       </header>
 
       {groups.map((g) => (

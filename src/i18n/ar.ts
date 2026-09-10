@@ -737,8 +737,8 @@ export const ar = {
   },
 
   today: {
-    greeting: "صباح الخير يا أبلة عفاف 🌿",
-    greetingEvening: "مساء الخير يا أبلة عفاف 🌿",
+    greeting: (nick: string) => `صباح الخير يا ${nick} 🌿`,
+    greetingEvening: (nick: string) => `مساء الخير يا ${nick} 🌿`,
     ready: "جاهزة",
     upcomingLessons: "دروسك القادمة",
     upcomingHint: "بترتيب المنهج — كل درس بحزمته السبعة كاملة",

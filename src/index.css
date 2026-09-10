@@ -324,6 +324,37 @@
   .card {
     @apply rounded-card border border-line bg-white p-5 shadow-card;
   }
+  /* رفعة لمس هادئة للبطاقات القابلة للنقر — تُحترم تفضيلات تقليل الحركة */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    a.card, button.card {
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    a.card:hover, button.card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 6px rgb(var(--c-maroon-deep) / 0.08), 0 10px 26px rgb(var(--c-maroon-deep) / 0.1);
+    }
+  }
+
+  /* فن الأبواب — اللوحات المائية المولّدة داخل الواجهة (تندمج بالضرب فوق الورق) */
+  .door-art {
+    width: 6.5rem;
+    height: 6.5rem;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+    opacity: 0.95;
+    pointer-events: none;
+    user-select: none;
+  }
+  @media (min-width: 768px) { .door-art { width: 8rem; height: 8rem; } }
+
+  /* دخول الصفحة — لحظة واحدة منسّقة لا أكثر */
+  @media (prefers-reduced-motion: no-preference) {
+    /* بلا fill-mode: الحالة الأساسية ظاهرة دائماً، والحركة لحظة عابرة فقط */
+    .page-enter { animation: pageIn 0.32s ease; }
+    @keyframes pageIn {
+      from { opacity: 0; transform: translateY(8px); }
+    }
+  }
 
   /* البطاقة البطلة — لحظة الهوية: عنّابي عميق متدرج بحافة سدو منسوجة */
   .card-hero {

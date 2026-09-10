@@ -29,6 +29,7 @@ import { printEmergency, printWeekBundle } from "@/lib/kitPrint";
 import { genSubstituteFile } from "@/lib/generate";
 import { activeStudentsOf } from "@/lib/students";
 import { fmtNum } from "@/lib/numerals";
+import { useBrandStore } from "@/lib/brand";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
@@ -137,7 +138,8 @@ export default function TodayPage() {
     show(s.today.weekBundlePrinted);
   }
 
-  const greeting = new Date().getHours() < 12 ? s.today.greeting : s.today.greetingEvening;
+  const nick = useBrandStore((x) => x.brand.teacherNick);
+  const greeting = new Date().getHours() < 12 ? s.today.greeting(nick) : s.today.greetingEvening(nick);
   const empty = data !== undefined && data.studentsCount === 0;
 
   const alertsCount =
@@ -149,7 +151,7 @@ export default function TodayPage() {
   return (
     <div className="space-y-6">
       {/* التحية — رأس محتوى هادئ، الهوية يحملها الإطار لا الصناديق */}
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-heading text-3xl font-bold text-ink md:text-4xl">{greeting}</h1>
           <p className="mt-1 text-lg text-ink-soft">
@@ -160,11 +162,13 @@ export default function TodayPage() {
                 : s.common.loading}
           </p>
         </div>
-        {empty && (
+        {empty ? (
           <button type="button" onClick={() => void reseedDemo()} className="btn-secondary">
             <RefreshCw className="size-5" aria-hidden />
             {s.home.emptyAction}
           </button>
+        ) : (
+          <img src="/app-art/door-today.jpg" alt="" className="door-art -my-3" onError={(e) => e.currentTarget.remove()} />
         )}
       </header>
 
