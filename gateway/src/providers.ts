@@ -156,3 +156,30 @@ export async function callOpenAIImage(
   if (!b64) throw new ProviderError("openai", 502, "ردّ صورة فارغ من المزوّد");
   return { b64 };
 }
+
+/** توليد صورة عبر Gemini (نانو بانانا) — نفس عقد الإرجاع b64 */
+export async function callGeminiImage(
+  apiKey: string,
+  model: string,
+  prompt: string,
+  aspect: string
+): Promise<{ b64: string }> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio: aspect } },
+      }),
+    }
+  );
+  if (!res.ok) throw new ProviderError("gemini", res.status, (await res.text()).slice(0, 300));
+  const data = (await res.json()) as {
+    candidates?: { content?: { parts?: { inlineData?: { data?: string } }[] } }[];
+  };
+  const b64 = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data)?.inlineData?.data;
+  if (!b64) throw new ProviderError("gemini", 502, "ردّ صورة فارغ من المزوّد");
+  return { b64 };
+}

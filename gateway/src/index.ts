@@ -32,7 +32,7 @@ import {
   type AskSource,
   type Provider,
 } from "./logic";
-import { ProviderError, callGemini, callGeminiJson, callOpenAI, callOpenAIJson, type CallResult , callOpenAIImage } from "./providers";
+import { ProviderError, callGemini, callGeminiImage, callGeminiJson, callOpenAI, callOpenAIJson, type CallResult, callOpenAIImage } from "./providers";
 
 interface Env {
   USAGE: KVNamespace;
@@ -43,6 +43,8 @@ interface Env {
   /** مرحلة المشرفة على مخرجات التوليد (افتراضياً مفعّلة) */
   SUPERVISOR_ENABLED?: string;
   OPENAI_IMAGE_MODEL?: string;
+  GEMINI_IMAGE_MODEL?: string;
+  GEMINI_IMAGE_USD_EACH?: string;
   IMAGE_QUALITY?: string;
   IMAGE_USD_EACH?: string;
   /** جهد تفكير نماذج gpt-5 — بدونها قد يعود الرد فارغاً */
@@ -538,7 +540,7 @@ export default {
 
     // توليد صورة تعليمية من محتوى الوزارة (استوديو المخرجات)
     if (request.method === "POST" && url.pathname === "/api/generate-image") {
-      let body: { prompt?: string };
+      let body: { prompt?: string; style?: string; aspect?: string };
       try {
         body = (await request.json()) as typeof body;
       } catch {
@@ -548,43 +550,69 @@ export default {
       if (raw.length < 8 || raw.length > 900) {
         return json({ error: "invalid", messageAr: "وصف الصورة قصير جداً أو طويل جداً" }, 400, cors);
       }
+      const aspect = ["1:1", "16:9", "21:9", "3:2", "4:3"].includes(body.aspect ?? "") ? (body.aspect as string) : "1:1";
 
-      const openaiUse = await usageOf(env, "openai", nowMs);
-      if (!openaiUse.configured) return json({ error: "no_providers", messageAr: "مفتاح توليد الصور لم يُضبط بعد" }, 503, cors);
-      if (openaiUse.exhausted) return json({ error: "budget_exhausted", messageAr: "وصلتِ حدّ ميزانية الصور اليوم" }, 429, cors);
-
-      // أسلوب موحّد يفرضه الخادم: رسم تعليمي نظيف، وبلا أي نص داخل الصورة
+      // أسلوبان يفرضهما الخادم — وكلاهما يمنع أي نص داخل الصورة
       // (§ الممنوعات: لا نص عربي مولّداً داخل الصور)
-      const prompt = `${raw}\nرسم توضيحي تعليمي مسطّح نظيف لأطفال المرحلة الابتدائية، ألوان دافئة هادئة (عنّابي وذهبي وتركوازي فاتحة)، خلفية بسيطة، دقة علمية للمشهد الموصوف فقط، ومن دون أي نص أو حروف أو أرقام داخل الصورة إطلاقاً.`;
+      const NO_TEXT = "ومن دون أي نص أو حروف أو أرقام داخل الصورة إطلاقاً.";
+      const styleSuffix =
+        (body.style ?? "flat") === "watercolor"
+          ? `أسلوب كتب الأطفال الفاخرة الهادئة بألوان مائية: عاج دافئ، تركواز مغبر، وردي مغبر، ذهبي زيتوني، لمسات خط ذهبي رفيع line art ونجيمات ذهبية دقيقة، مساحات فارغة مريحة، ${NO_TEXT}`
+          : `رسم توضيحي تعليمي مسطّح نظيف لأطفال المرحلة الابتدائية، ألوان دافئة هادئة (عنّابي وذهبي وتركوازي فاتحة)، خلفية بسيطة، دقة علمية للمشهد الموصوف فقط، ${NO_TEXT}`;
+      const prompt = `${raw}\n${styleSuffix}`;
 
-      const key = "img:" + (await cacheKeyOf({ prompt }));
+      const key = "img:" + (await cacheKeyOf({ prompt, aspect }));
       const cached = await env.USAGE.get(key);
       if (cached) return json({ ...(JSON.parse(cached) as object), cached: true }, 200, cors);
 
-      try {
-        const { b64 } = await callOpenAIImage(
-          env.OPENAI_API_KEY as string,
-          env.OPENAI_IMAGE_MODEL || "gpt-image-1",
-          prompt,
-          env.IMAGE_QUALITY || "low"
-        );
-        const costUsd = Number(env.IMAGE_USD_EACH) || 0.02;
-        ctx.waitUntil(addSpend(env, "openai", costUsd, nowMs));
-        const payload = {
-          dataUrl: `data:image/png;base64,${b64}`,
-          provider: "openai",
-          model: env.OPENAI_IMAGE_MODEL || "gpt-image-1",
-          costUsd,
-          alert: alertLevel(openaiUse.totalUsd + costUsd, openaiUse.budgetUsd),
-          cached: false,
-        };
-        ctx.waitUntil(env.USAGE.put(key, JSON.stringify(payload), { expirationTtl: Number(env.CACHE_TTL_SECONDS) || 604800 }));
-        return json(payload, 200, cors);
-      } catch (e) {
-        const detail = e instanceof ProviderError ? `${e.provider} ${e.status}: ${e.message}` : String(e);
-        console.warn("image_failed", detail);
-        return json({ error: "image_failed", messageAr: "تعذّر توليد الصورة الآن — حاولي بعد قليل", detail }, 502, cors);
+      // سلسلة المزوّدين: Gemini (نانو بانانا) أولاً إن ضُبط نموذجه، ثم OpenAI
+      const geminiUse = await usageOf(env, "gemini", nowMs);
+      const openaiUse = await usageOf(env, "openai", nowMs);
+      const tryGemini = Boolean(env.GEMINI_IMAGE_MODEL) && geminiUse.configured && !geminiUse.exhausted;
+      const tryOpenai = openaiUse.configured && !openaiUse.exhausted;
+      if (!tryGemini && !tryOpenai) {
+        if (!geminiUse.configured && !openaiUse.configured)
+          return json({ error: "no_providers", messageAr: "مفتاح توليد الصور لم يُضبط بعد" }, 503, cors);
+        return json({ error: "budget_exhausted", messageAr: "وصلتِ حدّ ميزانية الصور اليوم" }, 429, cors);
       }
+
+      const attempts: { provider: "gemini" | "openai" }[] = [
+        ...(tryGemini ? [{ provider: "gemini" as const }] : []),
+        ...(tryOpenai ? [{ provider: "openai" as const }] : []),
+      ];
+      let lastDetail = "";
+      for (const a of attempts) {
+        try {
+          let b64: string;
+          let model: string;
+          let costUsd: number;
+          if (a.provider === "gemini") {
+            model = env.GEMINI_IMAGE_MODEL as string;
+            ({ b64 } = await callGeminiImage(env.GEMINI_API_KEY as string, model, prompt, aspect));
+            costUsd = Number(env.GEMINI_IMAGE_USD_EACH) || 0.04;
+          } else {
+            model = env.OPENAI_IMAGE_MODEL || "gpt-image-1";
+            ({ b64 } = await callOpenAIImage(env.OPENAI_API_KEY as string, model, prompt, env.IMAGE_QUALITY || "low"));
+            costUsd = Number(env.IMAGE_USD_EACH) || 0.02;
+          }
+          const use = a.provider === "gemini" ? geminiUse : openaiUse;
+          ctx.waitUntil(addSpend(env, a.provider, costUsd, nowMs));
+          const payload = {
+            dataUrl: `data:image/png;base64,${b64}`,
+            provider: a.provider,
+            model,
+            costUsd,
+            alert: alertLevel(use.totalUsd + costUsd, use.budgetUsd),
+            cached: false,
+          };
+          ctx.waitUntil(env.USAGE.put(key, JSON.stringify(payload), { expirationTtl: Number(env.CACHE_TTL_SECONDS) || 604800 }));
+          return json(payload, 200, cors);
+        } catch (e) {
+          lastDetail = e instanceof ProviderError ? `${e.provider} ${e.status}: ${e.message}` : String(e);
+          console.warn("image_attempt_failed", a.provider, lastDetail);
+        }
+      }
+      return json({ error: "image_failed", messageAr: "تعذّر توليد الصورة الآن — حاولي بعد قليل", detail: lastDetail }, 502, cors);
     }
 
     return json({ error: "not_found" }, 404, cors);

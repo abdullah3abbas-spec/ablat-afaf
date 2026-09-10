@@ -154,7 +154,7 @@ export async function generateSlides(lessonTitle: string, sources: AskSource[]):
 
 export interface ImageResult {
   dataUrl: string;
-  provider: "openai";
+  provider: "gemini" | "openai";
   model: string;
   costUsd: number;
   alert: 0 | 60 | 80 | 95 | 100;
@@ -165,10 +165,13 @@ export interface ImageResult {
  * توليد صورة تعليمية من وصف مشتق من محتوى الوزارة (استوديو المخرجات).
  * يُستدعى حصراً بعد موافقة شاشة «ما سيُرسل» على قائمة الأوصاف.
  */
-export async function generateImage(prompt: string): Promise<ImageResult> {
+export async function generateImage(
+  prompt: string,
+  opts?: { style?: "flat" | "watercolor"; aspect?: "1:1" | "16:9" | "21:9" | "3:2" | "4:3" }
+): Promise<ImageResult> {
   const res = await gatewayFetch("/api/generate-image", {
     method: "POST",
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt, style: opts?.style ?? "flat", aspect: opts?.aspect ?? "1:1" }),
   });
   return (await res.json()) as ImageResult;
 }

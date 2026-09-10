@@ -11,11 +11,14 @@
   // إعدادات بيئة — لا نماذج ولا أسعار في الكود (قاعدة الماستر برومبت).
   // الأسعار دولار/مليون Token لتقدير التكلفة، حدّثها إن غيّر المزوّد أسعاره.
   "vars": {
-    "ALLOWED_ORIGINS": "https://ablat-afaf.pages.dev,http://localhost:4785,http://localhost:4786,http://localhost:5173",
+    "ALLOWED_ORIGINS": "https://ablat-afaf.pages.dev,http://localhost:4785,http://localhost:4786,http://localhost:5173,http://127.0.0.1:4790,http://localhost:4790",
     // اسم متجدد يتبع أحدث flash مستقر تلقائياً — لا يتقادم مع تقاعد النماذج
     // (القائمة الفعلية المتاحة للمفتاح: GET /api/models)
     "GEMINI_MODEL": "gemini-flash-latest",
     "OPENAI_IMAGE_MODEL": "gpt-image-1",
+    // نانو بانانا عبر Gemini — أسلوب اللوحات المائية للمنصّة (يتقدم السلسلة، وOpenAI احتياط)
+    "GEMINI_IMAGE_MODEL": "gemini-2.5-flash-image",
+    "GEMINI_IMAGE_USD_EACH": "0.039",
     "IMAGE_QUALITY": "low",
     "IMAGE_USD_EACH": "0.015",
     "OPENAI_MODEL": "gpt-5-mini",

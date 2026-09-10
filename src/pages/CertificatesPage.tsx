@@ -3,6 +3,9 @@
  * اختيار يدوي) → طباعة جماعية صفحة لكل شهادة + PNG لكل واحدة.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Sparkles } from "lucide-react";
+import SendPreviewDialog from "@/components/SendPreviewDialog";
+import { AiClientError, generateImage } from "@/lib/aiClient";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Award, Image as ImageIcon, Printer } from "lucide-react";
 import { db } from "@/db";
@@ -86,6 +89,27 @@ export default function CertificatesPage() {
 
   const [previewCerts, setPreviewCerts] = useState<CertData[] | null>(null);
 
+  /** وصف خلفية الشهادة المولّدة — محتوى تصميمي فقط، بلا أي اسم (§2-هـ) */
+  const genBgPrompt = useMemo(() => {
+    const tpl = CERT_TEMPLATES.find((x) => x.key === templateKey);
+    return `خلفية شهادة تقدير مدرسية أفقية لطالبات المرحلة الابتدائية بروح «${tpl?.nameAr ?? "التقدير"}»: إطار ذهبي رفيع بزوايا مدوّرة قريب من حواف الصفحة، أغصان أوراق مائية في زاويتين متقابلتين، بضع نجيمات ذهبية، ومساحة وسطى فارغة تماماً للنصوص.`;
+  }, [templateKey]);
+
+  async function generateBgApproved() {
+    setGenPreview(false);
+    setGenBusy(true);
+    try {
+      const r = await generateImage(genBgPrompt, { style: "watercolor", aspect: "3:2" });
+      setEdCustomBg(r.dataUrl);
+      setEdBg("custom");
+      show(s.certs.genBgDone);
+    } catch (e) {
+      show(e instanceof AiClientError ? e.messageAr : s.certs.genBgFailed, { kind: "danger" });
+    } finally {
+      setGenBusy(false);
+    }
+  }
+
   // ── محرّر الشهادة داخل المعاينة: تخصيصات حيّة تُحفظ لكل قالب ──
   const [edReason, setEdReason] = useState("");
   const [edGrant, setEdGrant] = useState(GRANT_LINE_DEFAULT);
@@ -95,6 +119,9 @@ export default function CertificatesPage() {
   const [edSeal, setEdSeal] = useState(true);
   const [edBg, setEdBg] = useState("kid1");
   const [edDesign, setEdDesign] = useState("designer");
+  const [edCustomBg, setEdCustomBg] = useState<string | undefined>(undefined);
+  const [genPreview, setGenPreview] = useState(false);
+  const [genBusy, setGenBusy] = useState(false);
   const [freeEdit, setFreeEdit] = useState(false);
   const [savedTick, setSavedTick] = useState(false);
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -113,6 +140,7 @@ export default function CertificatesPage() {
       const dKey = prefs?.designKey ?? "designer";
       setEdDesign(dKey);
       setEdBg(prefs?.bgKey ?? CERT_DESIGNS.find((d) => d.key === dKey)?.defaultBg ?? "kid1");
+      setEdCustomBg(prefs?.customBgDataUrl);
       setFreeEdit(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,7 +153,7 @@ export default function CertificatesPage() {
       void (async () => {
         const settings = await db.settings.get(1);
         const certPrefs = { ...(settings?.certPrefs ?? {}) };
-        certPrefs[templateKey] = { reason: edReason, grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg, designKey: edDesign };
+        certPrefs[templateKey] = { reason: edReason, grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg, designKey: edDesign, customBgDataUrl: edCustomBg };
         await db.settings.update(1, { certPrefs });
         setSavedTick(true);
         setTimeout(() => setSavedTick(false), 1800);
@@ -133,11 +161,11 @@ export default function CertificatesPage() {
     }, 700);
     return () => clearTimeout(h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [edReason, edGrant, edAccent, edNameSize, edSeal, edBg, edDesign]);
+  }, [edReason, edGrant, edAccent, edNameSize, edSeal, edBg, edDesign, edCustomBg]);
 
   const editorOpts: CertStyleOpts = useMemo(
-    () => ({ grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg, designKey: edDesign }),
-    [edGrant, edAccent, edNameSize, edSeal, edBg, edDesign]
+    () => ({ grantLine: edGrant, accent: edAccent || undefined, nameSizePt: edNameSize, showSeal: edSeal, bgKey: edBg, designKey: edDesign, customBgDataUrl: edCustomBg }),
+    [edGrant, edAccent, edNameSize, edSeal, edBg, edDesign, edCustomBg]
   );
   const shownCerts = useMemo(
     () => (previewCerts ?? []).map((c) => ({ ...c, reason: edReason || c.reason, dateStr: edDate || c.dateStr })),
@@ -355,7 +383,19 @@ export default function CertificatesPage() {
                         <span className="block bg-white py-0.5 text-xs font-bold">{b.nameAr}</span>
                       </button>
                     ))}
+                    {edCustomBg && (
+                      <button type="button" aria-pressed={edBg === "custom"} onClick={() => setEdBg("custom")}
+                        className={"overflow-hidden rounded-card border-4 text-center " + (edBg === "custom" ? "border-gold" : "border-line")}>
+                        <img src={edCustomBg} alt="" className="h-14 w-full object-cover" />
+                        <span className="block bg-white py-0.5 text-xs font-bold">{s.certs.genBgChip}</span>
+                      </button>
+                    )}
                   </div>
+                  <button type="button" disabled={genBusy} onClick={() => setGenPreview(true)}
+                    className="btn-secondary mt-2 w-full disabled:opacity-60">
+                    <Sparkles className="size-5" aria-hidden />
+                    {genBusy ? s.certs.genBgBusy : s.certs.genBgButton}
+                  </button>
                 </div>}
                 {edDesign !== "designer" && <label className="block space-y-1">
                   <span className="font-medium">{s.certs.reason}</span>
@@ -405,6 +445,16 @@ export default function CertificatesPage() {
           </div>
         </div>
       )}
+      {genPreview && (
+        <SendPreviewDialog
+          kind="generation"
+          title={s.certs.genBgTitle}
+          content={genBgPrompt}
+          onApproved={() => void generateBgApproved()}
+          onClose={() => setGenPreview(false)}
+        />
+      )}
+
     </div>
   );
 }

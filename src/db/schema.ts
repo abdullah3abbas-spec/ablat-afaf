@@ -64,6 +64,8 @@ export interface PointLevel {
 }
 
 export interface CertPrefs {
+  /** خلفية مولّدة ذاتياً من البوابة (Data URL محلية) — تُختار بمفتاح bgKey="custom" */
+  customBgDataUrl?: string;
   reason?: string;
   bgKey?: string;
   designKey?: string;

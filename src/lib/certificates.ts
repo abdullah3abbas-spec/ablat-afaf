@@ -96,8 +96,10 @@ export interface CertStyleOpts {
   nameSizePt?: number;
   /** إظهار الختم والرقم التسلسلي (الافتراضي نعم) */
   showSeal?: boolean;
-  /** مفتاح الخلفية من CERT_BACKGROUNDS (الافتراضي sadu) */
+  /** مفتاح الخلفية من CERT_BACKGROUNDS (الافتراضي sadu) — أو "custom" لخلفية مولّدة */
   bgKey?: string;
+  /** الخلفية المولّدة ذاتياً (Data URL) حين bgKey="custom" */
+  customBgDataUrl?: string;
   /** مفتاح النموذج من CERT_DESIGNS (الافتراضي «مرحة») */
   designKey?: string;
 }
@@ -159,7 +161,10 @@ const middleHtml = (c: CertData, o: CertStyleOpts) => `
 /** صفحة شهادة — أربعة نماذج كاملة قابلة للتبديل، فوق خلفيات مرسومة */
 function certPage(c: CertData, o: CertStyleOpts = {}): string {
   const design = CERT_DESIGNS.find((d) => d.key === (o.designKey ?? "merha")) ?? CERT_DESIGNS[0];
-  const bg = CERT_BACKGROUNDS.find((b) => b.key === (o.bgKey ?? design.defaultBg)) ?? CERT_BACKGROUNDS[0];
+  const bg =
+    o.bgKey === "custom" && o.customBgDataUrl
+      ? { key: "custom", nameAr: "خلفيتي المولّدة", url: o.customBgDataUrl }
+      : CERT_BACKGROUNDS.find((b) => b.key === (o.bgKey ?? design.defaultBg)) ?? CERT_BACKGROUNDS[0];
   const kindTitle = `شهادة ${escC(c.template.nameAr)}`;
 
   let body = "";
