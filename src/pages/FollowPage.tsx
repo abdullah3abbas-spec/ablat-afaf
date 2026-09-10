@@ -44,13 +44,13 @@ export default function FollowPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-3xl font-bold text-maroon">{s.follow.title}</h1>
-          <p className="mt-1 text-lg text-ink-soft">{s.follow.subtitle}</p>
+      <section className="hero-paint hero-paint--sub relative isolate overflow-hidden rounded-[24px] border border-line/80 shadow-lift">
+        <img aria-hidden src="/app-art/hero-follow.jpg" alt="" className="absolute inset-0 h-full w-full object-cover object-left mix-blend-multiply" onError={(e) => e.currentTarget.remove()} />
+        <div className="relative px-6 py-7 md:w-[64%] md:px-10 md:py-9">
+          <h1 className="font-heading text-3xl font-extrabold text-marina md:text-4xl">{s.follow.title}</h1>
+          <p className="mt-2 text-lg text-ink-soft md:text-xl">{s.follow.subtitle}</p>
         </div>
-        <img src="/app-art/door-follow.jpg" alt="" className="door-art -my-4" onError={(e) => e.currentTarget.remove()} />
-      </header>
+      </section>
 
       {groups.map((g) => (
         <section key={g.title} className="space-y-3">

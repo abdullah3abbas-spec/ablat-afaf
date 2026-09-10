@@ -5,7 +5,7 @@
  */
 import { Link, useLocation } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { SECTIONS, SETTINGS_ICON } from "@/lib/wayfinding";
+import { matchesPrefix, SECTIONS, SETTINGS_ICON } from "@/lib/wayfinding";
 import { db } from "@/db";
 import { DEFAULT_SCHOOL_NAME } from "@/db/constants";
 import { useStrings } from "@/hooks/useStrings";
@@ -46,7 +46,7 @@ export default function Sidebar() {
       {/* التنقّل */}
       <nav aria-label={s.a11y.mainNav} className="flex-1 space-y-1.5 overflow-y-auto px-3">
         {SECTIONS.map((sec) => {
-          const active = sec.to === "/" ? pathname === "/" : sec.prefixes.some((p) => pathname.startsWith(p));
+          const active = sec.to === "/" ? pathname === "/" : sec.prefixes.some((p) => matchesPrefix(pathname, p));
           return (
             <Link
               key={sec.key}

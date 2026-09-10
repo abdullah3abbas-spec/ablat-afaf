@@ -5,7 +5,7 @@
  * — لا نعتمد على اللون وحده.
  */
 import { Link, useLocation } from "react-router-dom";
-import { SECTIONS } from "@/lib/wayfinding";
+import { matchesPrefix, SECTIONS } from "@/lib/wayfinding";
 import { useStrings } from "@/hooks/useStrings";
 
 
@@ -20,7 +20,7 @@ export default function BottomNav() {
     >
       <div className="mx-auto grid max-w-3xl grid-cols-5 gap-1 px-2 py-1.5">
         {SECTIONS.map((sec) => {
-          const active = sec.to === "/" ? pathname === "/" : sec.prefixes.some((p) => pathname.startsWith(p));
+          const active = sec.to === "/" ? pathname === "/" : sec.prefixes.some((p) => matchesPrefix(pathname, p));
           return (
             <Link
               key={sec.key}

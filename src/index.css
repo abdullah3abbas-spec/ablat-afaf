@@ -339,6 +339,8 @@
   /* الهيرو المرسوم — لوحة الرئيسية الكاملة */
   .hero-paint { background: #FDF9F1; min-height: 15rem; }
   @media (min-width: 768px) { .hero-paint { min-height: 19rem; } }
+  .hero-paint--sub { min-height: 11rem; }
+  @media (min-width: 768px) { .hero-paint--sub { min-height: 13.5rem; } }
 
   /* فن الأبواب — اللوحات المائية المولّدة داخل الواجهة (تندمج بالضرب فوق الورق) */
   .door-art {

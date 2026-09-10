@@ -51,6 +51,11 @@ export const SECTIONS: SectionDef[] = [
 
 export const SETTINGS_ICON = Settings;
 
+/** مطابقة على حدود المقاطع — «/class» لا تبتلع «/classes» */
+export function matchesPrefix(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(prefix + "/");
+}
+
 /** عناوين الشاشات حسب أول مقطع من المسار — تُعرض في شريط المسار */
 export const ROUTE_TITLES: Record<string, string> = {
   library: "المكتبة",
@@ -98,7 +103,7 @@ export interface Trail {
 export function locate(pathname: string): Trail | null {
   if (pathname === "/") return null; // الرئيسية لا تحتاج مساراً
   const section =
-    SECTIONS.find((x) => x.prefixes.some((p) => pathname.startsWith(p))) ?? SECTIONS[0];
+    SECTIONS.find((x) => x.prefixes.some((p) => matchesPrefix(pathname, p))) ?? SECTIONS[0];
   const segs = pathname.split("/").filter(Boolean);
   const first = segs[0];
   const label = ROUTE_TITLES[first];

@@ -84,19 +84,19 @@ export default function ClassesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="flex items-center gap-2 font-heading text-2xl font-bold text-maroon">
-          <School className="size-7" aria-hidden />
-          {s.classes.title}
-        </h1>
-        <span className="flex items-center gap-3">
+      <section className="hero-paint hero-paint--sub relative isolate overflow-hidden rounded-[24px] border border-line/80 shadow-lift">
+        <img aria-hidden src="/app-art/hero-students.jpg" alt="" className="absolute inset-0 h-full w-full object-cover object-left mix-blend-multiply" onError={(e) => e.currentTarget.remove()} />
+        <div className="relative flex flex-col items-start gap-3 px-6 py-7 md:w-[64%] md:px-10 md:py-9">
+          <h1 className="flex items-center gap-2 font-heading text-3xl font-extrabold text-green-dark md:text-4xl">
+            <School className="size-8" aria-hidden />
+            {s.classes.title}
+          </h1>
           <button type="button" onClick={() => { setName(""); setAdding(true); }} className="btn-primary">
             <Plus className="size-5" aria-hidden />
             {s.classes.addClass}
           </button>
-          <img src="/app-art/door-students.jpg" alt="" className="door-art -my-4 hidden sm:block" onError={(e) => e.currentTarget.remove()} />
-        </span>
-      </div>
+        </div>
+      </section>
 
       {cards === undefined ? (
         <p className="card text-ink-soft">{s.common.loading}</p>
