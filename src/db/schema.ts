@@ -848,8 +848,8 @@ export interface LessonPackRecord extends Timestamped, SoftDeletable {
 /** أصل فني مولّد (رسمة درس…) — Data URL محلية، لا شيء يغادر الجهاز */
 export interface ArtAsset extends Timestamped {
   id?: number;
-  /** نوع الأصل — حالياً «lessonArt» */
-  kind: "lessonArt";
+  /** نوع الأصل: رسمة درس أو رسمة شريحة */
+  kind: "lessonArt" | "slideArt";
   /** رمز الدرس «1.1» */
   code: string;
   dataUrl: string;

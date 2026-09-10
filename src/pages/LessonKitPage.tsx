@@ -80,7 +80,7 @@ export default function LessonKitPage() {
     setArtPreview(false);
     setArtBusy(true);
     try {
-      const r = await generateImage(artPrompt, { style: "flat", aspect: "4:3" });
+      const r = await generateImage(artPrompt, { style: "flat", aspect: "4:3", fresh: true });
       await saveLessonArt(lesson.code, r.dataUrl);
       show(s.lessonArt.done);
     } catch (e) {

@@ -99,7 +99,7 @@ export default function CertificatesPage() {
     setGenPreview(false);
     setGenBusy(true);
     try {
-      const r = await generateImage(genBgPrompt, { style: "watercolor", aspect: "3:2" });
+      const r = await generateImage(genBgPrompt, { style: "watercolor", aspect: "3:2", fresh: true });
       setEdCustomBg(r.dataUrl);
       setEdBg("custom");
       show(s.certs.genBgDone);

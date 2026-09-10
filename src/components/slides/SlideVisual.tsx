@@ -95,9 +95,10 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
       <span aria-hidden className={"pointer-events-none absolute -bottom-8 -start-8 select-none opacity-[0.06] " + (p ? "text-[10rem]" : "text-6xl")}>{emoji}</span>
 
       <div className={"relative space-y-4 " + (p ? "p-8" : "p-4")}>
-        {/* النقاط — بطاقات بعلامات ملوّنة */}
+        {/* النقاط — نص + منطقة فنية جانبية (صورة مولّدة أو بطاقة رمز مرحة) */}
         {slide.bullets && slide.bullets.length > 0 && (
-          <ul className={"space-y-3 text-start " + (p ? "text-3xl leading-relaxed" : "text-sm")}>
+          <div className={"flex items-center " + (p ? "gap-8" : "gap-3")}>
+          <ul className={"min-w-0 flex-1 space-y-3 text-start " + (p ? "text-3xl leading-relaxed" : "text-sm")}>
             {slide.bullets.map((b, i) => (
               <li key={i} className={"flex items-start gap-3 rounded-card px-4 py-2 " + accent.soft}>
                 {slide.layout === "objectives" ? (
@@ -111,6 +112,20 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
               </li>
             ))}
           </ul>
+          {slide.image?.dataUrl ? (
+            <div className={"relative shrink-0 rotate-2 bg-white shadow-card " + (p ? "p-2.5 pb-7" : "p-1 pb-3")}>
+              <span aria-hidden className={"absolute start-1/2 top-0 -translate-x-1/2 -translate-y-1/2 -rotate-3 bg-gold/40 " + (p ? "h-4 w-20" : "h-2 w-8")} />
+              <img src={slide.image.dataUrl} alt="" onError={(e) => ((e.currentTarget.parentElement as HTMLElement).style.display = "none")}
+                className={"object-cover " + (p ? "h-56 w-72 lg:h-64 lg:w-80" : "h-16 w-20")} />
+            </div>
+          ) : (
+            <div aria-hidden className={"relative grid shrink-0 select-none place-items-center overflow-hidden rounded-card border-2 border-line bg-cream " + (p ? "size-56 lg:size-64" : "size-16")}>
+              <img src="/report-art/sprig.jpg" alt="" className={"pointer-events-none absolute -start-4 -top-4 rotate-180 opacity-80 mix-blend-multiply " + (p ? "w-32" : "w-9")} onError={(e) => e.currentTarget.remove()} />
+              <span className={p ? "text-[7rem] drop-shadow-sm lg:text-[8rem]" : "text-3xl"}>{emoji}</span>
+              <span className={"absolute bottom-2 end-3 " + (p ? "text-2xl" : "text-[10px]")}>✨</span>
+            </div>
+          )}
+          </div>
         )}
 
         {/* مقارنة — جدول مصمَّم */}
@@ -193,7 +208,7 @@ export default function SlideVisual({ slide, variant, index = 0, answerRevealed,
         )}
 
         {/* صورة توليدية معتمَدة — من محتوى الوزارة، بلا نص داخلها */}
-        {slide.image?.dataUrl && (
+        {slide.image?.dataUrl && !slide.bullets?.length && (
           <img
             src={slide.image.dataUrl}
             alt={slide.image.prompt}

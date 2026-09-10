@@ -14,6 +14,10 @@ import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
 import { useToast } from "@/store/toast";
 import SlideVisual from "@/components/slides/SlideVisual";
+import SendPreviewDialog from "@/components/SendPreviewDialog";
+import { saveArt, useArtStore } from "@/lib/artStore";
+import { generateImage } from "@/lib/aiClient";
+import { Sparkles } from "lucide-react";
 import ExportBar from "@/components/slides/ExportBar";
 
 export default function LessonShowPage() {
@@ -31,10 +35,53 @@ export default function LessonShowPage() {
     [lesson?.id]
   );
 
-  const built = useMemo(
+  const builtRaw = useMemo(
     () => (lesson?.code && bank ? buildLessonShow(lesson.code, bank) : undefined),
     [lesson?.code, bank]
   );
+  const slideArtMap = useArtStore((x) => x.slideArt);
+  const built = useMemo(() => {
+    if (!builtRaw || !lesson?.code) return builtRaw;
+    return {
+      ...builtRaw,
+      slides: builtRaw.slides.map((s2, i) => {
+        if (s2.image?.dataUrl?.startsWith("data:")) return s2;
+        const stored = slideArtMap[`${lesson.code}#${i}`];
+        return stored ? { ...s2, image: { prompt: s2.title, dataUrl: stored } } : s2;
+      }),
+    };
+  }, [builtRaw, lesson?.code, slideArtMap]);
+
+  // ── توليد صور كل الشرائح دفعة واحدة (موافقة واحدة، حفظ دائم) ──
+  const [imgsPreview, setImgsPreview] = useState(false);
+  const [imgsBusy, setImgsBusy] = useState<{ done: number; total: number } | null>(null);
+  const imgTargets = useMemo(() => {
+    if (!builtRaw || !lesson?.code) return [];
+    return builtRaw.slides
+      .map((s2, i) => ({ s2, i }))
+      .filter(({ s2, i }) => s2.layout !== "cover" && s2.bullets?.length && !slideArtMap[`${lesson.code}#${i}`])
+      .map(({ s2, i }) => ({
+        i,
+        prompt: `مشهد واحد يوضّح للأطفال «${s2.title}»${s2.bullets?.[0] ? `: ${s2.bullets[0]}` : ""} — مشهد قصصي واحد متصل، من غير تقسيم الصورة لأقسام، ومن غير أي لافتات أو أشرطة أو كلمات مرسومة.`,
+      }));
+  }, [builtRaw, lesson?.code, slideArtMap]);
+
+  async function generateSlideImagesApproved() {
+    if (!lesson?.code) return;
+    setImgsPreview(false);
+    setImgsBusy({ done: 0, total: imgTargets.length });
+    for (const t2 of imgTargets) {
+      try {
+        const r = await generateImage(t2.prompt, { style: "flat", aspect: "4:3", fresh: true });
+        await saveArt("slideArt", `${lesson.code}#${t2.i}`, r.dataUrl);
+      } catch {
+        // نكمل الباقي — الشرائح الناقصة تحتفظ ببطاقة الرمز المرحة
+      }
+      setImgsBusy((b) => (b ? { ...b, done: b.done + 1 } : b));
+    }
+    setImgsBusy(null);
+    show(s.lessonShow.imagesDone);
+  }
 
   const [idx, setIdx] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -98,6 +145,17 @@ export default function LessonShowPage() {
             <Download className="size-5 rotate-180" aria-hidden />
             {s.lessonShow.editInStudio}
           </button>
+          {imgTargets.length > 0 && (
+            <button
+              type="button"
+              disabled={imgsBusy !== null}
+              onClick={() => setImgsPreview(true)}
+              className="flex min-h-touch items-center gap-1.5 rounded-card px-2.5 text-sm font-bold text-gold-dark transition-colors hover:bg-gold-bg disabled:opacity-60"
+            >
+              <Sparkles className="size-5" aria-hidden />
+              {imgsBusy ? s.lessonShow.imagesBusy(imgsBusy.done + 1, imgsBusy.total) : s.lessonShow.imagesButton}
+            </button>
+          )}
           <Link to="/" className="flex min-h-touch items-center gap-2 rounded-card px-3 text-ink-soft hover:bg-cream hover:text-ink">
             <Home className="size-5" aria-hidden />
             {s.common.home}
@@ -189,6 +247,15 @@ export default function LessonShowPage() {
           ))}
         </div>
       </footer>
+      {imgsPreview && (
+        <SendPreviewDialog
+          kind="generation"
+          title={s.lessonShow.imagesTitle}
+          content={imgTargets.map((x, n) => `${n + 1}) ${x.prompt}`).join("\n")}
+          onApproved={() => void generateSlideImagesApproved()}
+          onClose={() => setImgsPreview(false)}
+        />
+      )}
     </div>
   );
 }

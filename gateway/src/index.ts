@@ -540,7 +540,7 @@ export default {
 
     // توليد صورة تعليمية من محتوى الوزارة (استوديو المخرجات)
     if (request.method === "POST" && url.pathname === "/api/generate-image") {
-      let body: { prompt?: string; style?: string; aspect?: string };
+      let body: { prompt?: string; style?: string; aspect?: string; fresh?: boolean };
       try {
         body = (await request.json()) as typeof body;
       } catch {
@@ -562,8 +562,10 @@ export default {
       const prompt = `صورة بلا أي نصوص: ${raw}\n${styleSuffix}`;
 
       const key = "img:" + (await cacheKeyOf({ prompt, aspect }));
-      const cached = await env.USAGE.get(key);
-      if (cached) return json({ ...(JSON.parse(cached) as object), cached: true }, 200, cors);
+      if (!body.fresh) {
+        const cached = await env.USAGE.get(key);
+        if (cached) return json({ ...(JSON.parse(cached) as object), cached: true }, 200, cors);
+      }
 
       // سلسلة المزوّدين: Gemini (نانو بانانا) أولاً إن ضُبط نموذجه، ثم OpenAI
       const geminiUse = await usageOf(env, "gemini", nowMs);

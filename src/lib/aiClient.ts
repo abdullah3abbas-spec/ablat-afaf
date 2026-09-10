@@ -167,11 +167,11 @@ export interface ImageResult {
  */
 export async function generateImage(
   prompt: string,
-  opts?: { style?: "flat" | "watercolor"; aspect?: "1:1" | "16:9" | "21:9" | "3:2" | "4:3" }
+  opts?: { style?: "flat" | "watercolor"; aspect?: "1:1" | "16:9" | "21:9" | "3:2" | "4:3"; fresh?: boolean }
 ): Promise<ImageResult> {
   const res = await gatewayFetch("/api/generate-image", {
     method: "POST",
-    body: JSON.stringify({ prompt, style: opts?.style ?? "flat", aspect: opts?.aspect ?? "1:1" }),
+    body: JSON.stringify({ prompt, style: opts?.style ?? "flat", aspect: opts?.aspect ?? "1:1", fresh: opts?.fresh ?? false }),
   });
   return (await res.json()) as ImageResult;
 }
