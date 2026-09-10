@@ -150,45 +150,57 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-6">
-      {/* التحية — رأس محتوى هادئ، الهوية يحملها الإطار لا الصناديق */}
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-3xl font-bold text-ink md:text-4xl">{greeting}</h1>
-          <p className="mt-1 text-lg text-ink-soft">
+      {/* ═══ الهيرو المرسوم — لوحة مائية كاملة تحمل التحية وقرار اليوم ═══ */}
+      <section className="hero-paint relative isolate overflow-hidden rounded-[24px] border border-line/80 shadow-lift">
+        <img
+          aria-hidden
+          src="/app-art/hero-home.jpg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-left mix-blend-multiply"
+          onError={(e) => e.currentTarget.remove()}
+        />
+        <div className="relative flex flex-col items-start gap-4 px-6 py-8 md:w-[64%] md:px-10 md:py-12">
+          <h1 className="font-heading text-3xl font-extrabold leading-snug text-ink md:text-5xl">{greeting}</h1>
+          <p className="text-lg text-ink-soft md:text-xl">
             {empty
               ? s.home.emptyTitle
               : data
                 ? s.home.summaryLine(fmtNum(3, numerals), fmtNum(data.studentsCount, numerals))
                 : s.common.loading}
           </p>
+          {empty ? (
+            <button type="button" onClick={() => void reseedDemo()} className="btn-secondary">
+              <RefreshCw className="size-5" aria-hidden />
+              {s.home.emptyAction}
+            </button>
+          ) : (
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <Link
+                to={todayLesson ? `/show?lesson=${todayLesson.lesson.id}` : "/library"}
+                className="btn-primary min-h-[56px] px-7 text-xl"
+              >
+                <Play className="size-7" aria-hidden />
+                {s.today.startToday}
+              </Link>
+              <button type="button" onClick={() => void handleWeekBundle()} className="btn-secondary min-h-[56px] bg-white/80">
+                <Printer className="size-5" aria-hidden />
+                {s.today.weekBundle}
+              </button>
+            </div>
+          )}
+          {!empty && (
+            <p className="rounded-pill bg-white/75 px-4 py-1.5 text-base font-medium text-ink-soft">
+              {todayLesson ? s.today.startTodayHint(todayLesson.lesson.title) : s.today.startTodayEmpty}
+            </p>
+          )}
         </div>
-        {empty ? (
-          <button type="button" onClick={() => void reseedDemo()} className="btn-secondary">
-            <RefreshCw className="size-5" aria-hidden />
-            {s.home.emptyAction}
-          </button>
-        ) : (
-          <img src="/app-art/door-today.jpg" alt="" className="door-art -my-3" onError={(e) => e.currentTarget.remove()} />
-        )}
-      </header>
+      </section>
 
       <div className="grid items-start gap-5 lg:grid-cols-3">
         {/* العمود الرئيسي — مجرى العمل */}
         <div className="space-y-5 lg:col-span-2">
           {/* الإجراءات الرئيسية — ثلاثة قرارات لا أكثر */}
           <section aria-label={s.a11y.primaryActions} className="space-y-3">
-            <Link
-              to={todayLesson ? `/show?lesson=${todayLesson.lesson.id}` : "/library"}
-              className="btn-primary w-full flex-col gap-1 min-h-[92px]"
-            >
-              <span className="flex items-center gap-2 text-2xl font-bold">
-                <Play className="size-8" aria-hidden />
-                {s.today.startToday}
-              </span>
-              <span className="text-base font-medium text-white/85">
-                {todayLesson ? s.today.startTodayHint(todayLesson.lesson.title) : s.today.startTodayEmpty}
-              </span>
-            </Link>
 
             <div className="grid grid-cols-2 gap-3">
               <Link
