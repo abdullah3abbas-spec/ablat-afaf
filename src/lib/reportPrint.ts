@@ -12,6 +12,7 @@ import { bookLessonByCode, type BookLessonMeta } from "@/content/bookG05S1P1";
 import { WS_PANELS } from "@/content/wsActivities";
 import { printHtml } from "./sheetPrint";
 import { getBrand } from "@/lib/brand";
+import { lessonArtUrl } from "@/lib/kidTheme";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (x) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[x]!);
 
@@ -255,7 +256,8 @@ export function bankWorksheetHtml(
 ): string {
   const lesson = meta.lessonCode ? bookLessonByCode(meta.lessonCode)?.lesson : undefined;
   const panel = meta.lessonCode ? WS_PANELS[meta.lessonCode] : undefined;
-  const lessonTitle = meta.title.replace(/^ورقة عمل:\s*/, "");
+  const rawTitle = meta.title.replace(/^ورقة عمل:?\s*/, "").trim();
+  const lessonTitle = rawTitle || lesson?.title || meta.unitName;
 
   const fillbank = questions.filter((q) => q.type === "fillblank");
   const tf = questions.filter((q) => q.type === "truefalse");
@@ -344,7 +346,7 @@ export function bankWorksheetHtml(
     ${identityFooter(meta.title)}
     <img class="ws-letterhead" src="${getBrand().letterheadUrl}" alt="${esc(getBrand().schoolName)} — وزارة التربية والتعليم والتعليم العالي"/>
     <div class="ws-fields"><span class="grow">الاسم: ${withAnswers ? "<b>نسخة الإجابات — للمعلّمة</b>" : ""}</span><span>الصف: ${esc("")}</span><span>التاريخ:</span></div>
-    <div class="ws-title">ورقة عمل: ${esc(lessonTitle)}</div>
+    <div class="ws-title">${(() => { const a = lessonArtUrl(meta.lessonCode); return a ? `<img class="ws-vignette" src="${a}" alt=""/>` : ""; })()}<span>ورقة عمل: ${esc(lessonTitle)}</span></div>
     ${sections.join("")}
   </body></html>`;
 }
@@ -359,8 +361,10 @@ const WS_CSS = `
   .ws-fields .grow { flex: 1.4; } .ws-fields span { flex: 1; }
   .ws-fields span::after { content: " ........................."; font-weight: 400; color: #555; }
   .ws-fields .grow b { color: #8A1538; } .ws-fields .grow:has(b)::after { content: ""; }
-  .ws-title { text-align: center; font-size: 15.5pt; font-weight: 800; color: #1D3557;
-    border: 0.5mm solid #1D3557; border-radius: 1.5mm; padding: 1.6mm 2mm; margin-bottom: 3mm; }
+  .ws-title { display: flex; align-items: center; justify-content: center; gap: 4mm;
+    text-align: center; font-size: 15.5pt; font-weight: 800; color: #1D3557;
+    border: 0.5mm solid #1D3557; border-radius: 1.5mm; padding: 1.2mm 2mm; margin-bottom: 3mm; }
+  .ws-vignette { height: 11mm; width: 15mm; object-fit: cover; border-radius: 1.5mm; border: 0.3mm solid #C9B98F; }
   .ws-qbar { border: 0.4mm solid #111; border-radius: 1.5mm; padding: 1.6mm 3mm; font-weight: 700; margin: 3.5mm 0 2mm; background: #F6F6F6;
     break-inside: avoid; break-after: avoid; }
   .ws-tf tr, .ws-blanks li { break-inside: avoid; }

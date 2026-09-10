@@ -62,7 +62,7 @@ export default function LessonKitPage() {
     if (!lesson?.code) return "";
     const bk = bookLessonByCode(lesson.code);
     const idea = bk?.lesson.takeaways?.[0] ?? bk?.lesson.objectives?.[0] ?? lesson.title;
-    return `رسمة درس «${lesson.title}» لطالبات الصف الخامس: مشهد واحد واضح يجسّد الفكرة: ${idea}`;
+    return `مشهد واحد من الطبيعة أو الحياة اليومية يجسّد بصرياً هذه الفكرة العلمية: ${idea} — مشهد مصوّر فقط، ليس ملصقاً تعليمياً ولا لوحة شرح.`;
   })();
 
   const artDialog = artPreview && lesson?.code ? (

@@ -554,12 +554,12 @@ export default {
 
       // أسلوبان يفرضهما الخادم — وكلاهما يمنع أي نص داخل الصورة
       // (§ الممنوعات: لا نص عربي مولّداً داخل الصور)
-      const NO_TEXT = "ومن دون أي نص أو حروف أو أرقام داخل الصورة إطلاقاً.";
+      const NO_TEXT = "ومن دون أي نص أو حروف أو أرقام أو عناوين أو ملصقات داخل الصورة إطلاقاً. Absolutely NO text, NO letters, NO words, NO numbers, NO captions, NO labels anywhere in the image. A pictorial SCENE only — NOT a poster, NOT an infographic, NOT a diagram, NOT a chart, NOT a worksheet.";
       const styleSuffix =
         (body.style ?? "flat") === "watercolor"
           ? `أسلوب كتب الأطفال الفاخرة الهادئة بألوان مائية: عاج دافئ، تركواز مغبر، وردي مغبر، ذهبي زيتوني، لمسات خط ذهبي رفيع line art ونجيمات ذهبية دقيقة، مساحات فارغة مريحة، ${NO_TEXT}`
           : `رسم توضيحي تعليمي مسطّح نظيف لأطفال المرحلة الابتدائية، ألوان دافئة هادئة (عنّابي وذهبي وتركوازي فاتحة)، خلفية بسيطة، دقة علمية للمشهد الموصوف فقط، ${NO_TEXT}`;
-      const prompt = `${raw}\n${styleSuffix}`;
+      const prompt = `صورة بلا أي نصوص: ${raw}\n${styleSuffix}`;
 
       const key = "img:" + (await cacheKeyOf({ prompt, aspect }));
       const cached = await env.USAGE.get(key);
