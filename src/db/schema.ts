@@ -78,6 +78,8 @@ export interface CertPrefs {
 export interface Settings extends Timestamped {
   /** تخصيصات محرّر الشهادات لكل قالب (§ تعديل حر من داخل المنصّة) */
   certPrefs?: Record<string, CertPrefs>;
+  /** مواعيد الاختبارات (مفتاح النوع من السياسة ← تاريخ) — قبلها بأسبوعين تُبنى المسودة تلقائياً (§2-د) */
+  examDates?: Record<string, number>;
   /** مفتاح ثابت = 1 — صف واحد دائماً */
   id: 1;
   studentGender: Gender;

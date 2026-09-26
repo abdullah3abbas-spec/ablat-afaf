@@ -71,7 +71,11 @@ export default function TodayPage() {
     const { needsBackupReminder } = await import("@/lib/backup");
     const backupOverdue = await needsBackupReminder(now);
 
-    return { lessons, units, packStatus, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests, backupOverdue };
+    // اختبارات مجدولة خلال أسبوعين — «جاهز، راجعيه فقط» (§2-د)
+    const { upcomingScheduledExams } = await import("@/lib/examAutoPrep");
+    const examsSoon = await upcomingScheduledExams(now);
+
+    return { lessons, units, packStatus, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests, backupOverdue, examsSoon };
   });
 
   const upcoming = (data?.lessons ?? []).slice(0, 3).map((l) => ({
@@ -167,6 +171,7 @@ export default function TodayPage() {
   const alertsCount =
     (data?.warnings.length ?? 0) +
     (data?.dueSoonRequests.length ?? 0) +
+    (data?.examsSoon.length ?? 0) +
     (data?.backupOverdue ? 1 : 0) +
     ((data?.pendingRequests ?? 0) > 0 ? 1 : 0);
 
@@ -343,6 +348,13 @@ export default function TodayPage() {
                     {w.studentId ? (
                       <Link to={`/students/${w.studentId}`} className="hover:underline">{w.message}</Link>
                     ) : w.message}
+                  </li>
+                ))}
+                {data.examsSoon.map((e) => (
+                  <li key={`exam-${e.id}`} className="rounded-card bg-teal-bg px-3 py-2 font-medium text-teal-dark">
+                    <Link to="/exams" className="hover:underline">
+                      {s.today.examSoon(e.title, new Date(e.scheduledFor!).toLocaleDateString("ar", { weekday: "long" }), e.status === "draft")}
+                    </Link>
                   </li>
                 ))}
                 {data.backupOverdue && (

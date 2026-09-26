@@ -74,11 +74,23 @@ export async function seedIfEmpty(): Promise<void> {
     await ensureCurriculumUpToDate();
     await seedQuestionBankIfEmpty();
     await seedPrebuiltPacksIfMissing();
+    await ensureScheduledExamsSafe();
     return;
   }
   await runSeed();
   await seedQuestionBankIfEmpty();
   await seedPrebuiltPacksIfMissing();
+  await ensureScheduledExamsSafe();
+}
+
+/** تجهيز الاختبارات المجدولة (§2-د) — عطلٌ فيه لا يمنع الإقلاع */
+async function ensureScheduledExamsSafe(): Promise<void> {
+  try {
+    const { ensureScheduledExams } = await import("@/lib/examAutoPrep");
+    await ensureScheduledExams();
+  } catch {
+    // تجهيز الاختبار رفاهية إقلاع — لا نكسر فتح المنصّة بسببه
+  }
 }
 
 /** مزامنة شجرة المنهج مع أحدث فهرسة للكتاب — تُضاف الوحدات والدروس الناقصة فقط */

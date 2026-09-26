@@ -70,6 +70,9 @@ export default function SettingsPage() {
         <span className="text-sm font-normal text-ink-soft">{s.policy.subtitle}</span>
       </Link>
 
+      {/* مواعيد الاختبارات — قبل الموعد بأسبوعين تُبنى المسودة تلقائياً (§2-د) */}
+      <ExamDatesSection />
+
       {/* بيانات المدرسة والمعلّمة — تظهر في ترويسات المستندات والتحضير الوزاري */}
       <SchoolIdentitySection />
 
@@ -201,6 +204,58 @@ export default function SettingsPage() {
 
 /** النسخ الاحتياطي والاستعادة (§7 · الأمر ٩) */
 /** هوية المنصّة والمدرسة — «أي أبلة، نفس المميزات»: كل الترويسات والمطبوعات تتبع هذا القسم */
+/** مواعيد الاختبارات (§2-د): تاريخ لكل نوع من أنواع السياسة — لا أنواع مثبّتة في الكود */
+function ExamDatesSection() {
+  const s = useStrings();
+  const show = useToast((x) => x.show);
+  const data = useLiveQuery(async () => {
+    const settings = await db.settings.get(1);
+    const policy = (await db.assessmentPolicy.toArray()).find((p) => p.isActive);
+    // الأنواع التي لها مكوّن درجات (منتصف/نهاية…) هي التي تُجدول — القصيرة تُبنى وقتها
+    const types = (policy?.examTypes ?? []).filter((t) => t.carryToComponentKey);
+    return { examDates: settings?.examDates ?? {}, types };
+  });
+
+  async function setDate(typeKey: string, value: string) {
+    const dateMs = value ? new Date(value + "T08:00:00").getTime() : undefined;
+    const settings = await db.settings.get(1);
+    const examDates = { ...(settings?.examDates ?? {}) };
+    if (dateMs) examDates[typeKey] = dateMs;
+    else delete examDates[typeKey];
+    await db.settings.update(1, { examDates, updatedAt: Date.now() });
+    if (dateMs) {
+      const { ensureScheduledExams } = await import("@/lib/examAutoPrep");
+      const built = await ensureScheduledExams();
+      show(built.length > 0 ? s.settings.examDateSavedBuilt : s.settings.examDateSaved);
+    } else {
+      show(s.settings.examDateSaved);
+    }
+  }
+
+  const toInput = (ms?: number) => (ms ? new Date(ms).toISOString().slice(0, 10) : "");
+
+  if (!data || data.types.length === 0) return null;
+  return (
+    <section className="card space-y-3">
+      <h2 className="font-heading text-xl font-bold">{s.settings.examDates}</h2>
+      <p className="text-ink-soft">{s.settings.examDatesHint}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {data.types.map((t) => (
+          <label key={t.key} className="flex min-h-[48px] items-center gap-3">
+            <span className="min-w-36 font-medium">{t.nameAr}</span>
+            <input
+              type="date"
+              value={toInput(data.examDates[t.key])}
+              onChange={(e) => void setDate(t.key, e.target.value)}
+              className="min-h-[48px] flex-1 rounded-card border-2 border-line px-3 focus:border-teal focus:outline-none"
+            />
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function SchoolIdentitySection() {
   const s = useStrings();
   const show = useToast((x) => x.show);
