@@ -4,7 +4,7 @@
  * أدوات الحصة كلها داخل وضع الفصل — لا نسخ مكررة في صفحات أخرى.
  */
 import { Link } from "react-router-dom";
-import { CheckCircle2, FlaskConical, Presentation } from "lucide-react";
+import { CheckCircle2, FlaskConical, Mic, Presentation } from "lucide-react";
 import { useStrings } from "@/hooks/useStrings";
 
 export default function TeachPage() {
@@ -37,6 +37,20 @@ export default function TeachPage() {
               {item}
             </span>
           ))}
+        </span>
+      </Link>
+
+      {/* ملاحظات ما بعد الحصة صوتياً (§2-ز) */}
+      <Link
+        to="/voice-notes"
+        className="card flex min-h-[88px] items-center gap-4 border-2 border-teal/40 transition-colors hover:bg-teal-bg"
+      >
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-card bg-teal-bg">
+          <Mic className="size-7 text-teal-dark" aria-hidden />
+        </span>
+        <span>
+          <span className="block text-lg font-bold">{s.voiceNotes.title}</span>
+          <span className="text-ink-soft">{s.voiceNotes.cardHint}</span>
         </span>
       </Link>
 

@@ -34,6 +34,7 @@ import ExamResultsPage from "@/pages/ExamResultsPage";
 import DevOcrPage from "@/pages/DevOcrPage";
 import SettingsPage from "@/pages/SettingsPage";
 import TrashPage from "@/pages/TrashPage";
+import VoiceNotesPage from "@/pages/VoiceNotesPage";
 import PolicyPage from "@/pages/PolicyPage";
 import PrepPage from "@/pages/PrepPage";
 import FollowPage from "@/pages/FollowPage";
@@ -84,6 +85,7 @@ const router = createHashRouter([
       { path: "/dev/ocr", element: <DevOcrPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/trash", element: <TrashPage /> },
+      { path: "/voice-notes", element: <VoiceNotesPage /> },
       { path: "/settings/policy", element: <PolicyPage /> },
       { path: "*", element: <Navigate to="/" replace /> },
     ],

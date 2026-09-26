@@ -34,7 +34,7 @@ export const SECTIONS: SectionDef[] = [
   },
   {
     key: "teach", to: "/teach", icon: Presentation,
-    prefixes: ["/teach", "/tools", "/class", "/lab", "/show"],
+    prefixes: ["/teach", "/tools", "/class", "/lab", "/show", "/voice-notes"],
     chip: "bg-maroon-bg text-maroon-dark", solid: "bg-maroon text-white", tint: "text-maroon",
   },
   {
@@ -60,6 +60,7 @@ export function matchesPrefix(pathname: string, prefix: string): boolean {
 export const ROUTE_TITLES: Record<string, string> = {
   library: "المكتبة",
   trash: "سلة الاسترجاع",
+  "voice-notes": "ملاحظات ما بعد الحصة",
   pack: "حزمة الدرس",
   slides: "استوديو العروض",
   ask: "اسألي المنهج",
