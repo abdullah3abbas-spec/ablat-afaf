@@ -17,6 +17,9 @@ async function boot(): Promise<void> {
   await loadBrand();
   await loadArt();
 
+  // إحماء كاش الرسمات في الخلفية — كل شيء يصير متاحاً بلا إنترنت بهدوء
+  void import("@/lib/pwaWarmup").then((m) => m.startArtWarmup());
+
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
       <App />

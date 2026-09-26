@@ -37,6 +37,20 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
+        // الرسمات (jpg ~18م.ب) خارج الـprecache كي يبقى التثبيت الأول خفيفاً؛
+        // تُخزَّن عند أول عرض، والإحماء الخلفي (pwaWarmup) يكمّلها بهدوء
+        // فتصير كلها متاحة بلا إنترنت بعد دقائق من أول فتح.
+        runtimeCaching: [
+          {
+            urlPattern: /\/[\w-]+-art\/.*\.(?:jpe?g|png)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "art-cache",
+              expiration: { maxEntries: 500 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       devOptions: { enabled: false },
     }),
