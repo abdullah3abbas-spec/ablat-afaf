@@ -198,6 +198,12 @@ export default function ClassModePage() {
     setGroups(makeGroups(present, { by: "count", count: teamsCount }));
   }
 
+  // «لا شاشة فارغة أبداً» (§6): فتح تبويب الفرق يوزّع فوراً — والزر لإعادة الخلط
+  useEffect(() => {
+    if (mode === "teams" && groups.length === 0 && pickables.length > 0) regroup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, pickables.length]);
+
   // ── لوحة المفاتيح: أسهم للتنقل ───────────────────────────
   useEffect(() => {
     if (!running) return;
