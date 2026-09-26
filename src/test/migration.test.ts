@@ -68,7 +68,11 @@ describe("ترحيل v10 — المنهج الحقيقي يحل محل التج�
     expect(bank.length).toBe(BOOK_BANK_COUNT);
 
     // حزمة الدرس القديمة باقية في جدولها (يشير درسها المؤرشف — استرجاع ممكن)
-    expect(await db.lessonPacks.count()).toBe(1);
+    // + ١٣ مسودة مشحونة مسبقاً زُرعت لدروس الكتاب (§2-ج)
+    const packs = await db.lessonPacks.toArray();
+    const { PREBUILT_PACKS } = await import("@/content/prebuiltPacks");
+    expect(packs.length).toBe(1 + Object.keys(PREBUILT_PACKS).length);
+    expect(packs.filter((p) => p.status === "draft").length).toBeGreaterThanOrEqual(Object.keys(PREBUILT_PACKS).length);
 
     // الإعدادات لم تُمسّ
     expect((await db.settings.get(1))?.schoolName).toBe("مدرسة الاختبار");

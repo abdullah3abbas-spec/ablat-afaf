@@ -73,10 +73,12 @@ export async function seedIfEmpty(): Promise<void> {
   if (existing?.seeded) {
     await ensureCurriculumUpToDate();
     await seedQuestionBankIfEmpty();
+    await seedPrebuiltPacksIfMissing();
     return;
   }
   await runSeed();
   await seedQuestionBankIfEmpty();
+  await seedPrebuiltPacksIfMissing();
 }
 
 /** مزامنة شجرة المنهج مع أحدث فهرسة للكتاب — تُضاف الوحدات والدروس الناقصة فقط */
@@ -102,6 +104,35 @@ export async function seedQuestionBankIfEmpty(): Promise<void> {
   const lessonByCode = new Map(missing.map((l) => [l.code as string, { id: l.id!, unitId: l.unitId }]));
   const rows = buildBankQuestions(lessonByCode);
   if (rows.length > 0) await db.questions.bulkAdd(rows);
+}
+
+/**
+ * زرع الحزم المبنية مسبقاً مسودّاتٍ — «جاهزة، راجعيها فقط» (§2-ج):
+ * يُستدعى عند كل إقلاع، آمن التكرار: يُزرع للدرس الذي لا يحمل أي حزمة
+ * إطلاقاً (والمحذوفة ناعماً تُحتسب موجودة — فحذف المعلّمة لحزمة لا
+ * يعيد زرعها خلف ظهرها، وتوليدها بنفسها يتقدّم على المشحونة).
+ */
+export async function seedPrebuiltPacksIfMissing(): Promise<void> {
+  const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt && !l.isDemo && l.code);
+  if (lessons.length === 0) return;
+  const withPack = new Set((await db.lessonPacks.toArray()).map((p) => p.lessonId));
+  const { PREBUILT_PACKS } = await import("@/content/prebuiltPacks");
+  const now = Date.now();
+  for (const lesson of lessons) {
+    if (withPack.has(lesson.id!)) continue;
+    const prebuilt = PREBUILT_PACKS[lesson.code as string];
+    if (!prebuilt) continue;
+    await db.lessonPacks.add({
+      lessonId: lesson.id!,
+      title: prebuilt.title,
+      content: prebuilt.pack,
+      status: "draft",
+      sourceNames: prebuilt.sourceNames,
+      generatedBy: prebuilt.generatedBy,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
 }
 
 /** الزرع الفعلي — معاملة واحدة شاملة */

@@ -90,6 +90,12 @@ export default function LessonKitPage() {
     }
   }
   const kit = lesson ? kitByLessonTitle(lesson.title) : undefined;
+  // حالة حزمة الدرس — تقلب دعوة «ولّديها» إلى «جاهزة، راجعيها فقط» حين تكون مزروعة مسبقاً
+  const packState = useLiveQuery(async () => {
+    const list = (await db.lessonPacks.where("lessonId").equals(lessonId).toArray()).filter((p) => !p.deletedAt);
+    if (list.some((p) => p.status === "approved")) return "approved" as const;
+    return list.length > 0 ? ("draft" as const) : null;
+  }, [lessonId]);
   const setLastLesson = useUi((x) => x.setLastLesson);
 
   // «آخر درس عملتِ عليه» — يظهر في مركز اليوم بزر «متابعة»
@@ -108,10 +114,12 @@ export default function LessonKitPage() {
         <div className="space-y-4">
           <EmptyState icon={Presentation} title={s.library.kitMissing} />
           <div className="card space-y-3 border-2 border-teal bg-teal-bg text-center">
-            <p className="font-medium text-teal-dark">{s.pack.emptyLesson}</p>
+            <p className="font-medium text-teal-dark">
+              {packState === "approved" ? s.library.book.packApproved : packState === "draft" ? s.pack.readyDraftLine : s.pack.emptyLesson}
+            </p>
             <Link to={`/pack?lesson=${lessonId}`} className="btn-primary mx-auto">
               <Sparkles className="size-6" aria-hidden />
-              {s.pack.button}
+              {packState ? s.pack.open : s.pack.button}
             </Link>
           </div>
         </div>
@@ -280,13 +288,15 @@ export default function LessonKitPage() {
           </div>
         )}
 
-        {/* حزمة الحصة الكاملة بالذكاء — من صفحات الكتاب نفسها */}
+        {/* حزمة الحصة الكاملة — مزروعة مسبقاً لدروس الكتاب، وتوليدها متاح دائماً */}
         <div className="card space-y-3 border-2 border-teal bg-teal-bg text-center">
-          <p className="font-medium text-teal-dark">{s.pack.emptyLesson}</p>
+          <p className="font-medium text-teal-dark">
+            {packState === "approved" ? s.library.book.packApproved : packState === "draft" ? s.pack.readyDraftLine : s.pack.emptyLesson}
+          </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link to={`/pack?lesson=${lessonId}`} className="btn-primary">
               <Sparkles className="size-6" aria-hidden />
-              {s.pack.button}
+              {packState ? s.pack.open : s.pack.button}
             </Link>
             <button
               type="button"

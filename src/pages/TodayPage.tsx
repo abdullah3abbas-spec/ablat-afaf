@@ -47,6 +47,11 @@ export default function TodayPage() {
       .filter((l) => !l.deletedAt)
       .sort((a, b) => a.unitId - b.unitId || a.order - b.order);
     const units = new Map((await db.units.toArray()).map((u) => [u.id!, u.title]));
+    // حالة حزمة كل درس (معتمدة تتقدّم على المسودة) — الشارات تصدُق مع lessonPacks لا القوالب اليدوية وحدها
+    const packStatus = new Map<number, "approved" | "draft">();
+    for (const p of (await db.lessonPacks.toArray()).filter((x) => !x.deletedAt)) {
+      if (p.status === "approved" || !packStatus.has(p.lessonId)) packStatus.set(p.lessonId, p.status as "approved" | "draft");
+    }
     const allStudents = (await db.students.toArray()).filter((st) => !st.deletedAt);
     const pendingRequests = (await db.studioRequests.toArray()).filter((r) => r.status === "pending").length;
     const anyDemo = allStudents.some((st) => st.isDemo);
@@ -65,13 +70,14 @@ export default function TodayPage() {
     const { needsBackupReminder } = await import("@/lib/backup");
     const backupOverdue = await needsBackupReminder(now);
 
-    return { lessons, units, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests, backupOverdue };
+    return { lessons, units, packStatus, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests, backupOverdue };
   });
 
   const upcoming = (data?.lessons ?? []).slice(0, 3).map((l) => ({
     lesson: l,
     unitTitle: data?.units.get(l.unitId) ?? "",
     kit: kitByLessonTitle(l.title),
+    packStatus: l.id != null ? data?.packStatus.get(l.id) : undefined,
   }));
   const todayLesson = upcoming[0];
 
@@ -256,7 +262,7 @@ export default function TodayPage() {
             </div>
             <p className="text-sm text-ink-soft">{s.today.upcomingHint} · {s.today.weekBundleHint(fmtNum(30, numerals))}</p>
             <ul className="divide-y divide-line">
-              {upcoming.map(({ lesson, unitTitle, kit }) => (
+              {upcoming.map(({ lesson, unitTitle, kit, packStatus }) => (
                 <li key={lesson.id} className="flex flex-wrap items-center gap-3 py-3">
                   <div className="me-auto">
                     <Link to={`/library/${lesson.id}`} className="text-lg font-bold text-teal-dark hover:underline">
@@ -264,11 +270,15 @@ export default function TodayPage() {
                     </Link>
                     <p className="text-sm text-ink-soft">{unitTitle}</p>
                   </div>
-                  {kit ? (
+                  {kit || packStatus === "approved" ? (
                     <span className="flex items-center gap-1 rounded-pill bg-teal-bg px-3 py-1 font-medium text-teal-dark">
                       <CheckCircle2 className="size-5" aria-hidden />
                       {s.today.ready}
                     </span>
+                  ) : packStatus === "draft" ? (
+                    <Link to={`/pack?lesson=${lesson.id}`} className="rounded-pill bg-teal-bg px-3 py-1 font-medium text-teal-dark hover:underline">
+                      {s.library.book.packDraft}
+                    </Link>
                   ) : (
                     <span className="rounded-pill bg-gold-bg px-3 py-1 text-gold-dark">{s.library.kitMissing}</span>
                   )}
