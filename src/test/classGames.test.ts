@@ -262,3 +262,30 @@ describe("buildBingoPool — مراجعة تراكمية على مستوى ال�
     }
   });
 });
+
+describe("محاكيات المختبر — منطق نقي (§2-ج محاكاة لكل وحدة)", () => {
+  test("السلسلة الغذائية: منتج أولاً، لا تكرار، ومن يتغذى على من فقط", async () => {
+    const { canPlace, chainComplete, validNext } = await import("@/lib/labSims");
+    expect(canPlace([], "lion")).toBe(false);
+    expect(canPlace([], "grass")).toBe(true);
+    expect(canPlace(["grass"], "grasshopper")).toBe(true);
+    expect(canPlace(["grass"], "snake")).toBe(false);
+    expect(canPlace(["grass", "grasshopper"], "frog")).toBe(true);
+    expect(canPlace(["grass", "grasshopper", "frog"], "grass")).toBe(false);
+    expect(chainComplete(["grass", "grasshopper", "frog", "snake"])).toBe(true);
+    // عشب←غزال←أسد: لا امتداد بعد الأسد — تكتمل عند ثلاثة
+    expect(validNext(["grass", "gazelle", "lion"])).toEqual([]);
+    expect(chainComplete(["grass", "gazelle", "lion"])).toBe(true);
+    expect(chainComplete(["grass", "grasshopper"])).toBe(false);
+  });
+
+  test("الدائرة: التوالي كل شيء أو لا شيء، والتوازي مسارات مستقلة", async () => {
+    const { litBulbs } = await import("@/lib/labSims");
+    expect(litBulbs({ mode: "series", switchClosed: false, bulbs: [true, true] })).toEqual([false, false]);
+    expect(litBulbs({ mode: "series", switchClosed: true, bulbs: [true, true] })).toEqual([true, true]);
+    expect(litBulbs({ mode: "series", switchClosed: true, bulbs: [true, false] })).toEqual([false, false]);
+    expect(litBulbs({ mode: "parallel", switchClosed: true, bulbs: [true, false] })).toEqual([true, false]);
+    expect(litBulbs({ mode: "parallel", switchClosed: true, bulbs: [true, true] })).toEqual([true, true]);
+    expect(litBulbs({ mode: "parallel", switchClosed: false, bulbs: [true, true] })).toEqual([false, false]);
+  });
+});
