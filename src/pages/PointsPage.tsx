@@ -73,7 +73,13 @@ export default function PointsPage() {
     if (!rule) return;
     const r = await awardPoints(student, rule);
     if (r.ok) {
-      show(s.points.awarded(student.name, fmtNum(r.awarded, numerals)));
+      // §6: زر تراجع ١٠ ثوانٍ — لمسة خاطئة على اسم مجاور تُسحب فوراً
+      show(s.points.awarded(student.name, fmtNum(r.awarded, numerals)), {
+        undo: async () => {
+          if (r.entryId != null) await db.points.delete(r.entryId);
+          setAwardTick((t2) => t2 + 1);
+        },
+      });
     } else {
       show(s.points.capBlocked(student.name), { kind: "info" });
     }
@@ -289,7 +295,13 @@ function RewardsStore({ classId, onChanged }: { classId: number; onChanged: () =
     if (!student || !reward) return;
     const r = await redeemReward(studentId, rewardId);
     if (r.ok) {
-      show(s.points.redeemed(student.name, reward.nameAr));
+      show(s.points.redeemed(student.name, reward.nameAr), {
+        undo: async () => {
+          if (r.redemptionId != null) await db.rewardRedemptions.delete(r.redemptionId);
+          setBalance(await spendableBalance(studentId));
+          onChanged();
+        },
+      });
       setBalance(r.balanceAfter ?? null);
       onChanged();
     } else {

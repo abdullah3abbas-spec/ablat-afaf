@@ -51,7 +51,8 @@ describe("مفاتيح الزمن", () => {
 describe("المنح والسقف الشهري", () => {
   test("منح عادي يسجّل قيداً بقيمة القاعدة", async () => {
     const r = await awardPoints({ id: studentId, classId }, RULE);
-    expect(r).toEqual({ ok: true, awarded: 10 });
+    expect(r).toMatchObject({ ok: true, awarded: 10 });
+    expect(r.entryId).toBeGreaterThan(0);
     expect(await monthlyPoints(studentId, monthKeyOf(Date.now()))).toBe(10);
   });
 
@@ -63,7 +64,7 @@ describe("المنح والسقف الشهري", () => {
     await awardPoints({ id: studentId, classId }, { ...RULE, points: 5 }); // 95
     // منح 10 → يُقص إلى 5
     const clipped = await awardPoints({ id: studentId, classId }, RULE);
-    expect(clipped).toEqual({ ok: true, awarded: 5 });
+    expect(clipped).toMatchObject({ ok: true, awarded: 5 });
     expect(await monthlyPoints(studentId, monthKeyOf(Date.now()))).toBe(cap);
     // أي منح إضافي ممنوع
     const blocked = await awardPoints({ id: studentId, classId }, RULE);

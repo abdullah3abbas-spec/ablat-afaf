@@ -28,6 +28,8 @@ export interface AwardResult {
   awarded: number;
   /** blocked_cap = السقف الشهري ممتلئ */
   reason?: "blocked_cap";
+  /** رقم قيد النقاط — لزر «تراجع» (§6) */
+  entryId?: number;
 }
 
 /** مجموع نقاط طالبة في شهر معيّن (الحيّة فقط) */
@@ -75,7 +77,7 @@ export async function awardPoints(
     toAward = Math.min(toAward, room);
   }
 
-  await db.points.add({
+  const entryId = (await db.points.add({
     studentId: student.id!,
     classId: student.classId,
     delta: toAward,
@@ -85,8 +87,8 @@ export async function awardPoints(
     awardedAt: atMs,
     monthKey: mk,
     createdAt: atMs,
-  });
-  return { ok: true, awarded: toAward };
+  })) as number;
+  return { ok: true, awarded: toAward, entryId };
 }
 
 /** مستوى الطالبة من رصيدها التراكمي — الشرائح بيانات من الإعدادات */
@@ -220,6 +222,8 @@ export interface RedeemResult {
   ok: boolean;
   reason?: "insufficient";
   balanceAfter?: number;
+  /** رقم قيد الصرف — لزر «تراجع» (§6) */
+  redemptionId?: number;
 }
 
 /** صرف مكافأة: يتحقق من الرصيد ويسجّل الصرف (خصم من التراكمي القابل للصرف) */
@@ -229,7 +233,7 @@ export async function redeemReward(studentId: number, rewardId: number): Promise
   const balance = await spendableBalance(studentId);
   if (balance < reward.costPoints) return { ok: false, reason: "insufficient" };
   const now = Date.now();
-  await db.rewardRedemptions.add({
+  const redemptionId = (await db.rewardRedemptions.add({
     studentId,
     rewardId,
     costPoints: reward.costPoints,
@@ -237,8 +241,8 @@ export async function redeemReward(studentId: number, rewardId: number): Promise
     monthKey: monthKeyOf(now),
     status: "redeemed",
     createdAt: now,
-  });
-  return { ok: true, balanceAfter: balance - reward.costPoints };
+  })) as number;
+  return { ok: true, balanceAfter: balance - reward.costPoints, redemptionId };
 }
 
 // ── مكافآت الشهر المحسوبة ────────────────────────────────────
