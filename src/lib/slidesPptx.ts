@@ -6,6 +6,23 @@
  * الشريحة — تذهب لملاحظات المتحدّث مع ملاحظات المعلّمة والمصدر.
  */
 import type { Presentation, VisualSlide } from "@/db/schema";
+import { getBrand } from "@/lib/brand";
+
+/** تحويل مسار صورة ثابت إلى Data URL — الصور المولّدة تأتي Data URL أصلاً */
+async function toDataUrl(src: string): Promise<string | null> {
+  if (src.startsWith("data:")) return src;
+  try {
+    const blob = await (await fetch(src)).blob();
+    return await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
 
 const MAROON = "A34460";
 const MAROON_DEEP = "4A091D";
@@ -85,6 +102,15 @@ export async function buildSlidesPptx(p: Presentation, schoolName: string): Prom
   const rtl = { fontFace: "Arial", rtlMode: true } as const;
   const total = p.slides.length;
 
+  // تجهيز صور الشرائح (بولارويد جانب النقاط) — الثابتة تُجلب والمولّدة جاهزة
+  const imageData = new Map<string, string>();
+  await Promise.all(
+    [...new Set(p.slides.map((sl) => sl.image?.dataUrl).filter((u): u is string => Boolean(u)))].map(async (u) => {
+      const d = await toDataUrl(u);
+      if (d) imageData.set(u, d);
+    })
+  );
+
   p.slides.forEach((sl, idx) => {
     const slide = pres.addSlide();
 
@@ -97,7 +123,7 @@ export async function buildSlidesPptx(p: Presentation, schoolName: string): Prom
       addEmblem(slide, W / 2, 1.05, 0.9);
       slide.addText(sl.title, { x: 0.5, y: 1.7, w: W - 1, h: 1.7, align: "center", fontSize: 42, bold: true, color: "FFFFFF", ...rtl });
       slide.addShape("rect" as Parameters<Slide["addShape"]>[0], { x: W / 2 - 1.1, y: 3.42, w: 2.2, h: 0.05, fill: { color: GOLD } });
-      slide.addText(`العلوم — المستوى الخامس · ${schoolName}`, { x: 0.5, y: 3.6, w: W - 1, h: 0.55, align: "center", fontSize: 17, color: GOLD_SOFT, ...rtl });
+      slide.addText(`${getBrand().subjectName} — المستوى الخامس · ${schoolName}`, { x: 0.5, y: 3.6, w: W - 1, h: 0.55, align: "center", fontSize: 17, color: GOLD_SOFT, ...rtl });
       // صف سدو سفلي للغلاف
       slide.addShape("rect" as Parameters<Slide["addShape"]>[0], { x: 0, y: H - 0.2, w: W, h: 0.2, fill: { color: MAROON_DEEP } });
       slide.addText("◆".repeat(72), { x: 0, y: H - 0.26, w: W, h: 0.26, align: "center", fontSize: 7, color: GOLD, charSpacing: 6, fontFace: "Arial" });
@@ -109,12 +135,29 @@ export async function buildSlidesPptx(p: Presentation, schoolName: string): Prom
     let y = addTitle(slide, sl.title, rtl);
 
     if (sl.bullets?.length) {
+      const art = sl.image?.dataUrl ? imageData.get(sl.image.dataUrl) : undefined;
       const h = Math.min(3.4, 0.52 * sl.bullets.length + 0.25);
-      slide.addText(
-        sl.bullets.map((b) => ({ text: b, options: { bullet: { code: "25C6", color: GOLD }, breakLine: true, paraSpaceAfter: 8 } })),
-        { x: 0.7, y, w: W - 1.5, h, align: "right", fontSize: 19, color: INK, valign: "top", ...rtl }
-      );
-      y += h + 0.15;
+      if (art) {
+        // بولارويد يسار النقاط — كما في العرض داخل المنصّة تماماً
+        const fw = 3.1, fh = 2.75, fx = 0.55, fy = Math.max(y, 1.45);
+        slide.addShape("rect" as Parameters<Slide["addShape"]>[0], {
+          x: fx, y: fy, w: fw, h: fh, fill: { color: "FFFFFF" }, line: { color: LINE, width: 1 }, rotate: -3,
+          shadow: { type: "outer", color: MAROON_DEEP, opacity: 0.22, blur: 8, offset: 3, angle: 90 },
+        });
+        slide.addImage({ data: art, x: fx + 0.14, y: fy + 0.14, w: fw - 0.28, h: fh - 0.62, rotate: -3 });
+        slide.addShape("rect" as Parameters<Slide["addShape"]>[0], { x: fx + fw / 2 - 0.35, y: fy - 0.12, w: 0.7, h: 0.24, fill: { color: "E5C98F", transparency: 30 }, rotate: -3 });
+        slide.addText(
+          sl.bullets.map((b) => ({ text: b, options: { bullet: { code: "25C6", color: GOLD }, breakLine: true, paraSpaceAfter: 8 } })),
+          { x: fx + fw + 0.3, y, w: W - fw - fx - 1.1, h: Math.min(3.6, h + 0.4), align: "right", fontSize: 18, color: INK, valign: "top", ...rtl }
+        );
+        y = Math.max(y + h, fy + fh) + 0.15;
+      } else {
+        slide.addText(
+          sl.bullets.map((b) => ({ text: b, options: { bullet: { code: "25C6", color: GOLD }, breakLine: true, paraSpaceAfter: 8 } })),
+          { x: 0.7, y, w: W - 1.5, h, align: "right", fontSize: 19, color: INK, valign: "top", ...rtl }
+        );
+        y += h + 0.15;
+      }
     }
 
     if (sl.comparison) {
