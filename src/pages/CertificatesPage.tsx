@@ -197,7 +197,7 @@ export default function CertificatesPage() {
           <Award className="size-7" aria-hidden />
           {s.certs.title}
         </h1>
-        <p className="mt-1 text-ink-soft">{s.certs.subtitle}</p>
+        <p className="mt-1 text-ink-soft">{s.certs.subtitle(fmtNum(CERT_TEMPLATES.length, numerals))}</p>
       </div>
 
       {/* القوالب الخمسة */}
