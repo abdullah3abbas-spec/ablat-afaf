@@ -187,3 +187,78 @@ describe("buildGamePool — كل درس من الكتاب يشغّل كل الأ
     expect(new Set(terms).size).toBe(terms.length);
   });
 });
+
+describe("الألعاب الثلاث الجديدة — بينجو وصح/خطأ بالحركة ولغز اليوم", () => {
+  const rnd2 = () => 0.3;
+  const defs = Array.from({ length: 8 }, (_, i) =>
+    defineQ(100 + i, `عرّفي المصطلح${i}.`, `تعريف المصطلح رقم ${i} كما ورد في كتاب الطالبة المقرر`)
+  );
+
+  function tfQ(id: number, text: string, answer: string): Question {
+    return {
+      id, unitId: 1, lessonId: 1, text, type: "truefalse", answerKey: answer,
+      marks: 1, difficulty: "easy", cognitiveLevel: "remember", usageCount: 0,
+      createdAt: 0, updatedAt: 0,
+    } as Question;
+  }
+
+  it("بينجو: ١٢ مصطلحاً كحد أقصى، النداءات تغطي كل المصطلحات، وnull تحت ٦ أزواج", async () => {
+    const { buildBingo } = await import("@/lib/classGames");
+    const b = buildBingo(defs, rnd2)!;
+    expect(b).not.toBeNull();
+    expect(b.terms.length).toBe(8);
+    expect(new Set(b.calls.map((c) => c.a))).toEqual(new Set(b.terms));
+    expect(buildBingo(defs.slice(0, 4), rnd2)).toBeNull();
+  });
+
+  it("صح وخطأ بالحركة: يفكّ الحكم والتصويب من إجابة البنك", async () => {
+    const { buildTrueFalseRounds } = await import("@/lib/classGames");
+    const rounds = buildTrueFalseRounds(
+      [
+        tfQ(1, "الغزال من آكلات العشب.", "صواب"),
+        tfQ(2, "الفهد من القوارت.", "خطأ — التصويب: الفهد من آكلات اللحوم لأنه يصطاد فرائسه"),
+        tfQ(3, "تبدأ السلاسل بالنبات.", "صح"),
+      ],
+      rnd2
+    );
+    expect(rounds.length).toBe(3);
+    const wrong = rounds.find((r) => !r.isTrue)!;
+    expect(wrong.correction).toContain("آكلات اللحوم");
+    const right = rounds.filter((r) => r.isTrue);
+    expect(right.length).toBe(2);
+    for (const r of right) expect(r.correction).toBeUndefined();
+  });
+
+  it("لغز اليوم: حتمي لليوم الواحد ويتغيّر بتغيّر اليوم", async () => {
+    const { dailyPuzzle } = await import("@/lib/classGames");
+    const day1 = new Date(2026, 8, 26, 9).getTime();
+    const sameDay = new Date(2026, 8, 26, 13).getTime();
+    const a = dailyPuzzle(defs, day1)!;
+    expect(a).not.toBeNull();
+    expect(dailyPuzzle(defs, sameDay)!.a).toBe(a.a);
+    const others = Array.from({ length: 7 }, (_, i) => dailyPuzzle(defs, day1 + (i + 1) * 86400000)!.a);
+    expect(new Set([a.a, ...others]).size).toBeGreaterThan(1);
+  });
+});
+
+describe("buildBingoPool — مراجعة تراكمية على مستوى الوحدة", () => {
+  it("مع بنك الكتاب الحقيقي: كل درس يعطي بينجو صالحاً (≥6 مصطلحات فريدة)", async () => {
+    const { buildBankQuestions } = await import("@/content/questionBank");
+    const { BOOK_UNITS } = await import("@/content/bookG05S1P1");
+    const { buildBingo, buildBingoPool } = await import("@/lib/classGames");
+    let id = 1;
+    const lessonMap = new Map<string, { id: number; unitId: number }>();
+    for (const [u, unit] of BOOK_UNITS.entries())
+      for (const lesson of unit.lessons) lessonMap.set(lesson.code, { id: id++, unitId: u + 1 });
+    const all = buildBankQuestions(lessonMap).map((q, i) => ({ ...q, id: 1000 + i })) as Question[];
+    for (const [code, ids] of lessonMap) {
+      const pool = buildBingoPool(all, ids.unitId, code);
+      const b = buildBingo(pool, () => 0.4);
+      expect(b, `درس ${code}: بينجو غير صالح`).not.toBeNull();
+      expect(b!.terms.length, `درس ${code}`).toBeGreaterThanOrEqual(6);
+      const norm = (await import("@/lib/classGames")).normalizeTerm;
+      const normed = b!.terms.map(norm);
+      expect(new Set(normed).size, `درس ${code}: مصطلحات متكررة بعد التوحيد`).toBe(normed.length);
+    }
+  });
+});

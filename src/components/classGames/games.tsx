@@ -6,13 +6,16 @@
  * Feedback يشرح، وكل شيء بخط ضخم لشاشة البروجكتور، بلا إنترنت.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Eye, Link2, RotateCcw, Shuffle } from "lucide-react";
+import { Eye, Link2, Play, RotateCcw, Shuffle } from "lucide-react";
 import type { Question } from "@/db/schema";
 import {
+  buildBingo,
   buildClues,
   buildMemoryCards,
   buildOrderGame,
   buildPairs,
+  buildTrueFalseRounds,
+  dailyPuzzle,
   type GamePair,
   type MemoryCard,
 } from "@/lib/classGames";
@@ -306,6 +309,180 @@ export function WhoAmIGame({ questions, onExit }: { questions: Question[]; onExi
             className="btn mx-auto min-h-[56px] bg-gold px-8 text-xl font-bold text-ink hover:bg-gold-dark hover:text-white"
           >
             {s.games.nextRound}
+          </button>
+        </>
+      ) : (
+        <div className="flex flex-wrap justify-center gap-3">
+          {clueIdx < clues.length - 1 && (
+            <button type="button" onClick={() => setClueIdx((i) => i + 1)} className="btn min-h-[56px] border-2 border-white/30 bg-transparent px-6 text-xl text-white hover:bg-white/10">
+              <Link2 className="size-6" aria-hidden />
+              {s.games.nextClue}
+            </button>
+          )}
+          <button type="button" onClick={() => setRevealed(true)} className="btn min-h-[56px] bg-teal px-6 text-xl font-bold text-white hover:bg-teal-dark">
+            <Eye className="size-6" aria-hidden />
+            {s.games.revealTerm}
+          </button>
+        </div>
+      )}
+      <BackRow onExit={onExit} label={s.games.back} />
+    </div>
+  );
+}
+
+// ═══════════ ٥) بينجو المصطلحات ═══════════
+
+export function BingoGame({ questions, onExit }: { questions: Question[]; onExit: () => void }) {
+  const s = useStrings();
+  const numerals = useUi((x) => x.numeralsTable);
+  const [seed, setSeed] = useState(0);
+  const data = useMemo(() => buildBingo(questions), [questions, seed]);
+  const [phase, setPhase] = useState<"setup" | "play">("setup");
+  const [callIdx, setCallIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+
+  if (!data) return (
+    <div className="space-y-6"><p className="text-3xl text-white/70">{s.games.needDefine(fmtNum(6, numerals))}</p><BackRow onExit={onExit} label={s.games.back} /></div>
+  );
+
+  const called = new Set(data.calls.slice(0, callIdx + (revealed ? 1 : 0)).map((c) => c.a));
+  const call = data.calls[callIdx];
+  const gameOver = callIdx >= data.calls.length;
+
+  return (
+    <div className="w-full max-w-5xl space-y-6">
+      <h3 className="font-heading text-4xl font-bold text-gold">{s.games.bingo} 🎯</h3>
+
+      {phase === "setup" ? (
+        <>
+          <p className="rounded-card border-2 border-gold/50 bg-gold/10 p-4 text-2xl leading-relaxed">{s.games.bingoSetup(fmtNum(6, numerals))}</p>
+          <div className="grid grid-cols-3 gap-3 lg:grid-cols-4">
+            {data.terms.map((t) => (
+              <span key={t} className="flex min-h-[72px] items-center justify-center rounded-card border-2 border-teal/60 bg-teal/15 p-2 text-center text-2xl font-bold">{t}</span>
+            ))}
+          </div>
+          <button type="button" onClick={() => setPhase("play")} className="btn mx-auto min-h-[64px] bg-gold px-10 text-2xl font-bold text-ink hover:bg-gold-dark hover:text-white">
+            <Play className="size-7" aria-hidden />
+            {s.games.bingoStart}
+          </button>
+        </>
+      ) : gameOver ? (
+        <Celebrate text={s.games.bingoDone} onAgain={() => { setSeed((x) => x + 1); setPhase("setup"); setCallIdx(0); setRevealed(false); }} againLabel={s.games.again} />
+      ) : (
+        <>
+          <p className="text-xl text-white/60">{s.games.bingoCall(fmtNum(callIdx + 1, numerals), fmtNum(data.calls.length, numerals))} · {s.games.bingoHint}</p>
+          <div className="rounded-card border-2 border-white/25 p-6 text-center text-4xl leading-relaxed">{call.b}</div>
+          {revealed ? (
+            <>
+              <p className="text-center font-heading text-6xl font-bold text-gold motion-safe:animate-[pop_.3s_ease]">{call.a}</p>
+              <button type="button" onClick={() => { setCallIdx((i) => i + 1); setRevealed(false); }} className="btn mx-auto min-h-[56px] bg-gold px-8 text-xl font-bold text-ink hover:bg-gold-dark hover:text-white">
+                {s.games.nextRound}
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => setRevealed(true)} className="btn mx-auto min-h-[56px] bg-teal px-8 text-xl font-bold text-white hover:bg-teal-dark">
+              <Eye className="size-6" aria-hidden />
+              {s.games.revealTerm}
+            </button>
+          )}
+          {/* لوحة الكلمات المصغّرة — المشطوب مضاء */}
+          <div className="flex flex-wrap justify-center gap-2">
+            {data.terms.map((t) => (
+              <span key={t} className={"rounded-pill border-2 px-3 py-1 text-lg " + (called.has(t) ? "border-ok bg-ok/20 text-white line-through" : "border-white/25 text-white/70")}>{t}</span>
+            ))}
+          </div>
+        </>
+      )}
+      <BackRow onExit={onExit} label={s.games.back} />
+    </div>
+  );
+}
+
+// ═══════════ ٦) صح وخطأ بالحركة ═══════════
+
+export function TrueFalseMotionGame({ questions, onExit }: { questions: Question[]; onExit: () => void }) {
+  const s = useStrings();
+  const numerals = useUi((x) => x.numeralsTable);
+  const [seed, setSeed] = useState(0);
+  const rounds = useMemo(() => buildTrueFalseRounds(questions), [questions, seed]);
+  const [idx, setIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+
+  if (rounds.length === 0) return (
+    <div className="space-y-6"><p className="text-3xl text-white/70">{s.games.needTf}</p><BackRow onExit={onExit} label={s.games.back} /></div>
+  );
+
+  if (idx >= rounds.length) return (
+    <div className="w-full max-w-4xl space-y-6">
+      <Celebrate text={s.games.wellDone} onAgain={() => { setSeed((x) => x + 1); setIdx(0); setRevealed(false); }} againLabel={s.games.again} />
+      <BackRow onExit={onExit} label={s.games.back} />
+    </div>
+  );
+
+  const r = rounds[idx];
+  return (
+    <div className="w-full max-w-5xl space-y-6 text-center">
+      <h3 className="font-heading text-4xl font-bold text-gold">{s.games.tfMotion} 🧍🪑</h3>
+      <p className="rounded-card border-2 border-gold/50 bg-gold/10 p-3 text-2xl">{s.games.tfRules}</p>
+      <p className="text-xl text-white/60">{s.games.bingoCall(fmtNum(idx + 1, numerals), fmtNum(rounds.length, numerals))}</p>
+      <div className="rounded-card border-2 border-white/25 p-8 text-4xl leading-relaxed">{r.statement}</div>
+
+      {revealed ? (
+        <div className="space-y-4 motion-safe:animate-[pop_.3s_ease]">
+          <p className={"font-heading text-6xl font-bold " + (r.isTrue ? "text-ok" : "text-danger")}>
+            {r.isTrue ? s.games.tfStand : s.games.tfSit}
+          </p>
+          {r.correction && <p className="rounded-card border-2 border-teal/60 bg-teal/15 p-4 text-2xl leading-relaxed">💡 {r.correction}</p>}
+          <button type="button" onClick={() => { setIdx((i) => i + 1); setRevealed(false); }} className="btn mx-auto min-h-[56px] bg-gold px-8 text-xl font-bold text-ink hover:bg-gold-dark hover:text-white">
+            {s.games.nextRound}
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setRevealed(true)} className="btn mx-auto min-h-[56px] bg-teal px-8 text-xl font-bold text-white hover:bg-teal-dark">
+          <Eye className="size-6" aria-hidden />
+          {s.games.revealAnswer}
+        </button>
+      )}
+      <BackRow onExit={onExit} label={s.games.back} />
+    </div>
+  );
+}
+
+// ═══════════ ٧) لغز اليوم ═══════════
+
+export function DailyPuzzleGame({ questions, onExit }: { questions: Question[]; onExit: () => void }) {
+  const s = useStrings();
+  const numerals = useUi((x) => x.numeralsTable);
+  const [offset, setOffset] = useState(0);
+  const puzzle = useMemo(() => dailyPuzzle(questions, Date.now() + offset * 86400000), [questions, offset]);
+  const [clueIdx, setClueIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+
+  if (!puzzle) return (
+    <div className="space-y-6"><p className="text-3xl text-white/70">{s.games.needDefine(fmtNum(1, numerals))}</p><BackRow onExit={onExit} label={s.games.back} /></div>
+  );
+
+  const clues = buildClues(puzzle.b);
+  const dateStr = new Date().toLocaleDateString("ar", { weekday: "long", day: "numeric", month: "long" });
+
+  return (
+    <div className="w-full max-w-4xl space-y-8 text-center">
+      <h3 className="font-heading text-5xl font-bold text-gold">{s.games.daily} 🧩</h3>
+      <p className="text-xl text-white/60">{dateStr}</p>
+      <div className="space-y-3">
+        {clues.slice(0, clueIdx + 1).map((c, i) => (
+          <p key={i} className="rounded-card border-2 border-white/25 p-4 text-3xl leading-relaxed">
+            <b className="text-gold">{s.games.clue(fmtNum(i + 1, numerals))}:</b> {c}
+          </p>
+        ))}
+      </div>
+
+      {revealed ? (
+        <>
+          <p className="font-heading text-6xl font-bold text-gold motion-safe:animate-[pop_.3s_ease]">{puzzle.a}</p>
+          <button type="button" onClick={() => { setOffset((o) => o + 1); setClueIdx(0); setRevealed(false); }} className="btn mx-auto min-h-[56px] border-2 border-white/30 bg-transparent px-6 text-xl text-white hover:bg-white/10">
+            <Shuffle className="size-6" aria-hidden />
+            {s.games.dailyAnother}
           </button>
         </>
       ) : (

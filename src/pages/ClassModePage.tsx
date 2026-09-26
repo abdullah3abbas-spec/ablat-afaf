@@ -28,8 +28,8 @@ import type { Question } from "@/db/schema";
 import { kitByLessonTitle } from "@/content/lessonKits";
 import { absentTodayIds, classPickables, fairPick, makeGroups, type Pickable } from "@/lib/funTools";
 import { TEAM_INFO, formatAnswer, pickGameQuestions } from "@/lib/classMode";
-import { buildGamePool } from "@/lib/classGames";
-import { MatchGame, MemoryGame, OrderGame, WhoAmIGame } from "@/components/classGames/games";
+import { buildBingoPool, buildGamePool } from "@/lib/classGames";
+import { BingoGame, DailyPuzzleGame, MatchGame, MemoryGame, OrderGame, TrueFalseMotionGame, WhoAmIGame } from "@/components/classGames/games";
 import SlideVisual from "@/components/slides/SlideVisual";
 import { buildLessonShow } from "@/lib/lessonShow";
 import type { VisualSlide } from "@/db/schema";
@@ -96,15 +96,18 @@ export default function ClassModePage() {
     : assistantSlides;
 
   // ── الألعاب: قائمة القوالب + مخزون أسئلة الدرس/الوحدة ─────
-  type ActiveGame = "menu" | "team" | "match" | "order" | "memory" | "who";
+  type ActiveGame = "menu" | "team" | "match" | "order" | "memory" | "who" | "bingo" | "tf" | "daily";
   const [activeGame, setActiveGame] = useState<ActiveGame>("menu");
   const [bankPool, setBankPool] = useState<Question[]>([]);
+  // مخزون البينجو الأوسع — مراجعة تراكمية على مستوى الوحدة
+  const [bingoPool, setBingoPool] = useState<Question[]>([]);
 
   useEffect(() => {
     if (!running) return;
     void (async () => {
       const all = await db.questions.toArray();
       setBankPool(buildGamePool(all, { lessonId, unitId: lesson?.unitId, lessonCode: lesson?.code }));
+      setBingoPool(buildBingoPool(all, lesson?.unitId, lesson?.code));
     })();
   }, [running, lessonId, lesson?.unitId]);
 
@@ -414,6 +417,9 @@ export default function ClassModePage() {
                   { key: "order", label: s.games.order, hint: s.games.orderHint, icon: ListOrdered, emoji: "🪜", tile: "border-danger/70 bg-danger/10" },
                   { key: "memory", label: s.games.memory, hint: s.games.memoryHint, icon: SquareStack, emoji: "🃏", tile: "border-white/50 bg-white/10" },
                   { key: "who", label: s.games.who, hint: s.games.whoHint, icon: UsersRound, emoji: "🕵️‍♀️", tile: "border-ok/70 bg-ok/10" },
+                  { key: "bingo", label: s.games.bingo, hint: s.games.bingoTileHint, icon: Gamepad2, emoji: "🎯", tile: "border-gold/70 bg-gold/10" },
+                  { key: "tf", label: s.games.tfMotion, hint: s.games.tfTileHint, icon: UsersRound, emoji: "🧍", tile: "border-teal/70 bg-teal/10" },
+                  { key: "daily", label: s.games.daily, hint: s.games.dailyTileHint, icon: SquareStack, emoji: "🧩", tile: "border-danger/70 bg-danger/10" },
                 ] as { key: ActiveGame; label: string; hint: string; icon: typeof Gamepad2; emoji: string; tile: string }[]
               ).map((g) => (
                 <button
@@ -447,6 +453,9 @@ export default function ClassModePage() {
         {mode === "game" && activeGame === "order" && <OrderGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
         {mode === "game" && activeGame === "memory" && <MemoryGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
         {mode === "game" && activeGame === "who" && <WhoAmIGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
+        {mode === "game" && activeGame === "bingo" && <BingoGame questions={bingoPool} onExit={() => setActiveGame("menu")} />}
+        {mode === "game" && activeGame === "tf" && <TrueFalseMotionGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
+        {mode === "game" && activeGame === "daily" && <DailyPuzzleGame questions={bankPool} onExit={() => setActiveGame("menu")} />}
 
         {mode === "game" && activeGame === "team" && (
           <div className="w-full max-w-5xl space-y-8">
