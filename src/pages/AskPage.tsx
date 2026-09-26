@@ -260,7 +260,10 @@ export default function AskPage() {
               <span className="rounded-pill bg-teal-bg px-3 py-1 font-medium text-teal-dark">{s.ask.cachedBadge}</span>
             )}
           </div>
-          <div className="whitespace-pre-wrap rounded-card bg-cream p-4 leading-relaxed">{result.answer}</div>
+          <div className="whitespace-pre-wrap rounded-card bg-cream p-4 leading-relaxed">
+            {/* النموذج يغلّظ بـ **نجمتين** — نعرضها غليظة لا نجوماً خاماً */}
+            {result.answer.split(/\*\*([^*]+)\*\*/g).map((part, i) => (i % 2 === 1 ? <b key={i}>{part}</b> : part))}
+          </div>
           <p className="text-sm text-ink-soft">
             {s.ask.providerLine(s.ask.providers[result.provider], fmtNum(result.costUsd, numerals))}
           </p>
