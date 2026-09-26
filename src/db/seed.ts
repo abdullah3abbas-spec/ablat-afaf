@@ -75,12 +75,22 @@ export async function seedIfEmpty(): Promise<void> {
     await seedQuestionBankIfEmpty();
     await seedPrebuiltPacksIfMissing();
     await ensureScheduledExamsSafe();
+    await ensureTrainingStart();
     return;
   }
   await runSeed();
   await seedQuestionBankIfEmpty();
   await seedPrebuiltPacksIfMissing();
   await ensureScheduledExamsSafe();
+  await ensureTrainingStart();
+}
+
+/** بداية أسبوع التدريب (§2-د) — تُضبط مرة واحدة عند أول إقلاع بعد التثبيت */
+export async function ensureTrainingStart(): Promise<void> {
+  const st = await db.settings.get(1);
+  if (st && st.trainingStartMs == null && !st.trainingDone) {
+    await db.settings.update(1, { trainingStartMs: Date.now() });
+  }
 }
 
 /** تجهيز الاختبارات المجدولة (§2-د) — عطلٌ فيه لا يمنع الإقلاع */

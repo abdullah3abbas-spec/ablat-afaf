@@ -162,3 +162,35 @@ describe("المطابقة على المنهج الحقيقي — إصلاح أ�
     }
   });
 });
+
+describe("أوامر الحصة الفورية (§2-د): غياب · نجوم · فتح درس", () => {
+  const ctx = {
+    units: [{ id: 1, title: "السلاسل الغذائية", order: 1 }],
+    lessons: [{ id: 5, title: "ما السلاسل الغذائية؟", unitId: 1, code: "1.2" }],
+    students: [{ id: 9, name: "نورة المهندي", classId: 1 }, { id: 10, name: "مريم عبد الله", classId: 1 }],
+    classes: [{ id: 1, name: "خامس ١" }],
+  };
+  test("«غيّبي نورة» ⇒ تسجيل غياب بالطالبة الصحيحة", async () => {
+    const { parseCommand } = await import("@/lib/commandBox");
+    const a = parseCommand("غيبي نورة اليوم", ctx);
+    expect(a.kind).toBe("markAbsent");
+    if (a.kind === "markAbsent") expect(a.studentId).toBe(9);
+  });
+  test("«نجمتين لمريم» ⇒ نجمتان للطالبة الصحيحة", async () => {
+    const { parseCommand } = await import("@/lib/commandBox");
+    const a = parseCommand("نجمتين لمريم", ctx);
+    expect(a.kind).toBe("giveStar");
+    if (a.kind === "giveStar") { expect(a.studentId).toBe(10); expect(a.stars).toBe(2); }
+  });
+  test("«افتحي درس السلاسل» ⇒ فتح العرض المساعد للدرس", async () => {
+    const { parseCommand } = await import("@/lib/commandBox");
+    const a = parseCommand("افتحي درس السلاسل الغذائية", ctx);
+    expect(a.kind).toBe("openLesson");
+    if (a.kind === "openLesson") expect(a.lessonId).toBe(5);
+  });
+  test("«كم طالبة غابت هذا الشهر» لا يلتبس بتسجيل غياب (لا اسم طالبة)", async () => {
+    const { parseCommand } = await import("@/lib/commandBox");
+    const a = parseCommand("كم طالبة غابت هذا الشهر", ctx);
+    expect(a.kind).not.toBe("markAbsent");
+  });
+});

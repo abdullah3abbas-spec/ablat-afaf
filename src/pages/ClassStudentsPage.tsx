@@ -105,6 +105,9 @@ export default function ClassStudentsPage() {
   async function handlePasteCreate() {
     if (parsed.names.length === 0) return;
     setBusy(true);
+    // §7: نسخة صامتة قبل أي استيراد جماعي
+    const { silentBackup } = await import("@/lib/backup");
+    await silentBackup("before_import");
     await addStudentsBulk(classId, parsed.names);
     setBusy(false);
     show(s.students.pasteDone(fmtNum(parsed.names.length, numerals)));
@@ -130,6 +133,8 @@ export default function ClassStudentsPage() {
   async function handleExcelImport() {
     if (!excelNames || excelNames.length === 0) return;
     setBusy(true);
+    const { silentBackup } = await import("@/lib/backup");
+    await silentBackup("before_import");
     await addStudentsBulk(classId, excelNames);
     setBusy(false);
     show(s.students.pasteDone(fmtNum(excelNames.length, numerals)));

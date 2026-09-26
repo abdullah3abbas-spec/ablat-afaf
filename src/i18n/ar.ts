@@ -834,6 +834,11 @@ export const ar = {
     examSoon: (title: string, weekday: string, isDraft: boolean) =>
       isDraft ? `📝 ${title} (${weekday}) — المسودة جاهزة بأسئلتها، راجعيها فقط` : `📝 ${title} (${weekday})`,
     weekPrep: "قائمة التجهيز",
+    training: {
+      title: (d: string, total: string) => `أسبوع التعارف — يومك ${d} من ${total}`,
+      dismiss: "عرفت طريقي، أخفيها ✓",
+      doneMsg: "أهلاً بك خبيرةً في منصّتك 🌷 — كل شيء في مكانه متى احتجتِه",
+    },
     weekPrepPrinted: "قائمة التجهيز الأسبوعي جاهزة ✓ — أدوات كل درس وعدد النسخ لكل فصل، اطلبي أي ناقص قبل حصته بيومين",
     weekPrepEmpty: "لا دروس كتاب بعد — القائمة تُبنى من الدروس القادمة",
     weekBundleHint: (n: string) => `تطبع كل مواد الدروس الثلاثة القادمة (${n} صفحة تقريباً) دفعة واحدة`,
@@ -1489,6 +1494,10 @@ export const ar = {
   },
 
   commandBox: {
+    markedAbsent: (name: string) => `سُجّلت ${name} غائبة اليوم ✓ — التراجع من شاشة الحضور بنقرة`,
+    starRule: "نجمة من الصندوق الواحد",
+    starGiven: (name: string, n: string) => `⭐ ${n} — أُضيفت لرصيد ${name} ✓`,
+    openingLesson: "أفتح العرض المساعد…",
     title: "ماذا تريدين أن أجهّز لكِ؟",
     placeholder: "اكتبي أو تكلّمي… مثال: اطبعيلي ورقة عمل على السلاسل الغذائية",
     hintVoice: "الإدخال الصوتي يستخدم خدمة المتصفح — للأسماء الحساسة استخدمي الكتابة",

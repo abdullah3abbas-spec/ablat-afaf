@@ -32,6 +32,9 @@ export type CommandAction =
   | { kind: "weakStudents"; unitId?: number; classId?: number; label: string }
   | { kind: "requests"; label: string }
   | { kind: "visitFile"; classId?: number; label: string }
+  | { kind: "markAbsent"; studentId: number; studentName: string; label: string }
+  | { kind: "giveStar"; studentId: number; studentName: string; stars: number; label: string }
+  | { kind: "openLesson"; lessonId: number; label: string }
   | { kind: "unknown"; text: string; suggestions: string[] };
 
 /** تطبيع النص العربي: إزالة التشكيل، توحيد الألف والياء والتاء المربوطة، وحذف التطويل */
@@ -203,6 +206,18 @@ export function parseCommand(text: string, ctx: CmdContext): CommandAction {
   const klass = matchByTitle(norm, ctx.classes);
   const student = matchStudent(norm, ctx.students);
   const topic = lesson?.title ?? unit?.title ?? "";
+
+  // ٠) أوامر الحصة الفورية (§2-د): تسجيل غياب · إعطاء نجوم · فتح درس
+  if (student && has(norm, "غيبي", "سجلي غياب", "غايبه", "غائبه", "غابت اليوم")) {
+    return { kind: "markAbsent", studentId: student.id, studentName: student.name, label: `تسجيل غياب ${student.name}` };
+  }
+  if (student && has(norm, "نجمه", "نجمتين", "نجمتان", "نجوم", "نجمه ل")) {
+    const stars = has(norm, "نجمتين", "نجمتان") ? 2 : has(norm, "ثلاث نجوم", "٣ نجوم", "3 نجوم") ? 3 : 1;
+    return { kind: "giveStar", studentId: student.id, studentName: student.name, stars, label: `${stars > 1 ? "نجوم" : "نجمة"} لـ${student.name}` };
+  }
+  if (lesson && has(norm, "افتحي", "شغلي", "ابدئي حصه", "اعرضي")) {
+    return { kind: "openLesson", lessonId: lesson.id, label: `فتح درس «${lesson.title}»` };
+  }
 
   // ١) سؤال تحليلي: كم طالبة ضعيفة / تحتاج دعماً / المتعثّرات
   // (يشترط كلمة استفهام، فلا يلتبس بـ«خطة الدعم» مثلاً)

@@ -28,6 +28,7 @@ import { EMERGENCY_KIT, kitByLessonTitle } from "@/content/lessonKits";
 import { printEmergency, printWeekBundle } from "@/lib/kitPrint";
 import { genSubstituteFile } from "@/lib/generate";
 import { seasonalReminders } from "@/lib/seasonal";
+import { TRAINING_STEPS } from "@/lib/trainingWeek";
 import { activeStudentsOf } from "@/lib/students";
 import { fmtNum } from "@/lib/numerals";
 import { useBrandStore } from "@/lib/brand";
@@ -71,11 +72,16 @@ export default function TodayPage() {
     const { needsBackupReminder } = await import("@/lib/backup");
     const backupOverdue = await needsBackupReminder(now);
 
+    // أسبوع التدريب المدمج (§2-د)
+    const settingsRow = await db.settings.get(1);
+    const { currentTrainingStep } = await import("@/lib/trainingWeek");
+    const trainingStep = settingsRow?.trainingDone ? null : currentTrainingStep(settingsRow?.trainingStartMs, now);
+
     // اختبارات مجدولة خلال أسبوعين — «جاهز، راجعيه فقط» (§2-د)
     const { upcomingScheduledExams } = await import("@/lib/examAutoPrep");
     const examsSoon = await upcomingScheduledExams(now);
 
-    return { lessons, units, packStatus, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests, backupOverdue, examsSoon };
+    return { lessons, units, packStatus, studentsCount: allStudents.length, pendingRequests, anyDemo, warnings, dueSoonRequests, backupOverdue, examsSoon, trainingStep };
   });
 
   const upcoming = (data?.lessons ?? []).slice(0, 3).map((l) => ({
@@ -266,6 +272,29 @@ export default function TodayPage() {
 
           {/* الصندوق الواحد — كتابةً أو صوتاً (§ الأمر ٨-ب) */}
           <CommandBox />
+
+          {/* أسبوع التدريب المدمج (§2-د): خطوة واحدة كل يوم */}
+          {data?.trainingStep != null && (
+            <section className="card space-y-2 border-2 border-gold/60 bg-gold-bg/60">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="flex items-center gap-2 font-heading text-xl font-bold text-gold-dark">
+                  🎓 {s.today.training.title(fmtNum(data.trainingStep, numerals), fmtNum(7, numerals))}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => void db.settings.update(1, { trainingDone: true }).then(() => show(s.today.training.doneMsg))}
+                  className="text-sm font-medium text-ink-soft hover:text-ink hover:underline"
+                >
+                  {s.today.training.dismiss}
+                </button>
+              </div>
+              <p className="text-lg font-bold">{TRAINING_STEPS[data.trainingStep - 1].title}</p>
+              <p className="text-ink-soft">{TRAINING_STEPS[data.trainingStep - 1].hint}</p>
+              <Link to={TRAINING_STEPS[data.trainingStep - 1].to} className="btn-primary w-fit">
+                {TRAINING_STEPS[data.trainingStep - 1].cta}
+              </Link>
+            </section>
+          )}
 
           {/* الدروس القادمة بعلامة جاهزة + حزمة الأسبوع */}
           <section className="card space-y-3">

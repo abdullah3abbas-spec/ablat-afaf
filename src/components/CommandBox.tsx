@@ -127,6 +127,32 @@ export default function CommandBox() {
         if (await genVisitFile(cid)) show(s.visitFile.done);
         return;
       }
+      // أوامر الحصة الفورية (§2-د) — تنفيذ مباشر بلا تنقّل
+      case "markAbsent": {
+        const st = await db.students.get(action.studentId);
+        if (!st) return;
+        const today = new Date();
+        const date = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const existing = (await db.attendance.where("[studentId+date]").equals([action.studentId, date]).toArray()).find((a) => !a.deletedAt);
+        if (existing) await db.attendance.update(existing.id!, { status: "absent", updatedAt: Date.now() });
+        else await db.attendance.add({ studentId: action.studentId, classId: st.classId, date, status: "absent", createdAt: Date.now() });
+        show(s.commandBox.markedAbsent(action.studentName));
+        setText("");
+        return;
+      }
+      case "giveStar": {
+        const st = await db.students.get(action.studentId);
+        if (!st) return;
+        const { awardPoints } = await import("@/lib/points");
+        await awardPoints({ id: st.id, classId: st.classId }, { points: action.stars, nameAr: s.commandBox.starRule }, { source: "manual" });
+        show(s.commandBox.starGiven(action.studentName, fmtNum(action.stars, numerals)));
+        setText("");
+        return;
+      }
+      case "openLesson":
+        show(s.commandBox.openingLesson);
+        navigate(`/show?lesson=${action.lessonId}`);
+        return;
       case "unknown":
         setSuggestions(action.suggestions);
         return;

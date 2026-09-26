@@ -80,6 +80,10 @@ export interface Settings extends Timestamped {
   certPrefs?: Record<string, CertPrefs>;
   /** مواعيد الاختبارات (مفتاح النوع من السياسة ← تاريخ) — قبلها بأسبوعين تُبنى المسودة تلقائياً (§2-د) */
   examDates?: Record<string, number>;
+  /** بداية أسبوع التدريب المدمج (§2-د) — تُضبط عند أول إقلاع */
+  trainingStartMs?: number;
+  /** أنهت المعلّمة التدريب (زر «عرفت طريقي») */
+  trainingDone?: boolean;
   /** مفتاح ثابت = 1 — صف واحد دائماً */
   id: 1;
   studentGender: Gender;

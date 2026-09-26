@@ -46,3 +46,20 @@ describe("التذكيرات الموسمية", () => {
     }
   });
 });
+
+describe("أسبوع التدريب المدمج (§2-د)", () => {
+  test("خطوة كل يوم لسبعة أيام ثم يختفي وحده", async () => {
+    const { TRAINING_STEPS, currentTrainingStep } = await import("@/lib/trainingWeek");
+    expect(TRAINING_STEPS.length).toBe(7);
+    const start = new Date(2026, 8, 1, 8).getTime();
+    expect(currentTrainingStep(start, start + 3600000)).toBe(1);
+    expect(currentTrainingStep(start, start + 3 * 86400000 + 60000)).toBe(4);
+    expect(currentTrainingStep(start, start + 6 * 86400000)).toBe(7);
+    expect(currentTrainingStep(start, start + 8 * 86400000)).toBeNull();
+    expect(currentTrainingStep(undefined, start)).toBeNull();
+    for (const st of TRAINING_STEPS) {
+      expect(st.to.startsWith("/")).toBe(true);
+      expect(st.hint.length).toBeGreaterThan(20);
+    }
+  });
+});

@@ -10,7 +10,7 @@ import { useStrings } from "@/hooks/useStrings";
 
 function Bulb({ x, y, lit, installed, onTap, label }: { x: number; y: number; lit: boolean; installed: boolean; onTap: () => void; label: string }) {
   return (
-    <g onClick={onTap} role="button" aria-label={label} className="cursor-pointer" transform={`translate(${x} ${y})`}>
+    <g onClick={onTap} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onTap(); } }} tabIndex={0} role="button" aria-pressed={installed} aria-label={label} className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F0C454]" transform={`translate(${x} ${y})`}>
       {lit && <circle r="34" fill="rgba(240,196,84,.35)" className="motion-safe:animate-pulse" />}
       <circle r="20" fill={installed ? (lit ? "#F0C454" : "#2E3644") : "none"} stroke={installed ? "#E6DFD4" : "#7A8494"} strokeWidth="3" strokeDasharray={installed ? "0" : "6 5"} />
       {installed && <path d="M -7 6 Q 0 -6 7 6" fill="none" stroke={lit ? "#7A5716" : "#7A8494"} strokeWidth="2.5" />}
@@ -94,7 +94,8 @@ export default function CircuitSim() {
             </g>
           )}
           {/* المفتاح */}
-          <g transform={mode === "series" ? "translate(120 40)" : "translate(58 40)"} onClick={() => setSwitchClosed((x) => !x)} role="button" aria-label={s.lab.circuit.toggleSwitch} className="cursor-pointer">
+          <g transform={mode === "series" ? "translate(120 40)" : "translate(58 40)"} onClick={() => setSwitchClosed((x) => !x)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSwitchClosed((x) => !x); } }} tabIndex={0} role="button" aria-pressed={switchClosed} aria-label={s.lab.circuit.toggleSwitch} className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#F0C454]">
+            <rect x="-10" y="-28" width="60" height="40" fill="transparent" />
             <circle cx="0" cy="0" r="5" fill="#E6DFD4" />
             <circle cx="40" cy="0" r="5" fill="#E6DFD4" />
             <line x1="0" y1="0" x2={switchClosed ? 40 : 32} y2={switchClosed ? 0 : -22} stroke="#F0C454" strokeWidth="5" strokeLinecap="round" />
