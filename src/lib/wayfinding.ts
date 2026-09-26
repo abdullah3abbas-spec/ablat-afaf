@@ -44,7 +44,7 @@ export const SECTIONS: SectionDef[] = [
   },
   {
     key: "follow", to: "/follow", icon: ClipboardCheck,
-    prefixes: ["/follow", "/manage", "/grades", "/reports", "/certificates", "/analytics", "/requests", "/search", "/settings"],
+    prefixes: ["/follow", "/manage", "/grades", "/reports", "/certificates", "/analytics", "/requests", "/search", "/settings", "/trash"],
     chip: "bg-marina-bg text-marina", solid: "bg-marina text-white", tint: "text-marina",
   },
 ];
@@ -59,6 +59,7 @@ export function matchesPrefix(pathname: string, prefix: string): boolean {
 /** عناوين الشاشات حسب أول مقطع من المسار — تُعرض في شريط المسار */
 export const ROUTE_TITLES: Record<string, string> = {
   library: "المكتبة",
+  trash: "سلة الاسترجاع",
   pack: "حزمة الدرس",
   slides: "استوديو العروض",
   ask: "اسألي المنهج",

@@ -893,6 +893,24 @@ export const ar = {
     },
   },
 
+  trash: {
+    title: "سلة الاسترجاع",
+    subtitle: "كل ما حُذف خلال آخر ٣٠ يوماً — استرجعيه بضغطة، ولا شيء يُمسح نهائياً",
+    empty: "السلة فارغة",
+    emptyHint: "كل ما تحذفينه (طالبة، فصل، سؤال، حزمة، عرض، ملف) يظهر هنا ٣٠ يوماً قابلاً للاسترجاع",
+    restore: "استرجعي",
+    restored: (label: string) => `رجع ✓ — ${label}`,
+    deletedAgo: (days: string) => `حُذف قبل ${days} يوم`,
+    kinds: {
+      students: "طالبة",
+      classes: "فصل",
+      questions: "سؤال",
+      lessonPacks: "حزمة حصة",
+      presentations: "عرض",
+      resources: "ملف",
+      requests: "طلب",
+    },
+  },
   attendance: {
     title: "الحضور",
     subtitle: "الفصل كله أمامك — نقرة واحدة تبدّل حالة الطالبة",

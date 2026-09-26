@@ -4,7 +4,7 @@
  */
 import { Link } from "react-router-dom";
 import {
-  Award, BarChart3, ClipboardList, FileBarChart, LineChart, Search, Settings, Trophy,
+  ArchiveRestore, Award, BarChart3, ClipboardList, FileBarChart, LineChart, Search, Settings, Trophy,
 } from "lucide-react";
 import { useStrings } from "@/hooks/useStrings";
 
@@ -38,6 +38,7 @@ export default function FollowPage() {
       items: [
         { to: "/search", label: s.search.title, icon: Search },
         { to: "/settings", label: s.common.settings, icon: Settings },
+        { to: "/trash", label: s.trash.title, icon: ArchiveRestore },
       ],
     },
   ];
