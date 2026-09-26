@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
-import { BarChart3, BookOpenCheck, Send } from "lucide-react";
+import { BarChart3, BookOpenCheck, Camera, Send } from "lucide-react";
 import { db } from "@/db";
 import type { Question } from "@/db/schema";
 import { analyzeExam, carryResultsToGrades, saveResult } from "@/lib/examAnalysis";
@@ -22,26 +22,55 @@ export default function ExamResultsPage() {
   const { examId: idParam } = useParams();
   const examId = Number(idParam);
   const [mode, setMode] = useState<"perQuestion" | "totalOnly">("perQuestion");
+  // اختبار «كل الفصول» (المجدول تلقائياً مثلاً): تُختار شعبة الرصد هنا
+  const [pickedClassId, setPickedClassId] = useState<number | null>(null);
   const [tick, setTick] = useState(0);
 
   const data = useLiveQuery(async () => {
     const exam = await db.exams.get(examId);
     if (!exam) return null;
+    const classes = (await db.classes.toArray()).filter((c) => !c.deletedAt);
+    const effectiveClassId = exam.classId ?? pickedClassId ?? classes[0]?.id;
     const eqs = (await db.examQuestions.where("[examId+order]").between([examId, 0], [examId, Infinity]).toArray()).sort(
       (a, b) => a.order - b.order
     );
     const questions = (await Promise.all(eqs.map((eq) => db.questions.get(eq.questionId)))).filter(
       (q): q is Question => Boolean(q)
     );
-    const students = exam.classId ? (await activeStudentsOf(exam.classId)).sort((a, b) => a.rollNumber - b.rollNumber) : [];
+    const students = effectiveClassId ? (await activeStudentsOf(effectiveClassId)).sort((a, b) => a.rollNumber - b.rollNumber) : [];
     const results = (await db.examResults.where("examId").equals(examId).toArray()).filter((r) => !r.deletedAt);
-    return { exam, questions, students, results };
-  }, [examId, tick]);
+    return { exam, questions, students, results, classes, effectiveClassId };
+  }, [examId, tick, pickedClassId]);
 
   const analysis = useLiveQuery(async () => (data?.results.length ? analyzeExam(examId) : undefined), [examId, tick, data?.results.length]);
 
   if (!data) return <p className="card text-ink-soft">{s.common.loading}</p>;
-  const { exam, questions, students, results } = data;
+  const { exam, questions, students, results, classes, effectiveClassId } = data;
+
+  /** ورقة رصد المجموع الذكية (§2-ب): تُطبع وتُصوَّر بمسار قارئ الرصد نفسه */
+  async function printTotalsSheet() {
+    if (!exam.carryToComponentId || !effectiveClassId) {
+      show(s.exams.resultsPage.sheetNeedsComponent, { kind: "info" });
+      return;
+    }
+    const component = await db.gradeComponents.get(exam.carryToComponentId);
+    const klass = await db.classes.get(effectiveClassId);
+    if (!component || !klass) return;
+    const settings = await db.settings.get(1);
+    const subject = await db.subjects.toCollection().first();
+    const { buildSheetHtml, printHtml } = await import("@/lib/sheetPrint");
+    printHtml(
+      await buildSheetHtml({
+        klass,
+        component,
+        students,
+        subjectName: subject?.nameAr ?? "",
+        schoolName: settings?.schoolName ?? "",
+        dateMs: Date.now(),
+      })
+    );
+    show(s.exams.resultsPage.sheetPrinted);
+  }
 
   async function saveRow(studentId: number, scores: number[], totalOverride?: number) {
     const total = totalOverride ?? scores.reduce((a, b) => a + b, 0);
@@ -68,6 +97,32 @@ export default function ExamResultsPage() {
 
       {/* الرصد */}
       <section className="card space-y-3">
+        {exam.classId == null && (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-medium">{s.exams.resultsPage.pickClass}:</span>
+            {classes.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                aria-pressed={c.id === effectiveClassId}
+                onClick={() => setPickedClassId(c.id!)}
+                className={
+                  "rounded-pill border-2 px-4 py-1.5 font-bold min-h-[44px] " +
+                  (c.id === effectiveClassId ? "border-teal bg-teal text-white" : "border-line bg-white hover:border-teal")
+                }
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <button type="button" onClick={() => void printTotalsSheet()} className="btn-secondary">
+            <Camera className="size-5" aria-hidden />
+            {s.exams.resultsPage.totalsSheet}
+          </button>
+          <span className="text-sm text-ink-soft">{s.exams.resultsPage.totalsSheetHint}</span>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <span className="font-medium">{s.exams.resultsPage.mode}:</span>
           {(["perQuestion", "totalOnly"] as const).map((m) => (
