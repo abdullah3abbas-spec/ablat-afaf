@@ -25,6 +25,8 @@ export interface StudentReport {
   outOf: number;
   pct: number;
   label: string;
+  /** هل رُصد أي مكوّن؟ — بطاقة بلا درجات لا تحكم بـ«دون الحد» (بداية الفصل) */
+  graded: boolean;
   attendance: { present: number; absent: number; late: number; excused: number };
   points: { monthly: number; cumulative: number; levelName: string };
   notes: string[];
@@ -109,6 +111,7 @@ export async function studentReport(studentId: number, term: Term): Promise<Stud
     outOf: t.outOf,
     pct,
     label: gradeLabel(pct, policy?.gradeScale ?? DEFAULT_GRADE_SCALE),
+    graded: t.counted > 0,
     attendance: { present: count("present"), absent: count("absent"), late: count("late"), excused: count("excused") },
     points: { monthly, cumulative, levelName: level?.nameAr ?? "" },
     notes,

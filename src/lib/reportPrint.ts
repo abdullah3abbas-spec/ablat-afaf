@@ -111,11 +111,12 @@ export function parentCardHtml(reports: StudentReport[], schoolName: string, ter
       ${identityHeader(schoolName, "بطاقة متابعة الطالبة", "")}<div class="head" style="border:0;padding:0;margin-bottom:2mm"><div class="meta">${getBrand().subjectName} · ${esc(termName)} · الفصل: ${esc(r.className)} · التاريخ: ${toEastern(new Date().toLocaleDateString("ar"))}</div></div>
       <div class="p-name"><span>الطالبة</span><b>${esc(r.student.name)}</b></div>
       <div class="tiles">
-        <div class="tile hero"><b>${toEastern(String(r.total))} / ${toEastern(String(r.outOf))}</b><span>المجموع</span></div>
-        <div class="tile"><b>${toEastern(String(r.pct))}٪</b><span>النسبة</span></div>
-        <div class="tile"><b>${esc(r.label)}</b><span>التقدير</span></div>
+        <div class="tile hero"><b>${r.graded ? `${toEastern(String(r.total))} / ${toEastern(String(r.outOf))}` : "—"}</b><span>المجموع</span></div>
+        <div class="tile"><b>${r.graded ? toEastern(String(r.pct)) + "٪" : "—"}</b><span>النسبة</span></div>
+        <div class="tile"><b>${r.graded ? esc(r.label) : "لم تُرصد بعد"}</b><span>التقدير</span></div>
         <div class="tile"><b>${esc(r.points.levelName || "—")}</b><span>مستوى التحفيز</span></div>
       </div>
+      ${r.graded ? "" : `<p class="fresh-note">🌱 بداية الرصد — أول ما تُرصد درجات ابنتكم ستجدونها هنا أولاً بأول</p>`}
       <h2>الدرجات التفصيلية</h2>
       <table><tr><th>المكوّن</th><th class="c">الدرجة</th><th class="c">من</th></tr>${compRows}</table>
       ${chartData.length > 0 ? `<h2>نسب المكوّنات ٪</h2>${barChartSvg(chartData, { maxValue: 100, valueSuffix: "٪" })}` : ""}
@@ -127,7 +128,7 @@ export function parentCardHtml(reports: StudentReport[], schoolName: string, ter
       </div>
       ${r.notes.length > 0 ? `<h2>ملاحظات المعلّمة</h2><ul class="recs" style="border-color:#C08A2E;background:#FCF3E2">${r.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
       <h2>التوصيات</h2>
-      <ul class="recs">${r.recommendations.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
+      <ul class="recs">${(r.recommendations.length ? r.recommendations : ["نتشرف بتواصلكم مع المعلّمة في أي وقت — نجاح ابنتكم شراكة بيننا"]).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
       <div class="footer-sign">
         <span class="fs"><i>توقيع المعلّمة</i><b class="ruqaa">${esc("أ. " + getBrand().teacherName)}</b></span>
         <span class="fs"><i>اطلاع ولية الأمر</i><b class="line">&nbsp;</b></span>
@@ -155,6 +156,8 @@ const PARENT_CSS = `
   .footer-sign .fs b.ruqaa { font-family: "Ruqaa", "Amiri", serif; font-weight: 400; font-size: 15pt;
     color: #4A3520; transform: rotate(-2deg); border-bottom: 0.3mm solid #8A8065; padding: 0 6mm 1mm; }
   .footer-sign .fs b.line { border-bottom: 0.3mm solid #8A8065; min-width: 42mm; }
+  .fresh-note { margin: 2mm 0 0; padding: 2.5mm 4mm; border: 0.4mm dashed #0F6B62; border-radius: 2.5mm;
+    background: #EFF7F5; color: #0B534C; font-weight: 700; font-size: 11pt; }
 `;
 
 // ── تقرير الإدارة ─────────────────────────────────────────────

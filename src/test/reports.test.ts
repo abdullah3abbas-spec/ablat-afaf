@@ -114,3 +114,20 @@ describe("تسلسل الشهادات", () => {
     expect(serial).toBe("AA-EXC-202609-42");
   });
 });
+
+describe("بطاقة بلا درجات — لا حكم «دون الحد» في بداية الفصل", () => {
+  test("طالبة بلا أي رصد: graded=false وبطاقتها تقول «لم تُرصد بعد» لا ٠٪", async () => {
+    const { studentReport } = await import("@/lib/reportData");
+    const { parentCardHtml } = await import("@/lib/reportPrint");
+    const { db } = await import("@/db");
+    const st = (await db.students.toArray()).find((x) => !x.deletedAt)!;
+    await db.grades.where("studentId").equals(st.id!).delete();
+    const r = (await studentReport(st.id!, 1))!;
+    expect(r.graded).toBe(false);
+    const html = parentCardHtml([r], "مدرسة الاختبار", "الفصل الأول");
+    expect(html).toContain("لم تُرصد بعد");
+    expect(html).toContain("بداية الرصد");
+    expect(html).not.toContain("٠٪");
+    expect(html).toContain("التوصيات");
+  });
+});
