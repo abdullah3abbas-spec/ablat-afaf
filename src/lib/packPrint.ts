@@ -2,35 +2,20 @@
  * طباعة حزمة الحصة (١٥/١٠) — طباعة المتصفح حصراً (§5):
  * خطة الحصة والأنشطة وورقة الأسئلة وكرت الخروج والواجب في مستند واحد،
  * ونسخة المعلّمة بالإجابات والملاحظات في صفحات لاحقة.
+ * الجسد والتنسيق مفصولان (lessonPackBody/PACK_CSS) لتضمّهما «حزمة الأسبوع»
+ * في مستند واحد لعدة دروس.
  */
 import type { LessonPackContent } from "@/db/schema";
 import { IDENTITY_HEADER_CSS, PRINT_FONTS_CSS, identityFooter, identityHeader } from "@/lib/printTheme";
+import { getBrand } from "@/lib/brand";
 import { printDoc } from "@/lib/reportPrint";
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-export function printLessonPack(title: string, pack: LessonPackContent, schoolName: string): void {
-  const li = (arr: string[]) => arr.map((x) => `<li>${esc(x)}</li>`).join("");
-
-  const stages = pack.plan.stages
-    .map((st) => `<tr><td>${esc(st.name)}</td><td class="c">${st.minutes} د</td><td>${esc(st.what)}</td></tr>`)
-    .join("");
-
-  const qs = pack.questions
-    .map((q, i) => {
-      const opts = q.options ? `<ol class="opts">${q.options.map((o) => `<li><b>${esc(o.key)})</b> ${esc(o.text)}</li>`).join("")}</ol>` : "";
-      return `<div class="q"><b>${i + 1})</b> ${esc(q.text)}${opts}</div>`;
-    })
-    .join("");
-
-  const answers = pack.questions.map((q, i) => `<li><b>${i + 1})</b> ${esc(q.answer)}</li>`).join("");
-
-  printDoc(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>حزمة ${esc(title)}</title>
-  <style>
-    ${PRINT_FONTS_CSS}
-    ${IDENTITY_HEADER_CSS}
+/** تنسيق الحزمة — بلا خطوط ولا ترويسة هوية (تُضاف في المستند المُضيف) */
+export const PACK_CSS = `
     @page { size: A4; margin: 12mm; }
     * { box-sizing: border-box; margin: 0; }
     body { font-family: Tajawal, Arial, sans-serif; color: #1E2430; font-size: 12pt; line-height: 1.9; }
@@ -48,11 +33,27 @@ export function printLessonPack(title: string, pack: LessonPackContent, schoolNa
     .opts { list-style: none; padding-inline-start: 6mm; }
     .teacher { page-break-before: always; }
     .warn { color: #7A5716; }
-  </style></head><body>
-  ${identityFooter(`حزمة حصة: ${title}`)}
+    .pack-sec { page-break-after: always; }
+    .pack-sec:last-child { page-break-after: auto; }`;
 
-  ${identityHeader(schoolName, `حزمة حصة: ${title}`, "العلوم — المستوى الخامس · جاهزة للتدريس والطباعة")}
+/** جسد حزمة درس واحد (بلا <html> ولا هوية) — للطباعة المنفردة ولحزمة الأسبوع */
+export function lessonPackBody(title: string, pack: LessonPackContent): string {
+  const li = (arr: string[]) => arr.map((x) => `<li>${esc(x)}</li>`).join("");
 
+  const stages = pack.plan.stages
+    .map((st) => `<tr><td>${esc(st.name)}</td><td class="c">${st.minutes} د</td><td>${esc(st.what)}</td></tr>`)
+    .join("");
+
+  const qs = pack.questions
+    .map((q, i) => {
+      const opts = q.options ? `<ol class="opts">${q.options.map((o) => `<li><b>${esc(o.key)})</b> ${esc(o.text)}</li>`).join("")}</ol>` : "";
+      return `<div class="q"><b>${i + 1})</b> ${esc(q.text)}${opts}</div>`;
+    })
+    .join("");
+
+  const answers = pack.questions.map((q, i) => `<li><b>${i + 1})</b> ${esc(q.answer)}</li>`).join("");
+
+  return `
   <h2>خطة الحصة (${pack.plan.stages.reduce((a, b) => a + b.minutes, 0)} دقيقة)</h2>
   <p><b>الأهداف:</b></p><ul>${li(pack.plan.objectives)}</ul>
   <table><tr><th>المرحلة</th><th>الزمن</th><th>ماذا يحدث</th></tr>${stages}</table>
@@ -81,7 +82,19 @@ export function printLessonPack(title: string, pack: LessonPackContent, schoolNa
     <h2 class="warn">أخطاء شائعة متوقعة</h2><ul>${li(pack.teacherNotes.misconceptions)}</ul>
     <h2>الأدوات المطلوبة</h2><ul>${li(pack.teacherNotes.materials)}</ul>
     <h2>المصادر</h2><ul>${li(pack.sources)}</ul>
-  </section>
+  </section>`;
+}
 
+export function printLessonPack(title: string, pack: LessonPackContent, schoolName: string): void {
+  printDoc(`<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>حزمة ${esc(title)}</title>
+  <style>
+    ${PRINT_FONTS_CSS}
+    ${IDENTITY_HEADER_CSS}
+    ${PACK_CSS}
+  </style></head><body>
+  ${identityFooter(`حزمة حصة: ${title}`)}
+
+  ${identityHeader(schoolName, `حزمة حصة: ${title}`, `${getBrand().subjectName} — المستوى الخامس · جاهزة للتدريس والطباعة`)}
+  ${lessonPackBody(title, pack)}
   </body></html>`);
 }

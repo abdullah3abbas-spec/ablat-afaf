@@ -99,6 +99,19 @@ export default function AttendancePage() {
     return out.sort((a, b) => b.count - a.count);
   }, [classId, date]);
 
+  /** ملف الغائبة بضغطة (§2-ز): خلاصة الدرس + مفرداته + واجبه + ورقة عمله */
+  async function handleAbsentFile(studentName: string) {
+    const { printAbsentFile } = await import("@/lib/absentFile");
+    const lastId = useUi.getState().lastLesson?.id;
+    const lessons = (await db.lessons.toArray()).filter((l) => !l.deletedAt && !l.isDemo && l.code);
+    const lessonId = lastId != null && lessons.some((l) => l.id === lastId) ? lastId : lessons[0]?.id;
+    if (lessonId == null || !(await printAbsentFile(lessonId, studentName))) {
+      show(s.attendance.absentFileNone, { kind: "info" });
+      return;
+    }
+    show(s.attendance.absentFilePrinted(studentName));
+  }
+
   async function setStatus(studentId: number, recId: number | undefined, status: AttendanceStatus) {
     if (recId) {
       await db.attendance.update(recId, { status, updatedAt: Date.now() });
@@ -239,6 +252,16 @@ export default function AttendancePage() {
                 <Icon className="size-6 shrink-0" aria-hidden />
                 <span className="min-w-16 text-sm">{s.attendance.statuses[status]}</span>
               </button>
+              {status === "absent" && (
+                <button
+                  type="button"
+                  onClick={() => void handleAbsentFile(student.name)}
+                  className="mt-1 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-card border-2 border-dashed border-danger/50 bg-white px-3 text-sm font-bold text-danger hover:bg-danger-bg"
+                >
+                  <FileText className="size-5" aria-hidden />
+                  {s.attendance.absentFile}
+                </button>
+              )}
             </li>
           );
         })}

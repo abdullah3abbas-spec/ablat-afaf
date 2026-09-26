@@ -27,6 +27,7 @@ import CommandBox from "@/components/CommandBox";
 import { EMERGENCY_KIT, kitByLessonTitle } from "@/content/lessonKits";
 import { printEmergency, printWeekBundle } from "@/lib/kitPrint";
 import { genSubstituteFile } from "@/lib/generate";
+import { seasonalReminders } from "@/lib/seasonal";
 import { activeStudentsOf } from "@/lib/students";
 import { fmtNum } from "@/lib/numerals";
 import { useBrandStore } from "@/lib/brand";
@@ -80,6 +81,7 @@ export default function TodayPage() {
     packStatus: l.id != null ? data?.packStatus.get(l.id) : undefined,
   }));
   const todayLesson = upcoming[0];
+  const seasonal = seasonalReminders(Date.now());
 
   async function headerInfo() {
     return { schoolName: schoolName || "مدرستي" };
@@ -89,6 +91,13 @@ export default function TodayPage() {
     if (!currentClassId) return [];
     const list = await activeStudentsOf(currentClassId);
     return list.sort((a, b) => a.rollNumber - b.rollNumber).map((st) => st.name);
+  }
+
+  /** قائمة التجهيز الأسبوعي (§2-ز): أدوات كل درس + عدد النسخ لكل فصل */
+  async function handleWeekPrep() {
+    const { printWeekPrep } = await import("@/lib/weekPrep");
+    if (await printWeekPrep()) show(s.today.weekPrepPrinted);
+    else show(s.today.weekPrepEmpty, { kind: "info" });
   }
 
   async function handleEmergency() {
@@ -108,14 +117,24 @@ export default function TodayPage() {
       show(s.today.weekBundlePrinted);
       return;
     }
-    // دروس الكتاب الحقيقية: الحزمة تُبنى من إثراء كل درس + ورقة عمل من بنكه
+    // دروس الكتاب الحقيقية: حزمة الحصة المشحونة كاملةً لكل درس، وإن غابت
+    // فالإثراء + ورقة عمل من البنك (المسار القديم يبقى شبكة أمان)
     const { enrichmentByCode } = await import("@/content/enrichment");
     const { enrichmentSheetHtml } = await import("@/lib/enrichmentPrint");
     const { bankWorksheetHtml, printDoc } = await import("@/lib/reportPrint");
+    const { PACK_CSS, lessonPackBody } = await import("@/lib/packPrint");
+    const { identityHeader } = await import("@/lib/printTheme");
     const info = await headerInfo();
     const parts: string[] = [];
     for (const { lesson, unitTitle } of upcoming) {
       if (!lesson.code || lesson.id == null) continue;
+      const pack = (await db.lessonPacks.where("lessonId").equals(lesson.id).toArray())
+        .filter((p) => !p.deletedAt)
+        .sort((a, b) => (b.status === "approved" ? 1 : 0) - (a.status === "approved" ? 1 : 0))[0];
+      if (pack) {
+        parts.push(identityHeader(info.schoolName, `حزمة حصة: ${lesson.title}`, unitTitle) + lessonPackBody(lesson.title, pack.content));
+        continue;
+      }
       const enrichment = enrichmentByCode(lesson.code);
       if (enrichment) {
         parts.push(enrichmentSheetHtml(enrichment, info.schoolName, lesson.title).replace(/^[\s\S]*?<body>/, "").replace(/<\/body>[\s\S]*$/, ""));
@@ -135,10 +154,7 @@ export default function TodayPage() {
     }
     const { PRINT_FONTS_CSS, IDENTITY_HEADER_CSS, identityFooter } = await import("@/lib/printTheme");
     printDoc(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><title>حزمة الأسبوع</title>
-      <style>${PRINT_FONTS_CSS}${IDENTITY_HEADER_CSS}
-      @page { size: A4; margin: 12mm; } * { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family: "Tajawal", sans-serif; font-size: 12pt; line-height: 1.9; color: #1E2430; }
-      h2 { color: #0B534C; } ul, ol { padding-inline-start: 7mm; }
+      <style>${PRINT_FONTS_CSS}${IDENTITY_HEADER_CSS}${PACK_CSS}
       .bundle-part { page-break-after: always; } .bundle-part:last-child { page-break-after: auto; }
       </style></head><body>${identityFooter("حزمة الأسبوع")}${parts.map((p) => `<div class="bundle-part">${p}</div>`).join("")}</body></html>`);
     show(s.today.weekBundlePrinted);
@@ -255,10 +271,16 @@ export default function TodayPage() {
                 </span>
                 {s.today.upcomingLessons}
               </h2>
-              <button type="button" onClick={() => void handleWeekBundle()} className="btn-secondary">
-                <Printer className="size-5" aria-hidden />
-                {s.today.weekBundle}
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => void handleWeekBundle()} className="btn-secondary">
+                  <Printer className="size-5" aria-hidden />
+                  {s.today.weekBundle}
+                </button>
+                <button type="button" onClick={() => void handleWeekPrep()} className="btn-secondary">
+                  <ClipboardList className="size-5" aria-hidden />
+                  {s.today.weekPrep}
+                </button>
+              </div>
             </div>
             <p className="text-sm text-ink-soft">{s.today.upcomingHint} · {s.today.weekBundleHint(fmtNum(30, numerals))}</p>
             <ul className="divide-y divide-line">
@@ -309,6 +331,13 @@ export default function TodayPage() {
               <p className="text-ink-soft">{s.common.loading}</p>
             ) : (
               <ul className="space-y-2">
+                {seasonal.map((r) => (
+                  <li key={r.key} className="rounded-card bg-teal-bg px-3 py-2 font-medium text-teal-dark">
+                    {r.to ? (
+                      <Link to={r.to} className="hover:underline">{r.message}</Link>
+                    ) : r.message}
+                  </li>
+                ))}
                 {data.warnings.map((w, i) => (
                   <li key={i} className={"rounded-card px-3 py-2 font-medium " + (w.severity === 3 ? "bg-danger-bg text-danger" : w.severity === 2 ? "bg-gold-bg text-gold-dark" : "bg-cream text-ink-soft")}>
                     {w.studentId ? (
