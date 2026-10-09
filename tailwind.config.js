@@ -55,16 +55,16 @@ export default {
         ok: "rgb(var(--c-ok) / <alpha-value>)",
         danger: { DEFAULT: "rgb(var(--c-danger) / <alpha-value>)", bg: "rgb(var(--c-danger-bg) / <alpha-value>)" },
       },
-      borderRadius: { card: "14px", pill: "999px" },
+      borderRadius: { card: "16px", pill: "999px" },
       // الحد الأدنى لارتفاع الأزرار والحقول (§6)
       minHeight: { touch: "48px" },
       minWidth: { touch: "48px" },
       boxShadow: {
-        // ظلال بصبغة الكحلي — ناعمة كتصميم Q-Road
-        card: "0 1px 2px rgba(20,33,61,.05), 0 4px 14px rgba(20,33,61,.07)",
-        lift: "0 2px 4px rgba(20,33,61,.1), 0 10px 28px rgba(20,33,61,.16)",
-        bar: "0 2px 14px rgba(20,33,61,.22)",
-        nav: "0 -3px 18px rgba(20,33,61,.12)",
+        // ظلال دافئة بصبغة العنّابي — عمق ورقي لا رمادي
+        card: "0 1px 2px rgba(74,9,29,.05), 0 4px 14px rgba(74,9,29,.07)",
+        lift: "0 2px 4px rgba(74,9,29,.1), 0 10px 28px rgba(74,9,29,.16)",
+        bar: "0 2px 14px rgba(74,9,29,.22)",
+        nav: "0 -3px 18px rgba(74,9,29,.12)",
       },
     },
   },
