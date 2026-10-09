@@ -25,16 +25,16 @@ export default function Sidebar() {
   const settingsActive = pathname.startsWith("/settings");
 
   return (
-    <aside className="sidebar-ink sticky top-3 hidden h-[calc(100dvh-1.5rem)] w-72 shrink-0 flex-col self-start overflow-hidden rounded-[26px] shadow-[0_18px_50px_rgb(23_35_43/0.35)] md:flex">
+    <aside className="sidebar-ink sticky top-3 hidden h-[calc(100dvh-1.5rem)] w-72 shrink-0 flex-col self-start overflow-hidden rounded-[20px] border border-line shadow-card md:flex">
       {/* الهوية */}
       <div className="px-5 pb-4 pt-6">
         <div className="flex items-start gap-3">
           <SchoolEmblem className="size-12" />
           <div className="min-w-0 pt-0.5">
-            <div className="font-heading text-lg font-bold leading-snug text-white">
+            <div className="font-heading text-lg font-bold leading-snug text-ink">
               {schoolName?.trim() || DEFAULT_SCHOOL_NAME}
             </div>
-            <div className="mt-0.5 text-sm leading-snug text-white/65">
+            <div className="mt-0.5 text-sm leading-snug text-ink-soft">
               {useBrandStore((x) => x.brand.platformName)}
               {year ? ` · ${year.name}` : ""} · {termLabel}
             </div>
@@ -55,26 +55,26 @@ export default function Sidebar() {
               className={
                 "flex min-h-[52px] items-center gap-3 rounded-2xl px-4 text-lg transition-all " +
                 (active
-                  ? `${sec.solid} font-bold shadow-[0_4px_14px_rgb(0_0_0/.35)]`
-                  : "font-medium text-white/85 hover:bg-white/10 hover:text-white")
+                  ? "bg-maroon-bg font-bold text-maroon shadow-[inset_0_0_0_1px_rgb(var(--c-maroon)/0.18)]"
+                  : "font-medium text-ink-soft hover:bg-cream hover:text-ink")
               }
             >
               <sec.icon className="size-6 shrink-0" aria-hidden />
               {s.nav[sec.key]}
-              {!active && <span aria-hidden className={`ms-auto size-2.5 rounded-full ${sec.chip.split(" ")[0]}`} />}
+              {!active && <span aria-hidden className={`ms-auto size-2.5 rounded-full ${sec.solid.split(" ")[0]} opacity-70`} />}
             </Link>
           );
         })}
       </nav>
 
       {/* الإعدادات */}
-      <div className="border-t border-white/10 p-3">
+      <div className="border-t border-line p-3">
         <Link
           to="/settings"
           aria-current={settingsActive ? "page" : undefined}
           className={
             "flex min-h-[52px] items-center gap-3 rounded-2xl px-4 text-lg transition-colors " +
-            (settingsActive ? "bg-maroon font-bold text-white" : "font-medium text-white/70 hover:bg-white/10 hover:text-white")
+            (settingsActive ? "bg-maroon-bg font-bold text-maroon" : "font-medium text-ink-soft hover:bg-cream hover:text-ink")
           }
         >
           <SETTINGS_ICON className="size-6 shrink-0" aria-hidden />
