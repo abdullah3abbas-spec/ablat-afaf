@@ -288,4 +288,20 @@ describe("محاكيات المختبر — منطق نقي (§2-ج محاكاة
     expect(litBulbs({ mode: "parallel", switchClosed: true, bulbs: [true, true] })).toEqual([true, true]);
     expect(litBulbs({ mode: "parallel", switchClosed: false, bulbs: [true, true] })).toEqual([false, false]);
   });
+
+  test("الهاليد: لون الراسب وذوبانه في الأمونيا المخففة ثم المركّزة", async () => {
+    const { tubeView } = await import("@/lib/labSims");
+    const t = (halide: "F" | "Cl" | "Br" | "I", silverAdded: boolean, diluteAdded = false, concAdded = false) =>
+      tubeView({ halide, silverAdded, diluteAdded, concAdded });
+    expect(t("Cl", false)).toEqual({ precipitate: null, dissolved: false });
+    expect(t("F", true)).toEqual({ precipitate: null, dissolved: false });
+    expect(t("Cl", true)).toEqual({ precipitate: "white", dissolved: false });
+    expect(t("Br", true).precipitate).toBe("cream");
+    expect(t("I", true).precipitate).toBe("yellow");
+    expect(t("Cl", true, true).dissolved).toBe(true);
+    expect(t("Cl", true, false, true).dissolved).toBe(true);
+    expect(t("Br", true, true).dissolved).toBe(false);
+    expect(t("Br", true, true, true).dissolved).toBe(true);
+    expect(t("I", true, true, true).dissolved).toBe(false);
+  });
 });

@@ -72,3 +72,45 @@ export function litBulbs(c: CircuitState): [boolean, boolean] {
   }
   return [c.bulbs[0], c.bulbs[1]];
 }
+
+// ── الكشف عن أيون الهاليد ─────────────────────────────────────
+
+export type Halide = "F" | "Cl" | "Br" | "I";
+export const HALIDES: Halide[] = ["F", "Cl", "Br", "I"];
+
+/** في أيّ محلول أمونيا يذوب راسب هاليد الفضة؟ — none: لا يذوب أبداً */
+export type AmmoniaSolubility = "dilute" | "conc" | "none";
+
+export interface HalideInfo {
+  /** لون الراسب، أو null إن كان الملح ذائباً (فلوريد الفضة) */
+  precipitate: "white" | "cream" | "yellow" | null;
+  solubility: AmmoniaSolubility;
+}
+
+/** من جدول الكشف: AgF ذائب · AgCl أبيض · AgBr أبيض كريمي · AgI أصفر فاتح */
+export const HALIDE_INFO: Record<Halide, HalideInfo> = {
+  F: { precipitate: null, solubility: "none" },
+  Cl: { precipitate: "white", solubility: "dilute" },
+  Br: { precipitate: "cream", solubility: "conc" },
+  I: { precipitate: "yellow", solubility: "none" },
+};
+
+export interface TubeState {
+  halide: Halide;
+  silverAdded: boolean;
+  diluteAdded: boolean;
+  concAdded: boolean;
+}
+
+/**
+ * ماذا يُرى في الأنبوب؟ الراسب يتكوّن بنترات الفضة، ثم يذوب كلوريد الفضة
+ * في الأمونيا المخففة، ويذوب بروميد الفضة في المركّزة فقط، ولا يذوب اليوديد.
+ * المركّز يذيب كل ما يذيبه المخفف.
+ */
+export function tubeView(t: TubeState): { precipitate: HalideInfo["precipitate"]; dissolved: boolean } {
+  const info = HALIDE_INFO[t.halide];
+  if (!t.silverAdded || info.precipitate === null) return { precipitate: null, dissolved: false };
+  const dissolved =
+    (info.solubility === "dilute" && (t.diluteAdded || t.concAdded)) || (info.solubility === "conc" && t.concAdded);
+  return { precipitate: info.precipitate, dissolved };
+}

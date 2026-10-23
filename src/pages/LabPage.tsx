@@ -9,6 +9,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FlaskConical, Home, LogOut, RotateCcw, Snowflake, Sun, Flame, Eye } from "lucide-react";
 import FoodChainSim from "@/components/lab/FoodChainSim";
 import CircuitSim from "@/components/lab/CircuitSim";
+import HalideSim from "@/components/lab/HalideSim";
 import { fmtNum } from "@/lib/numerals";
 import { useStrings } from "@/hooks/useStrings";
 import { useUi } from "@/store/ui";
@@ -32,7 +33,7 @@ export default function LabPage() {
   const [params] = useSearchParams();
   const numerals = useUi((x) => x.numeralsTable);
   const fromClass = params.get("from") === "class";
-  const sim = params.get("sim"); // food | circuit | water | null = قائمة
+  const sim = params.get("sim"); // food | circuit | halide | water | null = قائمة
 
   const [temp, setTemp] = useState(25);
   const [prediction, setPrediction] = useState<number | null>(null);
@@ -68,7 +69,7 @@ export default function LabPage() {
       <header className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-2">
         <span className="flex items-center gap-2 truncate font-heading text-xl font-bold text-gold">
           <FlaskConical className="size-6" aria-hidden />
-          {sim === "food" ? s.lab.food.title : sim === "circuit" ? s.lab.circuit.title : sim === "water" ? s.lab.waterTitle : s.lab.menuTitle}
+          {sim === "food" ? s.lab.food.title : sim === "circuit" ? s.lab.circuit.title : sim === "halide" ? s.lab.halide.title : sim === "water" ? s.lab.waterTitle : s.lab.menuTitle}
         </span>
         <div className="flex items-center gap-1">
           <Link to="/" className="flex min-h-touch items-center gap-2 rounded-card px-3 text-white/70 hover:bg-white/10 hover:text-white">
@@ -90,11 +91,12 @@ export default function LabPage() {
       {sim == null && (
         <main className="mx-auto w-full max-w-4xl flex-1 space-y-4 overflow-y-auto p-6">
           <p className="text-xl text-white/70">{s.lab.menuHint}</p>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             {(
               [
                 { key: "food", emoji: "🦅", label: s.lab.food.title, hint: s.lab.food.menuHint, tile: "border-ok/70 bg-ok/10" },
                 { key: "circuit", emoji: "💡", label: s.lab.circuit.title, hint: s.lab.circuit.menuHint, tile: "border-gold/70 bg-gold/10" },
+                { key: "halide", emoji: "🧪", label: s.lab.halide.title, hint: s.lab.halide.menuHint, tile: "border-white/50 bg-white/10" },
                 { key: "water", emoji: "🧊", label: s.lab.waterTitle, hint: s.lab.waterMenuHint, tile: "border-teal/70 bg-teal/10" },
               ] as const
             ).map((t) => (
@@ -114,6 +116,7 @@ export default function LabPage() {
 
       {sim === "food" && <FoodChainSim />}
       {sim === "circuit" && <CircuitSim />}
+      {sim === "halide" && <HalideSim />}
 
       {sim === "water" && (
       <main className="mx-auto grid w-full max-w-6xl flex-1 gap-6 overflow-y-auto p-6 lg:grid-cols-2">
