@@ -63,7 +63,8 @@ const LS = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
 const item = (id) => ITEMS.find((i) => i.id === id);
-const img = (id) => `img/${id}.webp`;
+const ASSET = window.ASSET || '';
+const img = (id) => `${ASSET}img/${id}.webp`;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 const fmt = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 const rnd = (n) => Math.floor(Math.random() * n);
@@ -275,7 +276,7 @@ function Teacher() {
 
   function body() {
     if (T.stage === 'video') {
-      return `<div class="vid"><video id="vid" src="hook.mp4" poster="poster.jpg" controls playsinline preload="auto"></video></div>
+      return `<div class="vid"><video id="vid" src="${ASSET}hook.mp4" poster="${ASSET}poster.jpg" controls playsinline preload="auto"></video></div>
         <div class="t-bar" style="margin-top:12px"><button class="btn primary" data-st2="game">التالي: لعبة التصنيف</button></div>`;
     }
     if (T.stage === 'game') return T.gameStart && !showJoin ? liveView() : joinView();
