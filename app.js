@@ -197,6 +197,7 @@ function Home() {
       <span class="muted" style="font-size:19px;font-weight:700">للتجربة قبل الحصة:</span>
       <a class="btn ghost" href="#/demo" style="text-decoration:none">السبورة مع مجموعات وهمية</a>
       <a class="btn ghost" href="#/try" style="text-decoration:none">جرّبي اللعبة بنفسك</a>
+      <a class="btn ghost" href="#/lab" style="text-decoration:none">المختبر الافتراضي</a>
     </div>
   </div>`;
   $$('.grp-pick button').forEach((b) => b.onclick = () => {
@@ -695,6 +696,162 @@ function Group(g, room, tryMode = false) {
   render();
 }
 
+/* ================= المختبر الافتراضي (النشاط 2) ================= */
+// بدل PhET: دائرة كاملة ينقصها جزء واحد، تضع المجموعة المواد الخمس بالترتيب وتلاحظ المصباح، ثم تدوّن في جدول الكتاب
+const LAB = [
+  {id: 'pencil', name: 'قلم خشبي', cond: false, w: 300, h: 26},
+  {id: 'coin', name: 'عملة معدنية', cond: true, w: 120, h: 145},
+  {id: 'clip', name: 'مشبك معدني', cond: true, w: 250, h: 100},
+  {id: 'money', name: 'عملة ورقية', cond: false, w: 260, h: 116},
+  {id: 'eraser', name: 'ممحاة', cond: false, w: 230, h: 96},
+];
+const labImg = (id) => `${ASSET}img/lab_${id}.webp`;
+function Lab() {
+  document.title = 'المختبر الافتراضي · موصِل أم عازِل؟';
+  const KEY = 'zk-lab';
+  let S = Object.assign({tested: {}}, LS.get(KEY, {}));
+  let inSlot = null, lit = false, busy = false;
+  const save = () => LS.set(KEY, S);
+  const CX = 400, Y = 530;
+  const clipSVG = (dir) => `<g class="lab-clip" data-dir="${dir}">
+      <line x1="${dir > 0 ? -260 : 260}" y1="0" x2="${dir > 0 ? -40 : 40}" y2="0" stroke="#22357F" stroke-width="18" stroke-linecap="round"/>
+      <line x1="${dir > 0 ? -260 : 260}" y1="0" x2="${dir > 0 ? -40 : 40}" y2="0" stroke="#3B5BDB" stroke-width="12" stroke-linecap="round"/>
+      <g transform="scale(${dir} 1)">
+        <rect x="-50" y="-16" width="38" height="32" rx="11" fill="${dir > 0 ? '#E5484D' : '#2B2F3A'}" stroke="${dir > 0 ? '#B3262B' : '#11141B'}" stroke-width="3"/>
+        <rect x="-45" y="-11" width="26" height="6" rx="3" fill="${dir > 0 ? '#FF8A8E' : '#5A6172'}"/>
+        <path d="M-14,-14 L6,-5 L1,-1 L-4,-5 L-9,-1 L-14,-5 Z" fill="#D5DAE3" stroke="#7D879A" stroke-width="2.4" stroke-linejoin="round"/>
+        <path d="M-14,14 L6,5 L1,1 L-4,5 L-9,1 L-14,5 Z" fill="#C3C9D4" stroke="#7D879A" stroke-width="2.4" stroke-linejoin="round"/>
+      </g></g>`;
+  const loop = 'M184,270 H816 A34,34 0 0 1 850,304 V496 A34,34 0 0 1 816,530 H184 A34,34 0 0 1 150,496 V304 A34,34 0 0 1 184,270 Z';
+  const rays = Array.from({length: 12}, (_, i) => {
+    const a = (i / 12) * Math.PI * 2, r1 = 96, r2 = 130;
+    return `<line x1="${500 + Math.cos(a) * r1}" y1="${123 + Math.sin(a) * r1}" x2="${500 + Math.cos(a) * r2}" y2="${123 + Math.sin(a) * r2}"/>`;
+  }).join('');
+
+  app.innerHTML = `<div class="lab">
+    <div class="lab-top">
+      <a class="t-brand" href="#/" style="text-decoration:none;color:inherit"><div class="ic">${bolt(32)}</div><div><h1>المختبر الافتراضي</h1><small>النشاط 2 · ما الموادّ التي تُعَدّ مُوصِلة كهربائيّة؟ · الكتاب ص 175</small></div></a>
+      <div class="lab-meta"><span class="pill" id="lab-prog"></span><button class="btn ghost" id="lab-reset" style="font-size:18px;padding:8px 18px">من جديد</button></div>
+    </div>
+    <div class="lab-hint">ضعن المادة في مكانها داخل الدائرة، ثم لاحظن: <b>هل يضيء المصباح؟</b> ودوّنّ النتيجة في جدول الكتاب.</div>
+    <div class="lab-stage">
+      <svg id="lab-svg" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet">
+        <defs><radialGradient id="labglow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE27A" stop-opacity=".95"/><stop offset=".45" stop-color="#FFD54A" stop-opacity=".4"/><stop offset="1" stop-color="#FFD54A" stop-opacity="0"/></radialGradient></defs>
+        <g id="lab-light" class="lab-light"><circle cx="500" cy="123" r="230" fill="url(#labglow)"/><g class="lab-rays" stroke="#FFC531" stroke-width="12" stroke-linecap="round">${rays}</g></g>
+        <path d="${loop}" fill="none" stroke="#22357F" stroke-width="18"/>
+        <path d="${loop}" fill="none" stroke="#3B5BDB" stroke-width="12"/>
+        <path d="${loop}" fill="none" stroke="#A9BEFF" stroke-width="3.5" transform="translate(0,-3)"/>
+        <path id="lab-flow" class="lab-flow" d="${loop}" fill="none" stroke="#FFE27A" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 34"/>
+        <rect x="236" y="500" width="328" height="60" fill="#fff"/>
+        <rect id="lab-slot" class="lab-slot" x="262" y="478" width="276" height="104" rx="24"/>
+        <text id="lab-slot-t" x="400" y="618" text-anchor="middle" class="lab-slot-t">ضعن المادة هنا</text>
+        <image id="lab-item" x="0" y="0" width="0" height="0" href="" class="lab-item"/>
+        <clipPath id="labclip"><rect x="186" y="0" width="628" height="640"/></clipPath>
+        <g clip-path="url(#labclip)">
+          <g id="clipA" style="transform:translate(282px,${Y}px)">${clipSVG(1)}</g>
+          <g id="clipB" style="transform:translate(518px,${Y}px)">${clipSVG(-1)}</g>
+        </g>
+        <image href="${labImg('cell')}" x="600" y="497" width="230" height="66"/>
+        <image id="lab-bulb-off" href="${labImg('bulb_off')}" x="441" y="63" width="118" height="240"/>
+        <image id="lab-bulb-on" class="lab-bulb-on" href="${labImg('bulb_on')}" x="441" y="63" width="118" height="240"/>
+      </svg>
+      <div class="lab-result" id="lab-result"></div>
+      <div class="lab-done" id="lab-done" hidden></div>
+    </div>
+    <div class="lab-tray" id="lab-tray"></div>
+  </div>`;
+
+  const svg = $('#lab-svg');
+  function setClips(itemW) {
+    const a = itemW ? CX - itemW / 2 + 14 : 282, b = itemW ? CX + itemW / 2 - 14 : 518;
+    $('#clipA').style.transform = `translate(${a}px,${Y}px)`;
+    $('#clipB').style.transform = `translate(${b}px,${Y}px)`;
+  }
+  function setLit(on) {
+    lit = on;
+    svg.classList.toggle('lit', on);
+  }
+  function renderTray() {
+    const n = Object.keys(S.tested).length;
+    $('#lab-prog').textContent = `جرّبتُنّ ${n} من ${LAB.length}`;
+    const next = LAB.find((m) => !(m.id in S.tested));
+    $('#lab-tray').innerHTML = LAB.map((m, i) => {
+      const t = m.id in S.tested;
+      return `<button class="lab-card ${inSlot === m.id ? 'in' : ''} ${next && next.id === m.id ? 'next' : ''}" data-id="${m.id}">
+        <span class="lab-n">${i + 1}</span><img src="${img(m.id === 'pencil' ? 'pencil' : m.id)}" alt=""><b>${m.name}</b>
+        ${t ? `<span class="lab-res ${S.tested[m.id] ? 'y' : 'n'}">${S.tested[m.id] ? 'أضاء' : 'لم يُضِئ'}</span>` : next && next.id === m.id ? '<span class="lab-res nx">التالي</span>' : '<span class="lab-res e">لم تُجرَّب</span>'}
+      </button>`;
+    }).join('');
+    $$('.lab-card').forEach(bind);
+    const done = n === LAB.length;
+    const d = $('#lab-done');
+    d.hidden = !done;
+    if (done) d.innerHTML = `${bulbSVG(70, true)}<div><b>أحسنتُنّ! جرّبتُنّ الموادّ الخمس.</b><span>الآن أكملن الجدول في الكتاب ص 176: هل المادة مُوصِلة أم عازِلة للكهرباء؟</span></div>`;
+  }
+  function place(id) {
+    if (busy) return;
+    const m = LAB.find((x) => x.id === id); if (!m) return;
+    if (inSlot === id) { clear(); return; }
+    busy = true; ac(); keepAwake();
+    setLit(false);
+    $('#lab-result').className = 'lab-result'; $('#lab-result').innerHTML = '';
+    inSlot = id;
+    const it = $('#lab-item');
+    it.setAttribute('href', labImg(id));
+    it.setAttribute('width', m.w); it.setAttribute('height', m.h);
+    it.setAttribute('x', CX - m.w / 2); it.setAttribute('y', Y - m.h / 2);
+    it.classList.remove('pop'); void it.getBoundingClientRect(); it.classList.add('pop');
+    $('#lab-slot').classList.add('filled'); $('#lab-slot-t').textContent = m.name;
+    SFX.pick();
+    setClips(m.w);
+    renderTray();
+    after(() => {
+      tone(1400, 0.05, 'square', 0.06); // طقّة المشبك
+      after(() => {
+        S.tested[id] = m.cond; save();
+        if (m.cond) { setLit(true); SFX.light(); }
+        else tone(196, 0.35, 'sine', 0.12);
+        const r = $('#lab-result');
+        r.className = 'lab-result show ' + (m.cond ? 'y' : 'n');
+        r.innerHTML = m.cond ? `${check(30)} المصباح يضيء` : `المصباح لا يضيء`;
+        busy = false; renderTray();
+        if (Object.keys(S.tested).length === LAB.length && !S.cele) { S.cele = 1; save(); after(() => { confetti(); SFX.win(); }, 500); }
+      }, 260);
+    }, 380);
+  }
+  function clear() {
+    inSlot = null; setLit(false); setClips(0);
+    const it = $('#lab-item'); it.setAttribute('width', 0); it.setAttribute('height', 0);
+    $('#lab-slot').classList.remove('filled'); $('#lab-slot-t').textContent = 'ضعن المادة هنا';
+    $('#lab-result').className = 'lab-result'; $('#lab-result').innerHTML = '';
+    renderTray();
+  }
+  // سحب أو لمس: اللمس يضع المادة مباشرة، والسحب يُفلِت فوق مكانها في الدائرة
+  let drag = null;
+  function overSlot(x, y) { const r = $('#lab-slot').getBoundingClientRect(); const p = 60; return x > r.left - p && x < r.right + p && y > r.top - p && y < r.bottom + p; }
+  function bind(card) {
+    card.onpointerdown = (e) => { e.preventDefault(); ac(); drag = {id: card.dataset.id, card, x0: e.clientX, y0: e.clientY, moving: false, clone: null}; try { card.setPointerCapture(e.pointerId); } catch (er) {} };
+    card.onpointermove = (e) => {
+      if (!drag || drag.card !== card) return;
+      if (!drag.moving && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 8) {
+        drag.moving = true; SFX.pick();
+        const c = document.createElement('img'); c.src = img(drag.id); c.className = 'lab-drag'; document.body.appendChild(c); drag.clone = c; card.classList.add('ghosted');
+      }
+      if (drag.moving) { drag.clone.style.left = e.clientX + 'px'; drag.clone.style.top = e.clientY + 'px'; $('#lab-slot').classList.toggle('hover', overSlot(e.clientX, e.clientY)); }
+    };
+    const end = (e) => {
+      if (!drag || drag.card !== card) return;
+      const d = drag; drag = null; $('#lab-slot').classList.remove('hover');
+      if (d.moving) { d.clone.remove(); card.classList.remove('ghosted'); if (e.type === 'pointerup' && overSlot(e.clientX, e.clientY)) place(d.id); }
+      else place(d.id);
+    };
+    card.onpointerup = end; card.onpointercancel = end;
+  }
+  $('#lab-reset').onclick = () => { S = {tested: {}}; save(); clear(); toast('بدأت التجربة من جديد'); };
+  LAB.forEach((m) => { const im = new Image(); im.src = labImg(m.id); });
+  renderTray();
+}
+
 /* ================= التوجيه ================= */
 function route() {
   const h = location.hash.slice(1) || '/';
@@ -704,6 +861,7 @@ function route() {
   if (parts[0] === 'teacher') Teacher();
   else if (parts[0] === 'demo') Teacher(true);
   else if (parts[0] === 'try') Group(1, '0000', true);
+  else if (parts[0] === 'lab') Lab();
   else if (parts[0] === 'g') Group(+parts[1], q.get('r'));
   else Home();
 }
