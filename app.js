@@ -304,10 +304,16 @@ function Teacher(demo = false) {
     return [...fin, ...rest];
   }
 
+  // شارة الاتصال: تتحدّث في مكانها حتى أثناء الفيديو (بلا إعادة رسم تُوقف الفيديو)
+  function pill() {
+    const n = Object.keys(online).filter((g) => g <= T.groupsCount).length;
+    return `<span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}"></span>${conn === 'SUBSCRIBED' ? (n ? `متصل · ${n === 1 ? 'مجموعة واحدة' : n === 2 ? 'مجموعتان' : n + ' مجموعات'}` : 'متصل') : 'جارٍ الاتصال…'}`;
+  }
+
   function render(force) {
     // لا تُعِد الرسم أثناء تعديل اسم مجموعة، ولا أثناء تشغيل الفيديو
     if (document.activeElement && document.activeElement.isContentEditable) return;
-    if (!force && T.stage === 'video' && $('#vid')) return;
+    if (!force && T.stage === 'video' && $('#vid')) { const c = $('#conn'); if (c) c.innerHTML = pill(); return; }
     const steps = [['video', 'التهيئة'], ['game', 'لعبة التصنيف'], ['results', 'النتائج'], ['quiz', 'التقييم']];
     const running = T.gameStart && T.finish.length < T.groupsCount;
     app.innerHTML = `<div class="t-wrap">
@@ -316,7 +322,7 @@ function Teacher(demo = false) {
         <div class="t-steps">${steps.map(([k, l], i) => `<button data-st="${k}" class="${T.stage === k ? 'act' : ''}"><i>${i + 1}</i>${l}</button>`).join('')}</div>
         <div class="t-meta">
           ${T.gameStart && (T.stage === 'game') ? `<div class="timer" id="timer">${fmt((running ? Date.now() : T.gameStart + Math.max(0, ...T.finish.map((f) => f.t))) - T.gameStart)}</div>` : ''}
-          <span class="pill"><span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}"></span>${conn === 'SUBSCRIBED' ? 'متصل' : 'جارٍ الاتصال…'}</span>
+          <span class="pill" id="conn">${pill()}</span>
           ${demo ? '<span class="pill" style="background:#FFF4CC;font-size:17px">وضع التجربة · مجموعات وهمية</span>' : `<span class="code">رمز الصف ${T.room}</span>`}
           <button class="btn ghost" id="reset" style="font-size:17px;padding:8px 16px">${resetArm > Date.now() ? 'اضغطي للتأكيد' : 'جولة جديدة'}</button>
         </div>
