@@ -14,7 +14,7 @@ const ITEMS = [
   {id: 'coin',   name: 'عملة معدنية',      cond: true},
   {id: 'foil',   name: 'ورق ألمنيوم',      cond: true},
   {id: 'key',    name: 'مفتاح باب',        cond: true},
-  {id: 'spoon',  name: 'ملعقة فلزّية',     cond: true},
+  {id: 'spoon',  name: 'ملعقة معدنية',     cond: true},
   {id: 'copper', name: 'سلك نحاس',         cond: true},
   {id: 'eraser', name: 'ممحاة',            cond: false},
   {id: 'stick',  name: 'عود خشبي',         cond: false},
@@ -128,6 +128,12 @@ const SFX = {
 };
 document.addEventListener('pointerdown', () => ac(), {once: true});
 
+/* ---------- مؤقّتات وقنوات كل شاشة (تُمسح عند التنقّل) ---------- */
+let TIMERS = [], CLIENTS = [];
+const every = (f, ms) => { const id = setInterval(f, ms); TIMERS.push(() => clearInterval(id)); return id; };
+const after = (f, ms) => { const id = setTimeout(f, ms); TIMERS.push(() => clearTimeout(id)); return id; };
+function cleanup() { TIMERS.forEach((c) => c()); TIMERS = []; CLIENTS.forEach((c) => { try { c.removeAllChannels(); } catch (e) {} }); CLIENTS = []; }
+
 let toastT;
 function toast(msg, kind = '') {
   const t = $('#toast'); t.textContent = msg; t.className = 'toast show ' + kind;
@@ -154,6 +160,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 function connect(room, presence, on) {
   if (!window.supabase) { on.status && on.status('NO_LIB'); return {send() {}}; }
   const sb = window.supabase.createClient(SB_URL, SB_KEY, {realtime: {params: {eventsPerSecond: 20}}});
+  CLIENTS.push(sb);
   const ch = sb.channel('zakreet-g5:' + room, {config: {broadcast: {self: false, ack: false}, presence: {key: presence.key}}});
   Object.keys(on).filter((k) => k[0] !== '_' && k !== 'status' && k !== 'presence' && k !== 'ready').forEach((ev) => ch.on('broadcast', {event: ev}, ({payload}) => on[ev](payload)));
   ch.on('presence', {event: 'sync'}, () => on.presence && on.presence(ch.presenceState()));
@@ -178,6 +185,11 @@ function Home() {
         <div class="grp-pick">${[1, 2, 3, 4, 5, 6].map((n) => `<button data-g="${n}" style="background:${COLORS[n - 1]}">${n}</button>`).join('')}</div>
       </div>
     </div>
+    <div class="t-bar" style="margin-top:6px">
+      <span class="muted" style="font-size:19px;font-weight:700">للتجربة قبل الحصة:</span>
+      <a class="btn ghost" href="#/demo" style="text-decoration:none">السبورة مع مجموعات وهمية</a>
+      <a class="btn ghost" href="#/try" style="text-decoration:none">جرّبي اللعبة بنفسك</a>
+    </div>
   </div>`;
   $$('.grp-pick button').forEach((b) => b.onclick = () => {
     const code = $('#code').value.replace(/\D/g, '');
@@ -188,22 +200,23 @@ function Home() {
 }
 
 /* ================= شاشة المعلمة ================= */
-function Teacher() {
-  document.title = 'شاشة المعلمة · موصِل أم عازِل؟';
+function Teacher(demo = false) {
+  document.title = (demo ? 'تجربة · ' : '') + 'شاشة المعلمة · موصِل أم عازِل؟';
+  const LSKEY = demo ? 'zk-teacher-demo' : 'zk-teacher';
   const fresh = () => ({room: String(1000 + rnd(9000)), epoch: Date.now().toString(36), stage: 'video', groupsCount: 5, names: defNames(), gameStart: null, finish: [], quizIdx: 0, reveal: false});
-  let T = Object.assign(fresh(), LS.get('zk-teacher', {}));
+  let T = Object.assign(fresh(), LS.get(LSKEY, {}));
   let groups = {}; // g -> payload
   let online = {}; // g -> true
   let conn = 'CONNECTING';
   let showJoin = false;
   let resetArm = 0;
-  const save = () => LS.set('zk-teacher', T);
+  const save = () => LS.set(LSKEY, T);
   save();
 
   const pub = () => ({epoch: T.epoch, stage: T.stage, groupsCount: T.groupsCount, names: T.names, gameOn: !!T.gameStart, finish: T.finish, quizIdx: T.quizIdx, reveal: T.reveal});
   let link;
   const broadcast = () => link && link.send('T', pub());
-  link = connect(T.room, {key: 'teacher', role: 'teacher'}, {
+  const H = {
     G(p) {
       if (!p || p.epoch !== T.epoch || !p.g) return;
       const prev = groups[p.g];
@@ -223,11 +236,48 @@ function Teacher() {
     },
     status(st) { conn = st; schedule(); },
     ready() { broadcast(); link.send('hello', {epoch: T.epoch}); },
-  });
-  setInterval(broadcast, 4000);
+  };
+  link = demo ? {send() {}} : connect(T.room, {key: 'teacher', role: 'teacher'}, H);
+  every(broadcast, 4000);
+  if (demo) { conn = 'SUBSCRIBED'; simulate(); }
+
+  // ---- مجموعات وهمية لوضع التجربة ----
+  function simulate() {
+    let sim = null;
+    const speeds = [2300, 1700, 2900, 2000, 3400, 2600];
+    [1, 2, 3, 4, 5, 6].forEach((g) => after(() => { online[g] = true; schedule(); }, 500 + g * 450));
+    every(() => {
+      const now = Date.now();
+      if (!sim || sim.epoch !== T.epoch || sim.start !== T.gameStart) {
+        sim = {epoch: T.epoch, start: T.gameStart, g: {}};
+        for (let g = 1; g <= 6; g++) sim.g[g] = {order: shuffle(GAME_IDS), i: 0, placed: {}, mistakes: 0, done: false, answers: {}, ansAt: {}, lastWrong: null, next: now + 1200 + rnd(1800), wrongPending: false};
+      }
+      for (let g = 1; g <= T.groupsCount; g++) {
+        const s = sim.g[g]; let changed = false;
+        if (T.gameStart && !s.done && now >= s.next) {
+          const id = s.order[s.i], it = item(id);
+          if (!s.wrongPending && Math.random() < 0.16) {
+            s.mistakes++; s.lastWrong = {id, bin: it.cond ? 'off' : 'on', at: now}; s.wrongPending = true;
+          } else {
+            s.placed[id] = it.cond ? 'on' : 'off'; s.i++; s.wrongPending = false;
+            if (s.i >= GAME_IDS.length) s.done = true;
+          }
+          s.next = now + speeds[g - 1] * (0.6 + Math.random() * 0.8); changed = true;
+        }
+        if (T.stage === 'quiz' && T.quizIdx < QUIZ.length && !T.reveal && s.answers[T.quizIdx] === undefined) {
+          if (!s.ansAt[T.quizIdx]) s.ansAt[T.quizIdx] = now + 1500 + rnd(5000);
+          else if (now >= s.ansAt[T.quizIdx]) {
+            const q = QUIZ[T.quizIdx];
+            s.answers[T.quizIdx] = Math.random() < 0.78 ? q.a : rnd(q.o.length); changed = true;
+          }
+        }
+        if (changed) H.G({epoch: T.epoch, g, placed: {...s.placed}, mistakes: s.mistakes, done: s.done, answers: {...s.answers}, lastWrong: s.lastWrong});
+      }
+    }, 400);
+  }
 
   const wrongs = {};
-  function flashWrong(g, w) { wrongs[g] = {...w, until: Date.now() + 2600}; schedule(); setTimeout(schedule, 2700); }
+  function flashWrong(g, w) { wrongs[g] = {...w, until: Date.now() + 2600}; schedule(); after(schedule, 2700); }
 
   let raf = 0;
   function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
@@ -255,12 +305,12 @@ function Teacher() {
     const running = T.gameStart && T.finish.length < T.groupsCount;
     app.innerHTML = `<div class="t-wrap">
       <div class="t-top">
-        <div class="t-brand"><div class="ic">${bolt(34)}</div><div><h1>موصِل أم عازِل؟</h1><small>علوم الصف الخامس · المُوصِلات والعوازِل الكهربائية</small></div></div>
+        <a class="t-brand" href="#/" style="text-decoration:none;color:inherit" title="الصفحة الرئيسية"><div class="ic">${bolt(34)}</div><div><h1>موصِل أم عازِل؟</h1><small>علوم الصف الخامس · المُوصِلات والعوازِل الكهربائية</small></div></a>
         <div class="t-steps">${steps.map(([k, l], i) => `<button data-st="${k}" class="${T.stage === k ? 'act' : ''}"><i>${i + 1}</i>${l}</button>`).join('')}</div>
         <div class="t-meta">
           ${T.gameStart && (T.stage === 'game') ? `<div class="timer" id="timer">${fmt((running ? Date.now() : T.gameStart + Math.max(0, ...T.finish.map((f) => f.t))) - T.gameStart)}</div>` : ''}
           <span class="pill"><span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}"></span>${conn === 'SUBSCRIBED' ? 'متصل' : 'جارٍ الاتصال…'}</span>
-          <span class="code">رمز الصف ${T.room}</span>
+          ${demo ? '<span class="pill" style="background:#FFF4CC;font-size:17px">وضع التجربة · مجموعات وهمية</span>' : `<span class="code">رمز الصف ${T.room}</span>`}
           <button class="btn ghost" id="reset" style="font-size:17px;padding:8px 16px">${resetArm > Date.now() ? 'اضغطي للتأكيد' : 'جولة جديدة'}</button>
         </div>
       </div>
@@ -269,7 +319,7 @@ function Teacher() {
     $$('[data-st]').forEach((b) => b.onclick = () => setStage(b.dataset.st));
     $('#reset').onclick = () => {
       if (resetArm > Date.now()) { const keep = {room: T.room, groupsCount: T.groupsCount, names: T.names}; T = Object.assign(fresh(), keep); groups = {}; save(); broadcast(); resetArm = 0; toast('بدأت جولة جديدة'); render(); }
-      else { resetArm = Date.now() + 3000; render(); setTimeout(render, 3100); }
+      else { resetArm = Date.now() + 3000; render(); after(render, 3100); }
     };
     wire();
   }
@@ -333,7 +383,7 @@ function Teacher() {
             <div class="mz off" style="margin-bottom:0"><div class="mh">${bulbSVG(30, false)}لا يضيء · عازِل</div><div class="th">${off.map((id) => `<img src="${img(id)}" alt="${esc(item(id).name)}" title="${esc(item(id).name)}">`).join('')}</div></div>
             <div class="ft"><span class="mis">${p.mistakes ? `محاولات خاطئة: ${p.mistakes}` : ''}</span><span>${fin ? fmt(fin.t) : ''}</span></div>
             ${fin ? `<div class="done ${rank === 0 ? 'first' : ''}">${rank === 0 ? 'الأولى! ' : ''}المركز ${rank + 1}</div>` : ''}
-            ${w ? `<div class="wrongflash">${esc(item(w.id).name)} ✗ ${w.bin === 'on' ? 'ليست مُوصِلة' : 'ليست عازِلة'}</div>` : ''}
+            ${w ? `<div class="wrongflash">✗ ${esc(item(w.id).name)} ← ${w.bin === 'on' ? 'يضيء' : 'لا يضيء'}</div>` : ''}
           </div>`;
         }).join('')}
       </div>`;
@@ -406,19 +456,19 @@ function Teacher() {
     $$('[data-n]').forEach((b) => b.onclick = () => { T.groupsCount = +b.dataset.n; save(); broadcast(); render(); });
     $$('[data-name]').forEach((h) => {
       h.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); h.blur(); } };
-      h.onblur = () => { const g = +h.dataset.name; const v = h.textContent.trim().slice(0, 24); T.names[g - 1] = v || 'المجموعة ' + g; save(); broadcast(); setTimeout(render, 0); };
+      h.onblur = () => { const g = +h.dataset.name; const v = h.textContent.trim().slice(0, 24); T.names[g - 1] = v || 'المجموعة ' + g; save(); broadcast(); after(render, 0); };
     });
     const qp = $('#qprev'); if (qp) qp.onclick = () => { T.quizIdx = Math.max(0, T.quizIdx - 1); T.reveal = false; save(); broadcast(); render(); };
     const qn = $('#qnext'); if (qn) qn.onclick = () => { T.quizIdx = Math.min(QUIZ.length, T.quizIdx + 1); T.reveal = false; save(); broadcast(); render(); };
     const qr = $('#qrev'); if (qr) qr.onclick = () => { T.reveal = true; save(); broadcast(); SFX.ok(); render(); };
   }
 
-  setInterval(() => { const el = $('#timer'); if (el && T.gameStart && T.finish.length < T.groupsCount) el.textContent = fmt(Date.now() - T.gameStart); }, 500);
+  every(() => { const el = $('#timer'); if (el && T.gameStart && T.finish.length < T.groupsCount) el.textContent = fmt(Date.now() - T.gameStart); }, 500);
   render();
 }
 
 /* ================= جهاز المجموعة ================= */
-function Group(g, room) {
+function Group(g, room, tryMode = false) {
   if (!(g >= 1 && g <= 6) || !/^\d{4}$/.test(room || '')) { location.hash = '#/'; return; }
   LS.set('zk-last-room', room);
   const key = `zk-g-${room}-${g}`;
@@ -427,7 +477,7 @@ function Group(g, room) {
   let S = LS.get(key, null) || fresh(null);
   let TS = null; // حالة المعلمة
   let conn = 'CONNECTING';
-  let offline = false;
+  let offline = tryMode;
   let sel = null;
   const save = () => LS.set(key, S);
   const name = () => (TS && TS.names ? TS.names[g - 1] : 'المجموعة ' + g);
@@ -435,7 +485,8 @@ function Group(g, room) {
   const payload = () => ({epoch: S.epoch, g, placed: S.placed, mistakes: S.mistakes, done: S.done, answers: S.answers, lastWrong: S.lastWrong});
   let link;
   const send = () => link && S.epoch && link.send('G', payload());
-  link = connect(room, {key: 'g' + g + '-' + rnd(1e6), role: 'group', g}, {
+  if (tryMode) S = fresh('offline');
+  link = tryMode ? {send() {}} : connect(room, {key: 'g' + g + '-' + rnd(1e6), role: 'group', g}, {
     T(p) {
       const first = !TS;
       const prevStage = TS && TS.stage, prevOn = TS && TS.gameOn, prevQ = TS && TS.quizIdx, prevRev = TS && TS.reveal;
@@ -450,14 +501,13 @@ function Group(g, room) {
     status(st) { conn = st; refreshBadge(); },
     ready() { link.send('hi', {g}); send(); },
   });
-  setInterval(send, 5000);
-  setTimeout(() => { if (!TS) render(); }, 8000);
+  if (!tryMode) { every(send, 5000); after(() => { if (!TS) render(); }, 8000); }
 
   function top() {
     const cnt = Object.keys(S.placed).length;
     return `<div class="g-top">
       <div class="g-badge" style="background:${color}"><b>${g}</b><span id="gname">${esc(name())}</span></div>
-      <div class="title">${bolt(26)} موصِل أم عازِل؟</div>
+      ${tryMode ? `<a class="title" href="#/" style="text-decoration:none;color:inherit">${bolt(26)} موصِل أم عازِل؟</a>` : `<div class="title">${bolt(26)} موصِل أم عازِل؟</div>`}
       <div class="g-prog"><div class="bar"><i style="width:${(cnt / GAME_IDS.length) * 100}%"></i></div><span>${cnt}/${GAME_IDS.length}</span>
       <span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}" id="cdot" title="الاتصال"></span></div>
     </div>`;
@@ -480,13 +530,14 @@ function Group(g, room) {
     } else if (stage === 'game' && gameOn) {
       if (S.done) {
         inner = `<div class="wait">${bulbSVG(190, true)}<h2>أحسنتُنّ! أكملتُنّ التصنيف</h2>
-          <p>${S.mistakes ? `عدد المحاولات الخاطئة: ${S.mistakes}` : 'بلا أيّ خطأ، رائع!'}</p><p>انظرن إلى السبورة…</p></div>`;
+          <p>${S.mistakes ? `عدد المحاولات الخاطئة: ${S.mistakes}` : 'بلا أيّ خطأ، رائع!'}</p>${offline ? '<button class="btn primary" id="again">العبن مرة أخرى</button>' : '<p>انظرن إلى السبورة…</p>'}</div>`;
       } else return renderGame();
     } else {
       inner = `<div class="wait"><div class="big-badge" style="background:${color}">${g}</div>
         <h2>${esc(name())}</h2><p>${stage === 'video' ? 'شاهدن التجربة على السبورة…' : 'استعددن! ستبدأ اللعبة بعد قليل'}</p>${bulbSVG(120, false)}</div>`;
     }
     app.innerHTML = `<div class="g-wrap">${top()}${inner}</div>`;
+    const ag = $('#again'); if (ag) ag.onclick = () => { S = fresh(S.epoch || 'offline'); save(); render(); };
     const ob = $('#offline'); if (ob) ob.onclick = () => { offline = true; if (!S.epoch) { S = fresh('offline'); save(); } render(); };
     $$('[data-opt]').forEach((b) => b.onclick = () => {
       if (!TS || TS.reveal) return;
@@ -580,13 +631,13 @@ function Group(g, room) {
       else { SFX.ok(); toast(`صحيح! ${it.name}: عازِل`, 'ok'); }
       if (Object.keys(S.placed).length === GAME_IDS.length) {
         S.done = true; save(); send();
-        setTimeout(() => { confetti(); SFX.win(); render(); }, 700);
+        after(() => { confetti(); SFX.win(); render(); }, 700);
       }
     } else {
       S.mistakes++; S.lastWrong = {id, bin: b, at: Date.now()}; save(); send();
       SFX.bad(); toast('فكّرن مرة أخرى!', 'bad');
       renderGame();
-      const c = $(`.card[data-id="${id}"]`); if (c) { c.classList.add('shake'); setTimeout(() => c.classList.remove('shake'), 500); }
+      const c = $(`.card[data-id="${id}"]`); if (c) { c.classList.add('shake'); after(() => c.classList.remove('shake'), 500); }
     }
   }
 
@@ -602,9 +653,11 @@ function route() {
   const parts = path.split('/').filter(Boolean);
   const q = new URLSearchParams(qs || '');
   if (parts[0] === 'teacher') Teacher();
+  else if (parts[0] === 'demo') Teacher(true);
+  else if (parts[0] === 'try') Group(1, '0000', true);
   else if (parts[0] === 'g') Group(+parts[1], q.get('r'));
   else Home();
 }
-window.addEventListener('hashchange', () => location.reload());
+window.addEventListener('hashchange', () => { cleanup(); window.scrollTo(0, 0); route(); });
 route();
 })();

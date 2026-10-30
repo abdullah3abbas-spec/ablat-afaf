@@ -1,0 +1,16 @@
+<title>موصِل أم عازِل؟</title>
+<meta name="theme-color" content="#ffffff">
+<script>document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl';</script>
+<style>
+  /* white-only by design: the lesson is for 10-year-old girls and the client asked for a white background everywhere */
+  :root { color-scheme: light; --bg: #ffffff; --ink: #1B2B4B; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { direction: rtl; }
+</style>
+<link rel="stylesheet" href="app.css">
+<div id="app"></div>
+<div id="toast" class="toast" aria-live="polite"></div>
+<canvas id="confetti" class="confetti"></canvas>
+<script src="lib/supabase.js"></script>
+<script src="lib/qrcode.js"></script>
+<script src="app.js"></script>
