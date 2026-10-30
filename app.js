@@ -54,7 +54,13 @@ const QUIZ = [
 ];
 const LETTERS = ['أ', 'ب', 'ج', 'د'];
 // نقاط التوقّف في فيديو التهيئة التفاعلي (بالثواني)
-const PAUSES = [26.2, 39.17, 61.5];
+// فيديوهات التهيئة: نقاط التوقّف (بالثواني) عند أسئلة التفاعل
+const VIDEOS = {
+  2: {src: 'hook.mp4', poster: 'poster.jpg', label: 'التفاعلية', pauses: [26.2, 39.17, 61.5]},
+  3: {src: 'dialogue.mp4', poster: 'poster_dialogue.jpg', label: 'حوار الدائرتين', pauses: [57.33, 65.23]},
+  1: {src: 'hook_v1.mp4', poster: 'poster_v1.jpg', label: 'الأولى', pauses: []},
+};
+const vidOf = (n) => VIDEOS[n] || VIDEOS[2];
 
 /* ================= أدوات عامة ================= */
 const $ = (s, r = document) => r.querySelector(s);
@@ -339,13 +345,13 @@ function Teacher(demo = false) {
 
   function body() {
     if (T.stage === 'video') {
-      const v2 = (T.videoVer || 2) === 2;
-      return `<div class="vid"><div class="vwrap"><video id="vid" src="${ASSET}${v2 ? 'hook.mp4' : 'hook_v1.mp4'}" poster="${ASSET}${v2 ? 'poster.jpg' : 'poster_v1.jpg'}" controls playsinline preload="auto"></video>
+      const ver = VIDEOS[T.videoVer] ? T.videoVer : 2, V = vidOf(ver);
+      return `<div class="vid"><div class="vwrap"><video id="vid" src="${ASSET}${V.src}" poster="${ASSET}${V.poster}" controls playsinline preload="auto"></video>
           <button id="vcont" class="vcont" hidden>متابعة ▶</button></div></div>
         <div class="t-bar" style="margin-top:12px">
           <span class="pill" style="font-size:18px;padding:6px 8px 6px 14px">النسخة
-            <button data-vv="2" class="vv ${v2 ? 'on' : ''}">التفاعلية</button><button data-vv="1" class="vv ${v2 ? '' : 'on'}">الأولى</button></span>
-          ${v2 ? `<label class="pill" style="font-size:18px;cursor:pointer"><input type="checkbox" id="vpause" ${T.autoPause === false ? '' : 'checked'} style="width:20px;height:20px"> توقّف عند أسئلة التفاعل</label>` : ''}
+            ${[2, 3, 1].map((n) => `<button data-vv="${n}" class="vv ${ver === n ? 'on' : ''}">${VIDEOS[n].label}</button>`).join('')}</span>
+          ${V.pauses.length ? `<label class="pill" style="font-size:18px;cursor:pointer"><input type="checkbox" id="vpause" ${T.autoPause === false ? '' : 'checked'} style="width:20px;height:20px"> توقّف عند أسئلة التفاعل</label>` : ''}
           <button class="btn primary" data-st2="game">التالي: لعبة التصنيف</button>
         </div>`;
     }
@@ -472,7 +478,8 @@ function Teacher(demo = false) {
     $$('[data-vv]').forEach((b) => b.onclick = () => { T.videoVer = +b.dataset.vv; save(); render(true); });
     const vp = $('#vpause'); if (vp) vp.onchange = () => { T.autoPause = vp.checked; save(); };
     const vid = $('#vid');
-    if (vid && (T.videoVer || 2) === 2) {
+    const PAUSES = vidOf(T.videoVer).pauses;
+    if (vid && PAUSES.length) {
       const done = new Set(); let last = 0;
       const cont = $('#vcont');
       const resume = () => { cont.hidden = true; vid.play().catch(() => {}); };
