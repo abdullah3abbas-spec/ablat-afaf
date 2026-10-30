@@ -219,3 +219,8 @@ img{-webkit-user-drag:none;user-select:none}
   .home h1{font-size:46px}
 }
 @media (orientation:portrait) and (max-width:900px){.zones{grid-template-columns:1fr;grid-template-rows:1fr 1fr}}
+
+.vwrap{position:relative;display:inline-block;max-width:100%}
+.vcont{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);font-size:36px;font-weight:800;padding:16px 48px;border-radius:999px;background:var(--yellow);color:var(--ink);box-shadow:0 18px 40px rgba(255,197,49,.5);animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+.vv{padding:6px 14px;border-radius:999px;font-weight:800;font-size:17px;color:var(--sub)}
+.vv.on{background:#fff;color:var(--ink);box-shadow:0 3px 10px rgba(27,43,75,.1)}

@@ -53,6 +53,8 @@ const QUIZ = [
    x: 'الماء مُوصِل للكهرباء، لذلك نحافظ على أيدينا جافّة.'},
 ];
 const LETTERS = ['أ', 'ب', 'ج', 'د'];
+// نقاط التوقّف في فيديو التهيئة التفاعلي (بالثواني)
+const PAUSES = [34.45, 52.9, 74.8];
 
 /* ================= أدوات عامة ================= */
 const $ = (s, r = document) => r.querySelector(s);
@@ -276,13 +278,17 @@ function Teacher(demo = false) {
     }, 400);
   }
 
+  let onKey = null;
+  const keyH = (e) => onKey && T.stage === 'video' && onKey(e);
+  document.addEventListener('keydown', keyH);
+  TIMERS.push(() => document.removeEventListener('keydown', keyH));
   const wrongs = {};
   function flashWrong(g, w) { wrongs[g] = {...w, until: Date.now() + 2600}; schedule(); after(schedule, 2700); }
 
   let raf = 0;
   function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
 
-  function setStage(s) { T.stage = s; if (s === 'quiz') T.reveal = false; save(); broadcast(); showJoin = false; render(); }
+  function setStage(s) { T.stage = s; if (s === 'quiz') T.reveal = false; save(); broadcast(); showJoin = false; render(true); }
 
   const groupUrl = (g) => `${location.origin}${location.pathname}#/g/${g}?r=${T.room}`;
   const qrSVG = (txt) => { try { const q = qrcode(0, 'M'); q.addData(txt); q.make(); return q.createSvgTag({cellSize: 4, margin: 0, scalable: true}); } catch (e) { return ''; } };
@@ -298,9 +304,10 @@ function Teacher(demo = false) {
     return [...fin, ...rest];
   }
 
-  function render() {
-    // لا تُعِد الرسم أثناء تعديل اسم مجموعة
+  function render(force) {
+    // لا تُعِد الرسم أثناء تعديل اسم مجموعة، ولا أثناء تشغيل الفيديو
     if (document.activeElement && document.activeElement.isContentEditable) return;
+    if (!force && T.stage === 'video' && $('#vid')) return;
     const steps = [['video', 'التهيئة'], ['game', 'لعبة التصنيف'], ['results', 'النتائج'], ['quiz', 'التقييم']];
     const running = T.gameStart && T.finish.length < T.groupsCount;
     app.innerHTML = `<div class="t-wrap">
@@ -318,16 +325,23 @@ function Teacher(demo = false) {
     </div>`;
     $$('[data-st]').forEach((b) => b.onclick = () => setStage(b.dataset.st));
     $('#reset').onclick = () => {
-      if (resetArm > Date.now()) { const keep = {room: T.room, groupsCount: T.groupsCount, names: T.names}; T = Object.assign(fresh(), keep); groups = {}; save(); broadcast(); resetArm = 0; toast('بدأت جولة جديدة'); render(); }
-      else { resetArm = Date.now() + 3000; render(); after(render, 3100); }
+      if (resetArm > Date.now()) { const keep = {room: T.room, groupsCount: T.groupsCount, names: T.names}; T = Object.assign(fresh(), keep); groups = {}; save(); broadcast(); resetArm = 0; toast('بدأت جولة جديدة'); render(true); }
+      else { resetArm = Date.now() + 3000; render(true); after(() => render(true), 3100); }
     };
     wire();
   }
 
   function body() {
     if (T.stage === 'video') {
-      return `<div class="vid"><video id="vid" src="${ASSET}hook.mp4" poster="${ASSET}poster.jpg" controls playsinline preload="auto"></video></div>
-        <div class="t-bar" style="margin-top:12px"><button class="btn primary" data-st2="game">التالي: لعبة التصنيف</button></div>`;
+      const v2 = (T.videoVer || 2) === 2;
+      return `<div class="vid"><div class="vwrap"><video id="vid" src="${ASSET}${v2 ? 'hook.mp4' : 'hook_v1.mp4'}" poster="${ASSET}${v2 ? 'poster.jpg' : 'poster_v1.jpg'}" controls playsinline preload="auto"></video>
+          <button id="vcont" class="vcont" hidden>متابعة ▶</button></div></div>
+        <div class="t-bar" style="margin-top:12px">
+          <span class="pill" style="font-size:18px;padding:6px 8px 6px 14px">النسخة
+            <button data-vv="2" class="vv ${v2 ? 'on' : ''}">التفاعلية</button><button data-vv="1" class="vv ${v2 ? '' : 'on'}">الأولى</button></span>
+          ${v2 ? `<label class="pill" style="font-size:18px;cursor:pointer"><input type="checkbox" id="vpause" ${T.autoPause === false ? '' : 'checked'} style="width:20px;height:20px"> توقّف عند أسئلة التفاعل</label>` : ''}
+          <button class="btn primary" data-st2="game">التالي: لعبة التصنيف</button>
+        </div>`;
     }
     if (T.stage === 'game') return T.gameStart && !showJoin ? liveView() : joinView();
     if (T.stage === 'results') return resultsView();
@@ -449,6 +463,28 @@ function Teacher(demo = false) {
 
   function wire() {
     $$('[data-st2]').forEach((b) => b.onclick = () => setStage(b.dataset.st2));
+    $$('[data-vv]').forEach((b) => b.onclick = () => { T.videoVer = +b.dataset.vv; save(); render(true); });
+    const vp = $('#vpause'); if (vp) vp.onchange = () => { T.autoPause = vp.checked; save(); };
+    const vid = $('#vid');
+    if (vid && (T.videoVer || 2) === 2) {
+      const done = new Set(); let last = 0;
+      const cont = $('#vcont');
+      const resume = () => { cont.hidden = true; vid.play().catch(() => {}); };
+      cont.onclick = resume;
+      const check = () => {
+        const t = vid.currentTime;
+        if (t < last - 0.5) PAUSES.forEach((p) => { if (p > t) done.delete(p); });
+        last = t;
+        if (T.autoPause === false) return;
+        for (const p of PAUSES) if (!done.has(p) && t >= p && t < p + 1.2) { done.add(p); vid.pause(); cont.hidden = false; SFX.ping(); break; }
+      };
+      vid.addEventListener('timeupdate', check);
+      vid.addEventListener('seeked', check);
+      const loop = () => { if (!document.body.contains(vid)) return; if (!vid.paused) check(); requestAnimationFrame(loop); };
+      requestAnimationFrame(loop);
+      vid.addEventListener('play', () => { cont.hidden = true; });
+      onKey = (e) => { if (!cont.hidden && [' ', 'Enter', 'ArrowRight', 'ArrowLeft', 'PageDown', 'PageUp'].includes(e.key)) { e.preventDefault(); resume(); } };
+    }
     const st = $('#start');
     if (st) st.onclick = () => { T.gameStart = Date.now(); T.finish = []; save(); broadcast(); SFX.ping(); render(); };
     const bk = $('#back'); if (bk) bk.onclick = () => { showJoin = false; render(); };
