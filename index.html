@@ -10,7 +10,14 @@
 <link rel="preload" href="fonts/baloo-bhaijaan-2-arabic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/baloo-bhaijaan-2-arabic-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="app.css?v=1">
-<script>window.ASSET = /githack\.com$/.test(location.hostname) ? 'https://cdn.jsdelivr.net/gh/abdullah3abbas-spec/ablat-afaf@756feb4ae6ee4a7c94d5439deb590f5a33f798e3/' : '';</script>
+<script>
+// githack mirrors GitHub but throttles big files: serve images/video from jsDelivr at the same commit.
+// On GitHub Pages or any normal host, assets load relatively (ASSET = '').
+window.ASSET = (function () {
+  var m = /githack\.com$/.test(location.hostname) && location.pathname.match(/^\/([^/]+)\/([^/]+)\/([^/]+)\//);
+  return m ? 'https://cdn.jsdelivr.net/gh/' + m[1] + '/' + m[2] + '@' + m[3] + '/' : '';
+})();
+</script>
 </head>
 <body>
 <div id="app"></div>
