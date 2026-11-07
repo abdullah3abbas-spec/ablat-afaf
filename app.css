@@ -447,3 +447,23 @@ img{-webkit-user-drag:none;user-select:none}
 @media (max-width:1300px){.lb-t{font-size:17px}.lb-t td{padding:7px 4px}.bd .body{min-height:calc(var(--h) * 20px + 250px)}.bd .roof{height:96px}}
 .lb-t td{white-space:nowrap}
 @media (max-width:1650px) and (min-width:1301px){.lb-t{font-size:16px}.lb-t td{padding:9px 3px}.lb-t td.m{padding-inline-start:8px}.lb-t td svg{width:13px;height:13px}.lb-h h3{font-size:21px}.lb-pg{font-size:13px}}
+/* المدينة تتكيّف مع ارتفاع الشاشة (لابتوب 1366×768 أو بروجكتر 1920×1080) */
+.sb{height:100vh;height:100dvh;min-height:0}
+.city{container-type:size;min-height:0;padding-top:1.5cqh}
+.city .row{gap:2.2vw}
+.bd .roof{height:14cqh;margin-bottom:-1.6cqh}
+.bd .roof svg{height:100%;width:auto}
+.bd .body{min-height:0;height:calc(var(--h) * 3.5cqh + 50cqh);padding:3cqh 1.4vw 0;gap:2.2cqh;border-top-width:2cqh}
+.bd .wins{gap:2cqh}
+.bd .wins i{height:6.8cqh}
+.bd .door{height:8cqh;width:30%}
+.bd .walk{height:1.8cqh}
+.bd .lbl{margin-top:1.2cqh;font-size:clamp(18px,3cqh,24px)}
+.bd .lbl .n{width:clamp(26px,4.4cqh,34px);height:clamp(26px,4.4cqh,34px);font-size:clamp(15px,2.6cqh,20px)}
+.bd .sub{font-size:clamp(15px,2.6cqh,19px)}
+.bd .medal{width:clamp(40px,7.5cqh,58px);height:clamp(40px,7.5cqh,58px);font-size:clamp(22px,4cqh,30px)}
+.city .hint{margin-top:1.5cqh;font-size:clamp(16px,2.8cqh,22px)}
+.sb .joinbar{padding:8px 18px}
+.sb .joinbar .qr{width:clamp(96px,14vh,150px);height:clamp(96px,14vh,150px)}
+.sb .joinbar b{font-size:clamp(20px,3.2vh,30px)}
+.sb .joinbar span{font-size:clamp(16px,2.3vh,21px)}
