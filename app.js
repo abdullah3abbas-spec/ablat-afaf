@@ -181,31 +181,26 @@ function connect(room, presence, on) {
 
 /* ================= الصفحة الرئيسية ================= */
 function Home() {
-  const last = LS.get('zk-last-room', '');
+  document.title = 'موصِل أم عازِل؟';
   app.innerHTML = `<div class="home">
     <div class="logo">${bolt(60)}</div>
     <h1>موصِل أم عازِل؟</h1>
     <p class="sub">علوم الصف الخامس · الدرس 3.3 · المُوصِلات والعوازِل الكهربائية</p>
     <div class="cards">
-      <a class="card" href="#/teacher" style="text-decoration:none;color:inherit">${bulbSVG(90, true)}شاشة المعلمة<small>للسبورة أو جهاز العرض</small><span class="btn primary">فتح الشاشة</span></a>
-      <div class="card">${bulbSVG(90, false)}جهاز المجموعة<small>اكتبي رمز الصف ثم اختاري رقم المجموعة</small>
-        <input id="code" inputmode="numeric" maxlength="4" placeholder="0000" value="${esc(last)}">
-        <div class="grp-pick">${[1, 2, 3, 4, 5, 6].map((n) => `<button data-g="${n}" style="background:${COLORS[n - 1]}">${n}</button>`).join('')}</div>
-      </div>
+      <div class="card">${bulbSVG(84, true)}شاشة المعلمة<small>للسبورة أو جهاز العرض</small>
+        <a class="btn primary" href="#/lab/board">متابعة المختبر</a>
+        <a class="btn yellow" href="#/sort/board">لعبة «أضيئي المدينة»</a></div>
+      <div class="card">${bulbSVG(84, false)}آيباد المجموعة<small>رابط واحد، وكل مجموعة تختار رقمها</small>
+        <a class="btn primary" href="#/lab">المختبر الافتراضي</a>
+        <a class="btn yellow" href="#/sort">لعبة «أضيئي المدينة»</a></div>
     </div>
     <div class="t-bar" style="margin-top:6px">
       <span class="muted" style="font-size:19px;font-weight:700">للتجربة قبل الحصة:</span>
-      <a class="btn ghost" href="#/demo" style="text-decoration:none">السبورة مع مجموعات وهمية</a>
-      <a class="btn ghost" href="#/try" style="text-decoration:none">جرّبي اللعبة بنفسك</a>
-      <a class="btn ghost" href="#/lab" style="text-decoration:none">المختبر الافتراضي</a>
+      <a class="btn ghost" href="#/lab/board?demo=1">المختبر بمجموعات وهمية</a>
+      <a class="btn ghost" href="#/sort/board?demo=1">اللعبة بمجموعات وهمية</a>
+      <a class="btn ghost" href="#/teacher">أدوات الحصة الأخرى</a>
     </div>
   </div>`;
-  $$('.grp-pick button').forEach((b) => b.onclick = () => {
-    const code = $('#code').value.replace(/\D/g, '');
-    if (code.length !== 4) { toast('اكتبي رمز الصف (4 أرقام)', 'bad'); $('#code').focus(); return; }
-    LS.set('zk-last-room', code);
-    location.hash = `#/g/${b.dataset.g}?r=${code}`;
-  });
 }
 
 /* ================= شاشة المعلمة ================= */
@@ -696,8 +691,40 @@ function Group(g, room, tryMode = false) {
   render();
 }
 
-/* ================= المختبر الافتراضي (النشاط 2) ================= */
-// بدل PhET: دائرة كاملة ينقصها جزء واحد، تضع المجموعة المواد الخمس بالترتيب وتلاحظ المصباح، ثم تدوّن في جدول الكتاب
+/* ================= رابط موحّد للمجموعات ================= */
+// المجموعة تفتح نفس الرابط، وتختار رقمها مرة واحدة (يُحفظ على الجهاز)
+const NG = 5;
+const myGroup = () => { const g = +LS.get('zk-mygroup', 0); return g >= 1 && g <= NG ? g : 0; };
+const ep = (e) => (e ? parseInt(e, 36) || 0 : 0); // الجولات: الأحدث يغلب
+const unifiedUrl = (path) => `${location.origin}${location.pathname}#/${path}`;
+const qrOf = (txt, cell = 4) => { try { const q = qrcode(0, 'M'); q.addData(txt); q.make(); return q.createSvgTag({cellSize: cell, margin: 0, scalable: true}); } catch (e) { return ''; } };
+const groupsWord = (n) => (n === 0 ? 'لا مجموعات بعد' : n === 1 ? 'مجموعة واحدة' : n === 2 ? 'مجموعتان' : n + ' مجموعات');
+const RANKS = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة'];
+const errWord = (n) => (!n ? 'بلا أخطاء' : n === 1 ? 'خطأ واحد' : n === 2 ? 'خطآن' : n + ' أخطاء');
+
+function pickGroup(title, sub, done) {
+  document.title = title + ' · اخترن المجموعة';
+  app.innerHTML = `<div class="pick">
+    <div class="logo">${bolt(54)}</div>
+    <h1>${title}</h1><p class="sub">${sub}</p>
+    <h2>اخترن رقم مجموعتكنّ</h2>
+    <div class="pick-grid">${Array.from({length: NG}, (_, i) => i + 1).map((g) => `<button data-g="${g}" style="--c:${COLORS[g - 1]}"><b>${g}</b><span>المجموعة ${g}</span></button>`).join('')}</div>
+  </div>`;
+  $$('.pick-grid button').forEach((b) => b.onclick = () => { ac(); keepAwake(); LS.set('zk-mygroup', +b.dataset.g); SFX.ok(); done(+b.dataset.g); });
+}
+// شارة المجموعة في أعلى الشاشة؛ ضغطتان لتغيير المجموعة
+function groupBadge(g, onChange) {
+  let arm = 0;
+  const b = $('#chg'); if (!b) return;
+  b.onclick = () => {
+    if (arm > Date.now()) { LS.set('zk-mygroup', 0); onChange(); return; }
+    arm = Date.now() + 3000; toast('اضغطن مرة ثانية لتغيير رقم المجموعة');
+  };
+}
+const badgeHTML = (g) => `<button class="g-badge chg" id="chg" style="background:${COLORS[g - 1]}" title="تغيير المجموعة"><b>${g}</b><span>المجموعة ${g}</span></button>`;
+
+/* ================= المختبر الافتراضي (النشاط 2) — جهاز المجموعة ================= */
+// بدل PhET: دائرة كاملة ينقصها جزء واحد، تضع المجموعة المواد الخمس وتلاحظ المصباح، ثم تدوّن في جدول الكتاب على الجهاز
 const LAB = [
   {id: 'pencil', name: 'قلم خشبي', cond: false, w: 300, h: 26},
   {id: 'coin', name: 'عملة معدنية', cond: true, w: 120, h: 145},
@@ -705,13 +732,44 @@ const LAB = [
   {id: 'money', name: 'عملة ورقية', cond: false, w: 260, h: 116},
   {id: 'eraser', name: 'ممحاة', cond: false, w: 230, h: 96},
 ];
+// مثالان تشرحهما المعلمة قبل النشاط (من فيديو الحوار)
+const LAB_EX = [{name: 'ملعقة معدنية', light: 'y', type: 'c'}, {name: 'ملعقة خشبية', light: 'n', type: 'i'}];
+const labOK = (m, k, v) => !!v && (k === 'light' ? (v === 'y') === m.cond : (v === 'c') === m.cond);
+const labRowDone = (a) => !!(a && a.light && a.type);
 const labImg = (id) => `${ASSET}img/lab_${id}.webp`;
+
 function Lab() {
-  document.title = 'المختبر الافتراضي · موصِل أم عازِل؟';
-  const KEY = 'zk-lab';
-  let S = Object.assign({tested: {}}, LS.get(KEY, {}));
-  let inSlot = null, lit = false, busy = false;
+  const g = myGroup();
+  if (!g) { pickGroup('المختبر الافتراضي', 'النشاط 2 · ما الموادّ التي تُعَدّ مُوصِلة كهربائيّة؟', () => Lab()); return; }
+  document.title = `المجموعة ${g} · المختبر الافتراضي`;
+  const KEY = 'zk-lab2';
+  const fresh = (epoch) => ({g, epoch, tested: {}, table: {}, done: false});
+  let S = LS.get(KEY, null);
+  if (!S || S.g !== g || !S.table) S = fresh(null);
+  let B = null, conn = 'CONNECTING';
+  let inSlot = null, busy = false;
   const save = () => LS.set(KEY, S);
+  save();
+  const payload = () => ({g, epoch: S.epoch, tested: S.tested, table: S.table, done: S.done});
+  const link = connect('lab-v1', {key: 'g' + g + '-' + rnd(1e6), role: 'group', g}, {
+    B(p) {
+      if (!p || !p.epoch) return;
+      const prevRev = B && B.reveal;
+      B = p;
+      if (S.epoch !== p.epoch) {
+        if (S.epoch && ep(p.epoch) > ep(S.epoch)) { S = fresh(p.epoch); save(); clear(); toast('بدأت المعلمة جولة جديدة'); }
+        else { S.epoch = p.epoch; save(); }
+        send(); renderTable();
+      }
+      if (prevRev !== p.reveal) renderTable();
+    },
+    hello() { send(); },
+    status(st) { conn = st; const d = $('#cdot'); if (d) d.className = 'dot ' + (conn === 'SUBSCRIBED' ? 'on' : ''); },
+    ready() { send(); },
+  });
+  const send = () => link.send('L', payload());
+  every(send, 5000);
+
   const CX = 400, Y = 530;
   const clipSVG = (dir) => `<g class="lab-clip" data-dir="${dir}">
       <line x1="${dir > 0 ? -260 : 260}" y1="0" x2="${dir > 0 ? -40 : 40}" y2="0" stroke="#22357F" stroke-width="18" stroke-linecap="round"/>
@@ -728,38 +786,43 @@ function Lab() {
     return `<line x1="${500 + Math.cos(a) * r1}" y1="${123 + Math.sin(a) * r1}" x2="${500 + Math.cos(a) * r2}" y2="${123 + Math.sin(a) * r2}"/>`;
   }).join('');
 
-  app.innerHTML = `<div class="lab">
+  app.innerHTML = `<div class="lab lab2">
     <div class="lab-top">
-      <a class="t-brand" href="#/" style="text-decoration:none;color:inherit"><div class="ic">${bolt(32)}</div><div><h1>المختبر الافتراضي</h1><small>النشاط 2 · ما الموادّ التي تُعَدّ مُوصِلة كهربائيّة؟ · الكتاب ص 175</small></div></a>
-      <div class="lab-meta"><span class="pill" id="lab-prog"></span><button class="btn ghost" id="lab-reset" style="font-size:18px;padding:8px 18px">من جديد</button></div>
+      <div class="t-brand"><div class="ic">${bolt(30)}</div><div><h1>المختبر الافتراضي</h1><small>النشاط 2 · ما الموادّ التي تُعَدّ مُوصِلة كهربائيّة؟ · الكتاب ص 175</small></div></div>
+      <div class="lab-meta"><span class="pill" id="lab-prog"></span>${badgeHTML(g)}<span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}" id="cdot" title="الاتصال بالمعلمة"></span></div>
     </div>
-    <div class="lab-hint">ضعن المادة في مكانها داخل الدائرة، ثم لاحظن: <b>هل يضيء المصباح؟</b> ودوّنّ النتيجة في جدول الكتاب.</div>
-    <div class="lab-stage">
-      <svg id="lab-svg" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet">
-        <defs><radialGradient id="labglow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE27A" stop-opacity=".95"/><stop offset=".45" stop-color="#FFD54A" stop-opacity=".4"/><stop offset="1" stop-color="#FFD54A" stop-opacity="0"/></radialGradient></defs>
-        <g id="lab-light" class="lab-light"><circle cx="500" cy="123" r="230" fill="url(#labglow)"/><g class="lab-rays" stroke="#FFC531" stroke-width="12" stroke-linecap="round">${rays}</g></g>
-        <path d="${loop}" fill="none" stroke="#22357F" stroke-width="18"/>
-        <path d="${loop}" fill="none" stroke="#3B5BDB" stroke-width="12"/>
-        <path d="${loop}" fill="none" stroke="#A9BEFF" stroke-width="3.5" transform="translate(0,-3)"/>
-        <path id="lab-flow" class="lab-flow" d="${loop}" fill="none" stroke="#FFE27A" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 34"/>
-        <rect x="236" y="500" width="328" height="60" fill="#fff"/>
-        <rect id="lab-slot" class="lab-slot" x="262" y="478" width="276" height="104" rx="24"/>
-        <text id="lab-slot-t" x="400" y="618" text-anchor="middle" class="lab-slot-t">ضعن المادة هنا</text>
-        <image id="lab-item" x="0" y="0" width="0" height="0" href="" class="lab-item"/>
-        <clipPath id="labclip"><rect x="186" y="0" width="628" height="640"/></clipPath>
-        <g clip-path="url(#labclip)">
-          <g id="clipA" style="transform:translate(282px,${Y}px)">${clipSVG(1)}</g>
-          <g id="clipB" style="transform:translate(518px,${Y}px)">${clipSVG(-1)}</g>
-        </g>
-        <image href="${labImg('cell')}" x="600" y="497" width="230" height="66"/>
-        <image id="lab-bulb-off" href="${labImg('bulb_off')}" x="441" y="63" width="118" height="240"/>
-        <image id="lab-bulb-on" class="lab-bulb-on" href="${labImg('bulb_on')}" x="441" y="63" width="118" height="240"/>
-      </svg>
-      <div class="lab-result" id="lab-result"></div>
-      <div class="lab-done" id="lab-done" hidden></div>
+    <div class="lab-body">
+      <div class="lab-main">
+        <div class="lab-hint">ضعن المادة داخل الدائرة، لاحظن: <b>هل يضيء المصباح؟</b> ثم دوّنّ في الجدول.</div>
+        <div class="lab-stage">
+          <svg id="lab-svg" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet">
+            <defs><radialGradient id="labglow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFE27A" stop-opacity=".95"/><stop offset=".45" stop-color="#FFD54A" stop-opacity=".4"/><stop offset="1" stop-color="#FFD54A" stop-opacity="0"/></radialGradient></defs>
+            <g id="lab-light" class="lab-light"><circle cx="500" cy="123" r="230" fill="url(#labglow)"/><g class="lab-rays" stroke="#FFC531" stroke-width="12" stroke-linecap="round">${rays}</g></g>
+            <path d="${loop}" fill="none" stroke="#22357F" stroke-width="18"/>
+            <path d="${loop}" fill="none" stroke="#3B5BDB" stroke-width="12"/>
+            <path d="${loop}" fill="none" stroke="#A9BEFF" stroke-width="3.5" transform="translate(0,-3)"/>
+            <path id="lab-flow" class="lab-flow" d="${loop}" fill="none" stroke="#FFE27A" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 34"/>
+            <rect x="236" y="500" width="328" height="60" fill="#fff"/>
+            <rect id="lab-slot" class="lab-slot" x="262" y="478" width="276" height="104" rx="24"/>
+            <text id="lab-slot-t" x="400" y="618" text-anchor="middle" class="lab-slot-t">ضعن المادة هنا</text>
+            <image id="lab-item" x="0" y="0" width="0" height="0" href="" class="lab-item"/>
+            <clipPath id="labclip"><rect x="186" y="0" width="628" height="640"/></clipPath>
+            <g clip-path="url(#labclip)">
+              <g id="clipA" style="transform:translate(282px,${Y}px)">${clipSVG(1)}</g>
+              <g id="clipB" style="transform:translate(518px,${Y}px)">${clipSVG(-1)}</g>
+            </g>
+            <image href="${labImg('cell')}" x="600" y="497" width="230" height="66"/>
+            <image id="lab-bulb-off" href="${labImg('bulb_off')}" x="441" y="63" width="118" height="240"/>
+            <image id="lab-bulb-on" class="lab-bulb-on" href="${labImg('bulb_on')}" x="441" y="63" width="118" height="240"/>
+          </svg>
+          <div class="lab-result" id="lab-result"></div>
+        </div>
+        <div class="lab-tray" id="lab-tray"></div>
+      </div>
+      <div class="lab-table" id="lab-table"></div>
     </div>
-    <div class="lab-tray" id="lab-tray"></div>
   </div>`;
+  groupBadge(g, () => { cleanup(); Lab(); });
 
   const svg = $('#lab-svg');
   function setClips(itemW) {
@@ -767,10 +830,7 @@ function Lab() {
     $('#clipA').style.transform = `translate(${a}px,${Y}px)`;
     $('#clipB').style.transform = `translate(${b}px,${Y}px)`;
   }
-  function setLit(on) {
-    lit = on;
-    svg.classList.toggle('lit', on);
-  }
+  const setLit = (on) => svg.classList.toggle('lit', on);
   function renderTray() {
     const n = Object.keys(S.tested).length;
     $('#lab-prog').textContent = `جرّبتُنّ ${n} من ${LAB.length}`;
@@ -783,10 +843,37 @@ function Lab() {
       </button>`;
     }).join('');
     $$('.lab-card').forEach(bind);
-    const done = n === LAB.length;
-    const d = $('#lab-done');
-    d.hidden = !done;
-    if (done) d.innerHTML = `${bulbSVG(70, true)}<div><b>أحسنتُنّ! جرّبتُنّ الموادّ الخمس.</b><span>الآن أكملن الجدول في الكتاب ص 176: هل المادة مُوصِلة أم عازِلة للكهرباء؟</span></div>`;
+  }
+  function renderTable() {
+    const rev = !!(B && B.reveal && B.epoch === S.epoch);
+    const filled = LAB.filter((m) => labRowDone(S.table[m.id])).length;
+    const seg = (m, k, opts) => {
+      const t = m.id in S.tested, a = S.table[m.id] || {};
+      return `<div class="seg">${opts.map(([v, l]) => {
+        let c = a[k] === v ? 'on v-' + v : '';
+        if (rev && a[k] === v) c += labOK(m, k, v) ? ' right' : ' wrong';
+        return `<button class="${c}" data-m="${m.id}" data-k="${k}" data-v="${v}" ${t && !rev ? '' : 'disabled'}>${l}${rev && a[k] === v ? (labOK(m, k, v) ? check(16, '#127A52') : cross(16, '#B3262B')) : ''}</button>`;
+      }).join('')}</div>`;
+    };
+    $('#lab-table').innerHTML = `<div class="lt-head"><b>جدول النتائج</b><span>الكتاب ص 176</span></div>
+      <table class="lt">
+        <thead><tr><th>المادة</th><th>هل يضيء المصباح؟</th><th>هل المادة مُوصِلة أم عازِلة للكهرباء؟</th></tr></thead>
+        <tbody>
+          ${LAB_EX.map((x) => `<tr class="ex"><td><span class="exb">مثال</span>${x.name}</td><td><span class="fx v-${x.light}">${x.light === 'y' ? 'نعم' : 'لا'}</span></td><td><span class="fx v-${x.type}">${x.type === 'c' ? 'مُوصِلة' : 'عازِلة'}</span></td></tr>`).join('')}
+          ${LAB.map((m, i) => `<tr class="${m.id in S.tested ? '' : 'locked'} ${labRowDone(S.table[m.id]) ? 'full' : ''}"><td><span class="ltn">${i + 1}</span>${m.name}${m.id in S.tested ? '' : '<small>جرّبنها أولًا</small>'}</td>
+            <td>${seg(m, 'light', [['y', 'نعم'], ['n', 'لا']])}</td><td>${seg(m, 'type', [['c', 'مُوصِلة'], ['i', 'عازِلة']])}</td></tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="lt-foot ${S.done ? 'ok' : ''}">${S.done ? `${check(24, '#fff')} أكملتُنّ الجدول ووصل إلى المعلمة` : `دوّنتُنّ ${filled} من ${LAB.length}`}${rev ? ` · التصحيح: ${LAB.reduce((s, m) => s + (labOK(m, 'light', (S.table[m.id] || {}).light) && labOK(m, 'type', (S.table[m.id] || {}).type) ? 1 : 0), 0)} من ${LAB.length} صحيحة` : ''}</div>`;
+    $$('.lt .seg button').forEach((b) => b.onclick = () => {
+      const m = b.dataset.m, k = b.dataset.k, v = b.dataset.v;
+      if (!(m in S.tested) || (B && B.reveal)) return;
+      S.table[m] = Object.assign({}, S.table[m], {[k]: v});
+      const was = S.done;
+      S.done = LAB.every((x) => labRowDone(S.table[x.id]));
+      save(); send(); SFX.pick(); renderTable();
+      if (S.done && !was) after(() => { confetti(); SFX.win(); }, 250);
+    });
   }
   function place(id) {
     if (busy) return;
@@ -808,20 +895,20 @@ function Lab() {
     after(() => {
       tone(1400, 0.05, 'square', 0.06); // طقّة المشبك
       after(() => {
-        S.tested[id] = m.cond; save();
-        if (m.cond) { setLit(true); SFX.light(); }
-        else tone(196, 0.35, 'sine', 0.12);
+        const first = !(id in S.tested);
+        S.tested[id] = m.cond; save(); if (first) send();
+        if (m.cond) { setLit(true); SFX.light(); } else tone(196, 0.35, 'sine', 0.12);
         const r = $('#lab-result');
         r.className = 'lab-result show ' + (m.cond ? 'y' : 'n');
         r.innerHTML = m.cond ? `${check(30)} المصباح يضيء` : `المصباح لا يضيء`;
-        busy = false; renderTray();
-        if (Object.keys(S.tested).length === LAB.length && !S.cele) { S.cele = 1; save(); after(() => { confetti(); SFX.win(); }, 500); }
+        busy = false; renderTray(); if (first) renderTable();
       }, 260);
     }, 380);
   }
   function clear() {
     inSlot = null; setLit(false); setClips(0);
-    const it = $('#lab-item'); it.setAttribute('width', 0); it.setAttribute('height', 0);
+    const it = $('#lab-item'); if (!it) return;
+    it.setAttribute('width', 0); it.setAttribute('height', 0);
     $('#lab-slot').classList.remove('filled'); $('#lab-slot-t').textContent = 'ضعن المادة هنا';
     $('#lab-result').className = 'lab-result'; $('#lab-result').innerHTML = '';
     renderTray();
@@ -847,9 +934,355 @@ function Lab() {
     };
     card.onpointerup = end; card.onpointercancel = end;
   }
-  $('#lab-reset').onclick = () => { S = {tested: {}}; save(); clear(); toast('بدأت التجربة من جديد'); };
   LAB.forEach((m) => { const im = new Image(); im.src = labImg(m.id); });
-  renderTray();
+  renderTray(); renderTable();
+}
+
+/* ================= لوحة متابعة المختبر — شاشة المعلمة ================= */
+function LabBoard(demo = false) {
+  document.title = (demo ? 'تجربة · ' : '') + 'متابعة المختبر · شاشة المعلمة';
+  const KEY = demo ? 'zk-labboard-demo' : 'zk-labboard';
+  const fresh = () => ({epoch: Date.now().toString(36), reveal: false, rv: 0, finish: []});
+  let T = Object.assign(fresh(), LS.get(KEY, {}));
+  let groups = {}, online = {}, devs = {}, conn = demo ? 'SUBSCRIBED' : 'CONNECTING', resetArm = 0, showQR = false;
+  const save = () => LS.set(KEY, T);
+  save();
+  let link;
+  const bc = () => link && link.send('B', {epoch: T.epoch, reveal: T.reveal, rv: T.rv});
+  function adoptGroup(p) {
+    if (!p || !p.g || p.g > NG) return;
+    if (p.epoch && p.epoch !== T.epoch) return; // جهاز من جولة سابقة: سيتحدّث بعد قليل
+    groups[p.g] = p;
+    if (p.done && !T.finish.find((f) => f.g === p.g)) {
+      T.finish.push({g: p.g, at: Date.now()}); save();
+      if (T.finish.length === 1) { confetti(); SFX.win(); } else SFX.ping();
+    }
+    schedule();
+  }
+  const H = {
+    L: adoptGroup,
+    B(p) { // لوحة ثانية مفتوحة (جهاز آخر): الجولة الأحدث تغلب
+      if (!p || !p.epoch) return;
+      if (ep(p.epoch) > ep(T.epoch)) { T = Object.assign(fresh(), {epoch: p.epoch, reveal: !!p.reveal, rv: p.rv || 0}); groups = {}; save(); schedule(); }
+      else if (p.epoch === T.epoch && (p.rv || 0) > (T.rv || 0)) { T.reveal = !!p.reveal; T.rv = p.rv; save(); schedule(); }
+    },
+    presence(state) { online = {}; devs = {}; Object.values(state).flat().forEach((m) => { if (m.role === 'group' && m.g) { online[m.g] = true; devs[m.g] = (devs[m.g] || 0) + 1; } }); schedule(); },
+    status(st) { conn = st; schedule(); },
+    ready() { bc(); link.send('hello', {}); },
+  };
+  link = demo ? {send() {}} : connect('lab-v1', {key: 'board-' + rnd(1e6), role: 'board'}, H);
+  every(bc, 3000);
+  if (demo) simulate();
+
+  function simulate() {
+    const plan = {};
+    for (let g = 1; g <= NG; g++) after(() => { online[g] = true; schedule(); }, 400 + g * 350);
+    every(() => {
+      const now = Date.now();
+      for (let g = 1; g <= NG; g++) {
+        if (!plan[g] || plan[g].epoch !== T.epoch) plan[g] = {epoch: T.epoch, step: 0, next: now + 1500 + rnd(2500), tested: {}, table: {}};
+        const s = plan[g];
+        if (now < s.next || s.step >= LAB.length * 3) continue;
+        const m = LAB[Math.floor(s.step / 3)], k = s.step % 3;
+        if (k === 0) s.tested[m.id] = m.cond;
+        else {
+          const key = k === 1 ? 'light' : 'type', good = Math.random() < 0.85;
+          const v = key === 'light' ? ((m.cond === good) ? 'y' : 'n') : ((m.cond === good) ? 'c' : 'i');
+          s.table[m.id] = Object.assign({}, s.table[m.id], {[key]: v});
+        }
+        s.step++; s.next = now + 900 + rnd(2600) * (g % 2 ? 1 : 1.4);
+        adoptGroup({g, epoch: T.epoch, tested: {...s.tested}, table: JSON.parse(JSON.stringify(s.table)), done: LAB.every((x) => labRowDone(s.table[x.id]))});
+      }
+    }, 350);
+  }
+
+  let raf = 0;
+  function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+  const rankOf = (g) => T.finish.findIndex((f) => f.g === g);
+
+  function card(g) {
+    const p = groups[g] || {tested: {}, table: {}};
+    const tested = Object.keys(p.tested || {}).length, filled = LAB.filter((m) => labRowDone((p.table || {})[m.id])).length;
+    const rk = rankOf(g);
+    const score = LAB.reduce((s, m) => { const a = (p.table || {})[m.id] || {}; return s + (labOK(m, 'light', a.light) && labOK(m, 'type', a.type) ? 1 : 0); }, 0);
+    const cell = (m, k) => {
+      const a = (p.table || {})[m.id] || {}, v = a[k];
+      if (!v) return `<td class="e">${m.id in (p.tested || {}) ? '…' : '—'}</td>`;
+      const txt = k === 'light' ? (v === 'y' ? 'نعم' : 'لا') : (v === 'c' ? 'مُوصِلة' : 'عازِلة');
+      const ok = labOK(m, k, v);
+      return `<td class="${T.reveal ? (ok ? 'r' : 'w') : 'v'}">${txt}${T.reveal ? (ok ? check(15, '#127A52') : cross(15, '#B3262B')) : ''}</td>`;
+    };
+    return `<div class="lb-card ${online[g] || groups[g] ? '' : 'off-line'} ${p.done ? 'done' : ''}" style="--c:${COLORS[g - 1]}">
+      <div class="lb-h"><span class="n">${g}</span><h3>المجموعة ${g}</h3>${devs[g] > 1 ? '<span class="warn">جهازان!</span>' : ''}<span class="dot ${online[g] ? 'on' : ''}"></span></div>
+      <div class="lb-pg"><span>جرّبت ${tested}/${LAB.length}</span><div class="bar"><i style="width:${(filled / LAB.length) * 100}%"></i></div><span>دوّنت ${filled}/${LAB.length}</span></div>
+      <table class="lb-t"><thead><tr><th>المادة</th><th>يضيء؟</th><th>النوع</th></tr></thead>
+        <tbody>${LAB.map((m) => `<tr><td class="m">${m.name}</td>${cell(m, 'light')}${cell(m, 'type')}</tr>`).join('')}</tbody></table>
+      <div class="lb-f">${p.done ? `<span class="fin ${rk === 0 ? 'first' : ''}">${check(18, '#fff')} أكملت الجدول${rk >= 0 ? ' · ' + RANKS[rk] : ''}</span>` : `<span class="muted">${online[g] ? 'تعمل الآن…' : groups[g] ? 'غير متّصلة' : 'لم تنضمّ بعد'}</span>`}${T.reveal && groups[g] ? `<span class="sc">${score}/${LAB.length}</span>` : ''}</div>
+    </div>`;
+  }
+
+  function render() {
+    const n = Object.keys(online).length, nd = T.finish.length;
+    app.innerHTML = `<div class="t-wrap lb">
+      <div class="t-top">
+        <a class="t-brand" href="#/" style="text-decoration:none;color:inherit"><div class="ic">${bolt(34)}</div><div><h1>متابعة المختبر الافتراضي</h1><small>النشاط 2 · جدول الكتاب ص 176 · ${nd ? `أكملت ${nd === 1 ? 'مجموعة واحدة' : nd === 2 ? 'مجموعتان' : nd + ' مجموعات'}` : 'المجموعات تعمل على الآيباد'}</small></div></a>
+        <div class="t-meta">
+          <span class="pill"><span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}"></span>${conn === 'SUBSCRIBED' ? 'متصل · ' + groupsWord(n) : 'جارٍ الاتصال…'}</span>
+          ${demo ? '<span class="pill" style="background:#FFF4CC">وضع التجربة</span>' : ''}
+          <button class="btn ghost" id="qr">${showQR ? 'إخفاء الرمز' : 'رمز الانضمام'}</button>
+          <button class="btn ${T.reveal ? 'primary' : 'yellow'}" id="rev">${T.reveal ? 'إخفاء التصحيح' : 'إظهار التصحيح'}</button>
+          <button class="btn ghost" id="reset">${resetArm > Date.now() ? 'اضغطي للتأكيد' : 'جولة جديدة'}</button>
+        </div>
+      </div>
+      ${showQR ? `<div class="joinbar"><div class="qr">${qrOf(unifiedUrl('lab'), 5)}</div><div><b>امسحن الرمز بالآيباد</b><span>ثم اخترن رقم مجموعتكنّ (1 إلى 5)</span><code>${esc(unifiedUrl('lab'))}</code></div></div>` : ''}
+      <div class="lb-grid">${Array.from({length: NG}, (_, i) => card(i + 1)).join('')}</div>
+    </div>`;
+    $('#rev').onclick = () => { T.reveal = !T.reveal; T.rv = Date.now(); save(); bc(); SFX.ok(); render(); };
+    $('#qr').onclick = () => { showQR = !showQR; render(); };
+    $('#reset').onclick = () => {
+      if (resetArm > Date.now()) { T = fresh(); groups = {}; save(); bc(); resetArm = 0; toast('بدأت جولة جديدة'); render(); }
+      else { resetArm = Date.now() + 3000; render(); after(render, 3100); }
+    };
+  }
+  render();
+}
+
+/* ================= لعبة «أضيئي المدينة» — غلق الهدف الثاني ================= */
+// موادّ جديدة مكتوبة (بلا صور) لتوسيع الخيال: 4 مُوصِلة و4 عازِلة
+const SORT = [
+  {id: 'silver', t: 'سلسلة فضّة', c: true},
+  {id: 'iron', t: 'مفتاح حديد', c: true},
+  {id: 'alu', t: 'علبة ألومنيوم', c: true},
+  {id: 'copper', t: 'سلك نحاس', c: true},
+  {id: 'wood', t: 'مسطرة خشب', c: false},
+  {id: 'plastic', t: 'كوب بلاستيك', c: false},
+  {id: 'rubber', t: 'قفّاز مطّاط', c: false},
+  {id: 'paper', t: 'دفتر ورق', c: false},
+];
+const sortItem = (id) => SORT.find((x) => x.id === id);
+const SORT_N = SORT.length;
+
+function Sort() {
+  const g = myGroup();
+  if (!g) { pickGroup('أضيئي المدينة', 'غلق الهدف الثاني · صنِّفن الموادّ إلى مُوصِلة وعازِلة', () => Sort()); return; }
+  document.title = `المجموعة ${g} · أضيئي المدينة`;
+  const KEY = 'zk-sort';
+  const fresh = (epoch) => ({g, epoch, order: shuffle(SORT.map((x) => x.id)), placed: {}, mistakes: 0, done: false, last: null});
+  let S = LS.get(KEY, null);
+  if (!S || S.g !== g || !S.order) S = fresh(null);
+  let B = null, conn = 'CONNECTING', sel = null;
+  const save = () => LS.set(KEY, S);
+  save();
+  const payload = () => ({g, epoch: S.epoch, placed: S.placed, mistakes: S.mistakes, done: S.done, last: S.last});
+  const link = connect('sort-v1', {key: 'g' + g + '-' + rnd(1e6), role: 'group', g}, {
+    B(p) {
+      if (!p || !p.epoch) return;
+      const was = B ? JSON.stringify([B.epoch, B.startAt, B.finish]) : '';
+      B = p;
+      if (S.epoch !== p.epoch) { S = S.epoch && ep(p.epoch) > ep(S.epoch) ? fresh(p.epoch) : Object.assign(S, {epoch: p.epoch}); save(); send(); }
+      if (was !== JSON.stringify([p.epoch, p.startAt, p.finish])) { if (p.startAt && was && !JSON.parse(was || '[]')[1]) { SFX.ping(); keepAwake(); } render(); }
+    },
+    hello() { send(); },
+    status(st) { conn = st; const d = $('#cdot'); if (d) d.className = 'dot ' + (conn === 'SUBSCRIBED' ? 'on' : ''); },
+    ready() { send(); },
+  });
+  const send = () => link.send('S', payload());
+  every(send, 5000);
+
+  function top() {
+    const cnt = Object.keys(S.placed).length;
+    return `<div class="g-top">${badgeHTML(g)}<div class="title">${bolt(26)} أضيئي المدينة</div>
+      <div class="g-prog"><div class="bar"><i style="width:${(cnt / SORT_N) * 100}%"></i></div><span>${cnt}/${SORT_N}</span><span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}" id="cdot" title="الاتصال"></span></div></div>`;
+  }
+  function render() {
+    const started = B && B.startAt && B.epoch === S.epoch;
+    let inner;
+    if (!B) inner = `<div class="wait"><div class="big-badge" style="background:${COLORS[g - 1]}">${g}</div><div class="spin"></div><h2>جارٍ الاتصال بشاشة المعلمة…</h2><p>انتظرن قليلًا</p></div>`;
+    else if (!started) inner = `<div class="wait"><div class="big-badge" style="background:${COLORS[g - 1]}">${g}</div><h2>المجموعة ${g} جاهزة!</h2><p>انتظرن إشارة البدء من المعلمة…</p>${bulbSVG(120, false)}</div>`;
+    else if (S.done) {
+      const rk = (B.finish || []).findIndex((f) => f.g === g);
+      inner = `<div class="wait">${bulbSVG(180, true)}<h2>${rk >= 0 ? `أضاءت مدينتكنّ! المركز ${RANKS[rk] || rk + 1}` : 'أضاءت مدينتكنّ!'}</h2><p>${S.mistakes ? `المحاولات الخاطئة: ${errWord(S.mistakes)}` : 'بلا أيّ خطأ، رائع!'}</p><p>انظرن إلى السبورة…</p></div>`;
+    } else return game();
+    app.innerHTML = `<div class="g-wrap">${top()}${inner}</div>`;
+    groupBadge(g, () => { cleanup(); Sort(); });
+  }
+  function game() {
+    const rem = S.order.filter((id) => !S.placed[id]);
+    const rows = (z) => {
+      const ids = S.order.filter((id) => S.placed[id] === z);
+      return Array.from({length: SORT_N / 2}, (_, i) => ids[i] ? `<div class="sr full">${check(20, z === 'c' ? '#8A6200' : '#41506B')}<span>${esc(sortItem(ids[i]).t)}</span></div>` : '<div class="sr"></div>').join('');
+    };
+    app.innerHTML = `<div class="g-wrap">${top()}
+      <div class="st-zones">
+        <div class="stz c" data-zone="c"><div class="stz-h">${bulbSVG(70, true, 'zb')}<h3>موادّ مُوصِلة للكهرباء</h3></div><div class="stz-rows">${rows('c')}</div></div>
+        <div class="stz i" data-zone="i"><div class="stz-h">${bulbSVG(70, false)}<h3>موادّ عازِلة للكهرباء</h3></div><div class="stz-rows">${rows('i')}</div></div>
+      </div>
+      <div class="tray-wrap"><div class="tray-hint">اسحبن كلّ كلمة إلى الجدول المناسب، أو المسنها ثم المسن الجدول</div>
+        <div class="st-tray">${rem.map((id) => `<div class="wcard ${sel === id ? 'sel' : ''}" data-id="${id}">${esc(sortItem(id).t)}</div>`).join('')}</div></div>
+    </div>`;
+    groupBadge(g, () => { cleanup(); Sort(); });
+    $$('.stz').forEach((z) => { z.classList.toggle('armed', !!sel); z.onclick = () => { if (sel) attempt(sel, z.dataset.zone); }; });
+    $$('.wcard').forEach(bindCard);
+  }
+  let drag = null;
+  const zoneAt = (x, y) => { const el = document.elementFromPoint(x, y); return el ? el.closest('[data-zone]') : null; };
+  function bindCard(card) {
+    card.onpointerdown = (e) => { e.preventDefault(); ac(); keepAwake(); drag = {id: card.dataset.id, card, x0: e.clientX, y0: e.clientY, moving: false, clone: null}; try { card.setPointerCapture(e.pointerId); } catch (er) {} };
+    card.onpointermove = (e) => {
+      if (!drag || drag.card !== card) return;
+      if (!drag.moving && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 8) {
+        drag.moving = true; SFX.pick();
+        const c = card.cloneNode(true); c.classList.add('drag'); c.classList.remove('sel'); document.body.appendChild(c); drag.clone = c; card.classList.add('ghosted');
+      }
+      if (drag.moving) { drag.clone.style.left = e.clientX + 'px'; drag.clone.style.top = e.clientY + 'px'; const z = zoneAt(e.clientX, e.clientY); $$('.stz').forEach((zz) => zz.classList.toggle('hover', zz === z)); }
+    };
+    const end = (e) => {
+      if (!drag || drag.card !== card) return;
+      const d = drag; drag = null; $$('.stz').forEach((zz) => zz.classList.remove('hover'));
+      if (d.moving) { d.clone.remove(); card.classList.remove('ghosted'); const z = e.type === 'pointerup' ? zoneAt(e.clientX, e.clientY) : null; if (z) attempt(d.id, z.dataset.zone); else { sel = null; game(); } }
+      else { sel = sel === d.id ? null : d.id; SFX.pick(); $$('.wcard').forEach((c) => c.classList.toggle('sel', c.dataset.id === sel)); $$('.stz').forEach((z) => z.classList.toggle('armed', !!sel)); }
+    };
+    card.onpointerup = end; card.onpointercancel = end;
+  }
+  function attempt(id, z) {
+    const it = sortItem(id); sel = null;
+    if (it.c === (z === 'c')) {
+      S.placed[id] = z; S.last = {id, ok: true, at: Date.now()};
+      if (Object.keys(S.placed).length === SORT_N) S.done = true;
+      save(); send(); game();
+      if (z === 'c') { SFX.light(); const zb = $('.zb'); if (zb) { zb.classList.remove('flash'); void zb.offsetWidth; zb.classList.add('flash'); } } else SFX.ok();
+      toast(`صحيح! ${it.t}: ${it.c ? 'مُوصِلة' : 'عازِلة'}`, 'ok');
+      if (S.done) after(() => { confetti(); SFX.win(); render(); }, 700);
+    } else {
+      S.mistakes++; S.last = {id, ok: false, at: Date.now()}; save(); send();
+      SFX.bad(); toast('فكّرن مرة أخرى!', 'bad'); game();
+      const c = $(`.wcard[data-id="${id}"]`); if (c) { c.classList.add('shake'); after(() => c.classList.remove('shake'), 500); }
+    }
+  }
+  render();
+}
+
+/* ================= لوحة «أضيئي المدينة» — شاشة المعلمة ================= */
+function SortBoard(demo = false) {
+  document.title = (demo ? 'تجربة · ' : '') + 'أضيئي المدينة · شاشة المعلمة';
+  const KEY = demo ? 'zk-sortboard-demo' : 'zk-sortboard';
+  const fresh = () => ({epoch: Date.now().toString(36), startAt: null, finish: [], view: 'city'});
+  let T = Object.assign(fresh(), LS.get(KEY, {}));
+  let groups = {}, online = {}, devs = {}, conn = demo ? 'SUBSCRIBED' : 'CONNECTING', resetArm = 0, showQR = !T.startAt;
+  const flick = {};
+  const save = () => LS.set(KEY, T);
+  save();
+  let link;
+  const bc = () => link && link.send('B', {epoch: T.epoch, startAt: T.startAt, finish: T.finish});
+  function adoptGroup(p) {
+    if (!p || !p.g || p.g > NG) return;
+    if (p.epoch && p.epoch !== T.epoch) return;
+    const prev = groups[p.g];
+    groups[p.g] = p;
+    if (p.last && !p.last.ok && (!prev || !prev.last || prev.last.at !== p.last.at) && Date.now() - p.last.at < 8000) { flick[p.g] = Date.now() + 1400; after(schedule, 1500); }
+    if (T.startAt && p.done && !T.finish.find((f) => f.g === p.g)) {
+      T.finish.push({g: p.g, t: Date.now() - T.startAt, m: p.mistakes || 0}); save(); bc();
+      if (T.finish.length === 1) { confetti(3200); SFX.win(); } else SFX.ping();
+    }
+    schedule();
+  }
+  const H = {
+    S: adoptGroup,
+    B(p) {
+      if (!p || !p.epoch) return;
+      if (ep(p.epoch) > ep(T.epoch)) { T = Object.assign(fresh(), {epoch: p.epoch, startAt: p.startAt || null, finish: p.finish || []}); groups = {}; save(); schedule(); }
+      else if (p.epoch === T.epoch && p.startAt && !T.startAt) { T.startAt = p.startAt; save(); schedule(); }
+    },
+    presence(state) { online = {}; devs = {}; Object.values(state).flat().forEach((m) => { if (m.role === 'group' && m.g) { online[m.g] = true; devs[m.g] = (devs[m.g] || 0) + 1; } }); schedule(); },
+    status(st) { conn = st; schedule(); },
+    ready() { bc(); link.send('hello', {}); },
+  };
+  link = demo ? {send() {}} : connect('sort-v1', {key: 'board-' + rnd(1e6), role: 'board'}, H);
+  every(bc, 3000);
+  if (demo) simulate();
+
+  function simulate() {
+    let sim = null;
+    for (let g = 1; g <= NG; g++) after(() => { online[g] = true; schedule(); }, 400 + g * 380);
+    every(() => {
+      const now = Date.now();
+      if (!sim || sim.epoch !== T.epoch || sim.start !== T.startAt) { sim = {epoch: T.epoch, start: T.startAt, g: {}}; for (let g = 1; g <= NG; g++) sim.g[g] = {order: shuffle(SORT.map((x) => x.id)), i: 0, placed: {}, m: 0, next: now + 1200 + rnd(1500), wrong: false, last: null}; }
+      if (!T.startAt) return;
+      for (let g = 1; g <= NG; g++) {
+        const s = sim.g[g]; if (s.i >= SORT_N || now < s.next) continue;
+        const id = s.order[s.i], it = sortItem(id);
+        if (!s.wrong && Math.random() < 0.18) { s.m++; s.wrong = true; s.last = {id, ok: false, at: now}; }
+        else { s.placed[id] = it.c ? 'c' : 'i'; s.i++; s.wrong = false; s.last = {id, ok: true, at: now}; }
+        s.next = now + (1400 + g * 260) * (0.6 + Math.random() * 0.8);
+        adoptGroup({g, epoch: T.epoch, placed: {...s.placed}, mistakes: s.m, done: s.i >= SORT_N, last: s.last});
+      }
+    }, 300);
+  }
+
+  let raf = 0;
+  function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+  const HEIGHTS = [1, 3, 0, 4, 2]; // ارتفاع إضافي لكل مبنى ليبدو أفقًا للمدينة
+  function building(g) {
+    const p = groups[g] || {placed: {}, mistakes: 0};
+    const lit = Object.keys(p.placed || {}).length, done = !!p.done;
+    const fin = T.finish.find((f) => f.g === g), rk = T.finish.findIndex((f) => f.g === g);
+    const floors = 4, wins = [];
+    for (let f = floors - 1; f >= 0; f--) for (let c = 0; c < 2; c++) { const idx = f * 2 + c; wins.push(`<i class="${idx < lit ? 'on' : ''}"></i>`); }
+    const fl = flick[g] > Date.now();
+    return `<div class="bd ${done ? 'done' : ''} ${fl ? 'flick' : ''} ${online[g] || groups[g] ? '' : 'off-line'}" style="--c:${COLORS[g - 1]};--h:${HEIGHTS[g - 1]}">
+      ${rk >= 0 ? `<div class="medal m${rk}">${rk + 1}</div>` : ''}
+      <div class="roof">${bulbSVG(124, done)}</div>
+      <div class="body"><div class="wins">${wins.join('')}</div><div class="door"></div></div><div class="walk"></div>
+      <div class="lbl"><span class="n">${g}</span><b>المجموعة ${g}</b>${devs[g] > 1 ? '<span class="warn">جهازان!</span>' : ''}</div>
+      <div class="sub">${!T.startAt ? (online[g] ? '<span class="ok">متّصلة ✓</span>' : 'بانتظار الانضمام') : fin ? `<span class="tm">${fmt(fin.t)}</span> · ${errWord(fin.m)}` : `${lit} من ${SORT_N}${p.mistakes ? ` · ${errWord(p.mistakes)}` : ''}`}</div>
+    </div>`;
+  }
+  function results() {
+    const ids = Array.from({length: NG}, (_, i) => i + 1);
+    const fin = T.finish.map((f) => f.g), rest = ids.filter((g) => !fin.includes(g)).sort((a, b) => Object.keys((groups[b] || {}).placed || {}).length - Object.keys((groups[a] || {}).placed || {}).length);
+    const order = [...fin, ...rest];
+    const col = (c) => SORT.filter((x) => x.c === c).map((x) => `<div class="kw">${esc(x.t)}</div>`).join('');
+    return `<div class="sb-res">
+      <div class="sb-rank">${order.map((g, i) => { const f = T.finish.find((x) => x.g === g), p = groups[g] || {}; return `<div class="rr ${i === 0 && f ? 'first' : ''}" style="--c:${COLORS[g - 1]}"><span class="r">${f ? i + 1 : '–'}</span><span class="sw"></span><b>المجموعة ${g}</b><span class="muted">${f ? `<span class="tm">${fmt(f.t)}</span> · ${errWord(f.m)}` : `${Object.keys(p.placed || {}).length} من ${SORT_N}`}</span></div>`; }).join('')}</div>
+      <div class="sb-key"><h2>الإجابة الصحيحة</h2>
+        <div class="kc c"><div class="kh">${bulbSVG(54, true)}<h3>موادّ مُوصِلة للكهرباء</h3></div><div class="kws">${col(true)}</div></div>
+        <div class="kc i"><div class="kh">${bulbSVG(54, false)}<h3>موادّ عازِلة للكهرباء</h3></div><div class="kws">${col(false)}</div></div>
+        <p class="rule">الفلزّات (الفضّة، الحديد، الألومنيوم، النحاس) مُوصِلة للكهرباء · الخشب والبلاستيك والمطّاط والورق عازِلة للكهرباء</p>
+      </div></div>`;
+  }
+  function render() {
+    const n = Object.keys(online).length;
+    const running = T.startAt && T.finish.length < NG;
+    const allLit = T.startAt ? NG > 0 && Array.from({length: NG}, (_, i) => i + 1).reduce((s, g) => s + Object.keys((groups[g] || {}).placed || {}).length, 0) / (NG * SORT_N) : 0;
+    app.innerHTML = `<div class="t-wrap sb">
+      <div class="t-top">
+        <a class="t-brand" href="#/" style="text-decoration:none;color:inherit"><div class="ic">${bolt(34)}</div><div><h1>أضيئي المدينة</h1><small>غلق الهدف الثاني · صنِّفن الموادّ إلى مُوصِلة وعازِلة للكهرباء</small></div></a>
+        <div class="t-meta">
+          ${T.startAt ? `<div class="timer" id="timer">${fmt((running ? Date.now() : T.startAt + Math.max(0, ...T.finish.map((f) => f.t))) - T.startAt)}</div>` : ''}
+          <span class="pill"><span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}"></span>${conn === 'SUBSCRIBED' ? 'متصل · ' + groupsWord(n) : 'جارٍ الاتصال…'}</span>
+          ${demo ? '<span class="pill" style="background:#FFF4CC">وضع التجربة</span>' : ''}
+          ${T.startAt ? `<button class="btn ghost" id="qr">${showQR ? 'إخفاء الرمز' : 'رمز الانضمام'}</button><button class="btn ${T.view === 'res' ? 'ghost' : 'primary'}" id="view">${T.view === 'res' ? 'المدينة' : 'النتائج'}</button>` : `<button class="btn yellow big" id="start">ابدئي السباق ${bolt(26)}</button>`}
+          <button class="btn ghost" id="reset">${resetArm > Date.now() ? 'اضغطي للتأكيد' : 'جولة جديدة'}</button>
+        </div>
+      </div>
+      ${showQR ? `<div class="joinbar"><div class="qr">${qrOf(unifiedUrl('sort'), 5)}</div><div><b>امسحن الرمز بالآيباد</b><span>اخترن رقم مجموعتكنّ، ثم انتظرن إشارة البدء</span><code>${esc(unifiedUrl('sort'))}</code></div></div>` : ''}
+      ${T.view === 'res' && T.startAt ? results() : `<div class="city" style="--glow:${allLit.toFixed(2)}">
+        <div class="sky">${Array.from({length: 7}, (_, i) => `<span class="st s${i}"></span>`).join('')}</div>
+        <div class="row">${Array.from({length: NG}, (_, i) => building(i + 1)).join('')}</div>
+        <div class="ground"></div>
+        <p class="hint">${!T.startAt ? 'كلّ مجموعة تُضيء مبناها: كلّ إجابة صحيحة تُنير نافذة' : T.finish.length >= NG ? 'أضاءت المدينة كلّها! اضغطي «النتائج»' : 'كلّ إجابة صحيحة تُنير نافذة · المبنى المكتمل يُضيء مصباحه'}</p>
+      </div>`}
+    </div>`;
+    const st = $('#start'); if (st) st.onclick = () => { T.startAt = Date.now(); T.finish = []; T.view = 'city'; showQR = false; save(); bc(); SFX.ping(); render(); };
+    const qb = $('#qr'); if (qb) qb.onclick = () => { showQR = !showQR; render(); };
+    const vw = $('#view'); if (vw) vw.onclick = () => { T.view = T.view === 'res' ? 'city' : 'res'; save(); render(); };
+    $('#reset').onclick = () => {
+      if (resetArm > Date.now()) { T = fresh(); groups = {}; showQR = true; save(); bc(); resetArm = 0; toast('بدأت جولة جديدة'); render(); }
+      else { resetArm = Date.now() + 3000; render(); after(render, 3100); }
+    };
+  }
+  every(() => { const el = $('#timer'); if (el && T.startAt && T.finish.length < NG) el.textContent = fmt(Date.now() - T.startAt); }, 500);
+  render();
 }
 
 /* ================= التوجيه ================= */
@@ -861,7 +1294,10 @@ function route() {
   if (parts[0] === 'teacher') Teacher();
   else if (parts[0] === 'demo') Teacher(true);
   else if (parts[0] === 'try') Group(1, '0000', true);
+  else if (parts[0] === 'lab' && parts[1] === 'board') LabBoard(q.get('demo') === '1');
   else if (parts[0] === 'lab') Lab();
+  else if (parts[0] === 'sort' && parts[1] === 'board') SortBoard(q.get('demo') === '1');
+  else if (parts[0] === 'sort') Sort();
   else if (parts[0] === 'g') Group(+parts[1], q.get('r'));
   else Home();
 }
