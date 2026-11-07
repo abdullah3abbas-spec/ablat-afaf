@@ -445,3 +445,5 @@ img{-webkit-user-drag:none;user-select:none}
 .lb-t{font-size:21px}.lb-t td{padding:11px 6px}.lb-t th{font-size:15px}.lb-h h3{font-size:25px}.lb-pg{font-size:16px;padding:10px 14px 4px}.lb-f{font-size:17px}
 .lb-grid{align-content:center}
 @media (max-width:1300px){.lb-t{font-size:17px}.lb-t td{padding:7px 4px}.bd .body{min-height:calc(var(--h) * 20px + 250px)}.bd .roof{height:96px}}
+.lb-t td{white-space:nowrap}
+@media (max-width:1650px) and (min-width:1301px){.lb-t{font-size:16px}.lb-t td{padding:9px 3px}.lb-t td.m{padding-inline-start:8px}.lb-t td svg{width:13px;height:13px}.lb-h h3{font-size:21px}.lb-pg{font-size:13px}}
