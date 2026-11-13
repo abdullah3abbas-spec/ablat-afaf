@@ -467,3 +467,9 @@ img{-webkit-user-drag:none;user-select:none}
 .sb .joinbar .qr{width:clamp(96px,14vh,150px);height:clamp(96px,14vh,150px)}
 .sb .joinbar b{font-size:clamp(20px,3.2vh,30px)}
 .sb .joinbar span{font-size:clamp(16px,2.3vh,21px)}
+
+/* كلمات اللعبة على السبورة (بلا حلّ) */
+.sb .words{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+.sb .words b{font-size:clamp(15px,2.2vh,19px);color:var(--sub);margin-inline-end:4px}
+.sb .words span{background:#fff;border:2px solid var(--line);border-radius:14px;padding:3px 14px;font-size:clamp(15px,2.3vh,21px);font-weight:800;box-shadow:0 3px 10px rgba(27,43,75,.06)}
+.lb .t-meta a.btn,.sb .t-meta a.btn{text-decoration:none;font-size:18px;padding:9px 18px}

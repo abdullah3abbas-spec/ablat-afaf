@@ -1029,6 +1029,7 @@ function LabBoard(demo = false) {
         <div class="t-meta">
           <span class="pill"><span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}"></span>${conn === 'SUBSCRIBED' ? 'متصل · ' + groupsWord(n) : 'جارٍ الاتصال…'}</span>
           ${demo ? '<span class="pill" style="background:#FFF4CC">وضع التجربة</span>' : ''}
+          <a class="btn ghost" href="#/lab" target="_blank" rel="noopener">جرّبي كمجموعة</a>
           <button class="btn ghost" id="qr">${showQR ? 'إخفاء الرمز' : 'رمز الانضمام'}</button>
           <button class="btn ${T.reveal ? 'primary' : 'yellow'}" id="rev">${T.reveal ? 'إخفاء التصحيح' : 'إظهار التصحيح'}</button>
           <button class="btn ghost" id="reset">${resetArm > Date.now() ? 'اضغطي للتأكيد' : 'جولة جديدة'}</button>
@@ -1060,6 +1061,7 @@ const SORT = [
   {id: 'paper', t: 'دفتر ورق', c: false},
 ];
 const sortItem = (id) => SORT.find((x) => x.id === id);
+const SORT_SHOW = ['silver', 'plastic', 'rubber', 'iron', 'paper', 'alu', 'wood', 'copper']; // ترتيب مختلط للعرض على السبورة (بلا حلّ)
 const SORT_N = SORT.length;
 
 function Sort() {
@@ -1261,11 +1263,13 @@ function SortBoard(demo = false) {
           ${T.startAt ? `<div class="timer" id="timer">${fmt((running ? Date.now() : T.startAt + Math.max(0, ...T.finish.map((f) => f.t))) - T.startAt)}</div>` : ''}
           <span class="pill"><span class="dot ${conn === 'SUBSCRIBED' ? 'on' : ''}"></span>${conn === 'SUBSCRIBED' ? 'متصل · ' + groupsWord(n) : 'جارٍ الاتصال…'}</span>
           ${demo ? '<span class="pill" style="background:#FFF4CC">وضع التجربة</span>' : ''}
+          <a class="btn ghost" href="#/sort" target="_blank" rel="noopener">جرّبي كمجموعة</a>
           ${T.startAt ? `<button class="btn ghost" id="qr">${showQR ? 'إخفاء الرمز' : 'رمز الانضمام'}</button><button class="btn ${T.view === 'res' ? 'ghost' : 'primary'}" id="view">${T.view === 'res' ? 'المدينة' : 'النتائج'}</button>` : `<button class="btn yellow big" id="start">ابدئي السباق ${bolt(26)}</button>`}
           <button class="btn ghost" id="reset">${resetArm > Date.now() ? 'اضغطي للتأكيد' : 'جولة جديدة'}</button>
         </div>
       </div>
       ${showQR ? `<div class="joinbar"><div class="qr">${qrOf(unifiedUrl('sort'), 5)}</div><div><b>امسحن الرمز بالآيباد</b><span>اخترن رقم مجموعتكنّ، ثم انتظرن إشارة البدء</span><code>${esc(unifiedUrl('sort'))}</code></div></div>` : ''}
+      ${T.view === 'res' && T.startAt ? '' : `<div class="words"><b>الكلمات التي تصنّفها المجموعات:</b>${SORT_SHOW.map((id) => `<span>${esc(sortItem(id).t)}</span>`).join('')}</div>`}
       ${T.view === 'res' && T.startAt ? results() : `<div class="city" style="--glow:${allLit.toFixed(2)}">
         <div class="sky">${Array.from({length: 7}, (_, i) => `<span class="st s${i}"></span>`).join('')}</div>
         <div class="row">${Array.from({length: NG}, (_, i) => building(i + 1)).join('')}</div>
