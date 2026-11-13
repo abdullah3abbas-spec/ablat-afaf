@@ -186,6 +186,7 @@ function Home() {
     <div class="logo">${bolt(60)}</div>
     <h1>موصِل أم عازِل؟</h1>
     <p class="sub">علوم الصف الخامس · الدرس 3.3 · المُوصِلات والعوازِل الكهربائية</p>
+    <a class="btn yellow" href="#/games" style="font-size:26px;padding:14px 34px">كلّ الألعاب ${bolt(26)}</a>
     <div class="cards">
       <div class="card">${bulbSVG(84, true)}شاشة المعلمة<small>للسبورة أو جهاز العرض</small>
         <a class="btn primary" href="#/lab/board">متابعة المختبر</a>
@@ -203,12 +204,58 @@ function Home() {
   </div>`;
 }
 
+/* ================= صفحة الألعاب المجمّعة ================= */
+const GAMES = [
+  {t: 'المختبر الافتراضي', tag: 'النشاط 2 · الكتاب ص 175', th: 'lab', color: '#2F6FED',
+   d: 'تختبر كلّ مجموعة 5 موادّ في الدائرة الكهربائيّة وتملأ جدول الكتاب، وتتابعين جداول المجموعات على السبورة.',
+   board: '#/lab/board', group: '#/lab', demo: '#/lab/board?demo=1'},
+  {t: 'أضيئي المدينة', tag: 'غلق الهدف الثاني', th: 'sort', color: '#FF8A00',
+   d: 'تصنّف كلّ مجموعة 8 موادّ إلى مُوصِلة وعازِلة، ومع كلّ إجابة صحيحة تُضاء نوافذ مبناها في المدينة.',
+   board: '#/sort/board', group: '#/sort', demo: '#/sort/board?demo=1'},
+  {t: 'سباق التصنيف', tag: 'لعبة إضافيّة للمراجعة', th: 'race', color: '#1FA971',
+   d: 'تسحب كلّ مجموعة 14 أداة إلى المصباح المناسب: يضيء أو لا يضيء، والأسرع تفوز بالمركز الأوّل.',
+   board: '#/teacher?stage=game', group: '#/try', demo: '#/demo?stage=game'},
+  {t: 'مسابقة الأسئلة', tag: 'لعبة إضافيّة للتقييم', th: 'quiz', color: '#8B5CF6',
+   d: '7 أسئلة اختيار من متعدّد، تُجيب عنها المجموعات على الآيباد، وتظهر إجابة كلّ مجموعة على السبورة.',
+   board: '#/teacher?stage=quiz', demo: '#/demo?stage=quiz'},
+];
+const ORD = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة'];
+function Games() {
+  document.title = 'ألعاب الدرس · موصِل أم عازِل؟';
+  app.innerHTML = `<div class="gh">
+    <div class="gh-top">
+      <a class="gh-logo" href="#/" title="الصفحة الرئيسية">${bolt(40)}</a>
+      <div><h1>ألعاب الدرس</h1><small>علوم الصف الخامس · المُوصِلات والعوازِل الكهربائيّة · اضغطي على اللعبة لتفتح على السبورة</small></div>
+    </div>
+    <div class="gh-grid">${GAMES.map((g, i) => `<article class="gh-card" style="--gc:${g.color}">
+      <a class="gh-th" href="${g.board}" aria-label="افتحي ${esc(g.t)} على السبورة">
+        <img src="${ASSET}img/games/${g.th}.webp" alt="شاشة ${esc(g.t)}" loading="lazy">
+        <span class="gh-no"><i>${i + 1}</i>اللعبة ${ORD[i]}</span>
+      </a>
+      <div class="gh-b">
+        <h2>${esc(g.t)}</h2>
+        <span class="gh-tag">${esc(g.tag)}</span>
+        <p>${esc(g.d)}</p>
+        <div class="gh-act">
+          <a class="btn primary" href="${g.board}">افتحي على السبورة</a>
+          ${g.group ? `<a class="btn ghost" href="${g.group}" target="_blank" rel="noopener">جرّبي كمجموعة</a>` : ''}
+          <a class="gh-demo" href="${g.demo}">تجربة بمجموعات وهمية</a>
+        </div>
+      </div>
+    </article>`).join('')}</div>
+  </div>`;
+}
+
 /* ================= شاشة المعلمة ================= */
-function Teacher(demo = false) {
+function Teacher(demo = false, startStage = null) {
   document.title = (demo ? 'تجربة · ' : '') + 'شاشة المعلمة · موصِل أم عازِل؟';
   const LSKEY = demo ? 'zk-teacher-demo' : 'zk-teacher';
   const fresh = () => ({room: String(1000 + rnd(9000)), epoch: Date.now().toString(36), stage: 'video', groupsCount: 5, names: defNames(), gameStart: null, finish: [], quizIdx: 0, reveal: false});
   let T = Object.assign(fresh(), LS.get(LSKEY, {}));
+  if (startStage === 'game' || startStage === 'quiz') {
+    T.stage = startStage; T.reveal = false;
+    if (startStage === 'quiz' && T.quizIdx >= QUIZ.length) T.quizIdx = 0;
+  }
   let groups = {}; // g -> payload
   let online = {}; // g -> true
   let conn = 'CONNECTING';
@@ -353,7 +400,7 @@ function Teacher(demo = false) {
     }
     if (T.stage === 'game') return T.gameStart && !showJoin ? liveView() : joinView();
     if (T.stage === 'results') return resultsView();
-    if (T.stage === 'quiz') return quizView();
+    if (T.stage === 'quiz') return showJoin ? joinView() : quizView();
     return '';
   }
 
@@ -366,7 +413,7 @@ function Teacher(demo = false) {
         <span class="pill" style="font-size:18px">عدد المجموعات
           ${[4, 5, 6].map((k) => `<button data-n="${k}" style="width:34px;height:34px;border-radius:50%;font-weight:800;${k === n ? 'background:var(--blue);color:#fff' : 'background:#fff'}">${k}</button>`).join('')}
         </span>
-        ${T.gameStart ? `<button class="btn primary" id="back">رجوع إلى اللعبة</button>` : `<button class="btn yellow" id="start" style="font-size:26px;padding:14px 34px">بدء اللعبة ${bolt(26)}</button>`}
+        ${T.stage === 'quiz' ? `<button class="btn primary" id="back">رجوع إلى الأسئلة</button>` : T.gameStart ? `<button class="btn primary" id="back">رجوع إلى اللعبة</button>` : `<button class="btn yellow" id="start" style="font-size:26px;padding:14px 34px">بدء اللعبة ${bolt(26)}</button>`}
       </div>
       <div class="join" style="grid-template-columns:repeat(${cols},1fr)">
         ${Array.from({length: n}, (_, i) => i + 1).map((g) => `<div class="jcard" style="border-color:${online[g] ? COLORS[g - 1] : 'var(--line)'}">
@@ -462,6 +509,7 @@ function Teacher(demo = false) {
       <div class="who">${who}</div>
       ${T.reveal ? `<div class="exp">${esc(q.x)}</div>` : ''}
       <div class="t-bar">
+        <button class="btn ghost" id="showjoin">رموز الانضمام</button>
         <button class="btn ghost" id="qprev" ${T.quizIdx === 0 ? 'disabled' : ''}>السابق</button>
         ${T.reveal ? '' : '<button class="btn yellow" id="qrev">إظهار الإجابة</button>'}
         <button class="btn primary" id="qnext">${T.quizIdx === QUIZ.length - 1 ? 'النتيجة النهائية' : 'السؤال التالي'}</button>
@@ -1295,8 +1343,9 @@ function route() {
   const [path, qs] = h.split('?');
   const parts = path.split('/').filter(Boolean);
   const q = new URLSearchParams(qs || '');
-  if (parts[0] === 'teacher') Teacher();
-  else if (parts[0] === 'demo') Teacher(true);
+  if (parts[0] === 'games') Games();
+  else if (parts[0] === 'teacher') Teacher(false, q.get('stage'));
+  else if (parts[0] === 'demo') Teacher(true, q.get('stage'));
   else if (parts[0] === 'try') Group(1, '0000', true);
   else if (parts[0] === 'lab' && parts[1] === 'board') LabBoard(q.get('demo') === '1');
   else if (parts[0] === 'lab') Lab();
