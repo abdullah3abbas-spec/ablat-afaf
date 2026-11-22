@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "academic-research": {
+      "source": {
+        "source": "github",
+        "repo": "JeanDiable/academic-research-plugin"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "academic-research@academic-research": true
+  }
+}
